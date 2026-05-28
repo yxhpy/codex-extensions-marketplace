@@ -1,0 +1,25 @@
+{
+  "name": "task-gate",
+  "version": "0.1.0+codex.20260528162028",
+  "description": "Convert raw user prompts into numbered task plans before Codex executes.",
+  "author": {
+    "name": "yxhpy"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Task Gate",
+    "shortDescription": "Plan prompts into tasks first.",
+    "longDescription": "Task Gate adds a planning layer that turns a raw user prompt into a concrete numbered task list before Codex starts implementation work. The thinker backend uses Claude API directly when credentials are available from the environment or Claude settings, falls back to the local Claude CLI otherwise, and an optional wrapper can pass only the numbered plan into codex exec.",
+    "developerName": "yxhpy",
+    "category": "Productivity",
+    "capabilities": [
+      "Planning",
+      "MCP"
+    ],
+    "defaultPrompt": [
+      "Plan this prompt into numbered tasks first.",
+      "Use Task Gate before implementing this change."
+    ]
+  },
+  "mcpServers": "./.mcp.json"
+}

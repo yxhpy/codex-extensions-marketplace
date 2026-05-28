@@ -1,0 +1,4 @@
+interface:
+  display_name: "AGY Frontend"
+  short_description: "Route frontend work through Antigravity CLI."
+  default_prompt: "Use AGY to implement and verify this frontend change."

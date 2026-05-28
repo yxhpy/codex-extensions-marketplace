@@ -1,0 +1,27 @@
+{
+  "name": "yxhpy-codex-extensions",
+  "description": "Public catalog of optional Codex plugins, skills, and MCP-oriented tools.",
+  "plugins": [
+    {
+      "name": "task-gate",
+      "path": "plugins/task-gate",
+      "install": "codex plugin add task-gate@yxhpy-codex-extensions",
+      "summary": "Plan raw prompts into numbered tasks before Codex executes. Includes MCP server and codex_gate wrapper."
+    }
+  ],
+  "skills": [
+    {
+      "name": "agy-frontend",
+      "path": "skills/agy-frontend",
+      "install": "python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py --repo yxhpy/codex-extensions-marketplace --path skills/agy-frontend",
+      "summary": "Frontend workflow skill that routes implementation through the Antigravity CLI and requires local verification."
+    }
+  ],
+  "mcps": [
+    {
+      "name": "task-gate",
+      "path": "plugins/task-gate/scripts/mcp_server.py",
+      "summary": "MCP stdio server exposed by the task-gate plugin."
+    }
+  ]
+}

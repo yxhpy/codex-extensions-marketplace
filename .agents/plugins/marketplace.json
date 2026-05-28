@@ -1,0 +1,20 @@
+{
+  "name": "yxhpy-codex-extensions",
+  "interface": {
+    "displayName": "yxhpy Codex Extensions"
+  },
+  "plugins": [
+    {
+      "name": "task-gate",
+      "source": {
+        "source": "local",
+        "path": "./plugins/task-gate"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
