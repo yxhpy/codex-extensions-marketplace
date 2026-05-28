@@ -13,7 +13,7 @@
     {
       "name": "agy-frontend",
       "path": "skills/agy-frontend",
-      "install": "python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py --repo yxhpy/codex-extensions-marketplace --path skills/agy-frontend",
+      "install": "python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py --repo yxhpy/codex-extensions-marketplace --path skills/agy-frontend --method git",
       "summary": "Frontend workflow skill that routes implementation through the Antigravity CLI and requires local verification."
     }
   ],

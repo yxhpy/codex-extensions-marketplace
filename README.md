@@ -38,7 +38,8 @@ Install `agy-frontend` with Codex's skill installer:
 ```bash
 python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
   --repo yxhpy/codex-extensions-marketplace \
-  --path skills/agy-frontend
+  --path skills/agy-frontend \
+  --method git
 ```
 
 Restart Codex after installing a skill.
@@ -60,4 +61,3 @@ cd plugins/task-gate && ./scripts/docker_clean_test.sh
 ```
 
 For host-specific releases, run a real macOS Codex smoke test in an isolated temporary workspace before publishing.
-
