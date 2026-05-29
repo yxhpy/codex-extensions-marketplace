@@ -1,0 +1,14 @@
+{
+  "name": "yxhpy-codex-extensions",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-strip-types --test skills/agy-frontend/tests/*.ts plugins/task-gate/tests/*.ts plugins/grok-augment/tests/*.ts",
+    "test:task-gate": "node --experimental-strip-types --test plugins/task-gate/tests/*.ts",
+    "test:grok-augment": "node --experimental-strip-types --test plugins/grok-augment/tests/*.ts",
+    "test:agy-frontend": "node --experimental-strip-types --test skills/agy-frontend/tests/*.ts"
+  },
+  "engines": {
+    "node": ">=22.18"
+  }
+}

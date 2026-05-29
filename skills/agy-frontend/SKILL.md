@@ -1,6 +1,6 @@
 ---
 name: agy-frontend
-description: "Use when building, modifying, redesigning, styling, debugging, reviewing, or visually verifying frontend UI, web apps, pages, components, dashboards, landing pages, games, HTML/CSS, React, Vue, Svelte, Tailwind, responsive layout, browser UX, or visual polish."
+description: "Use AGY for frontend build/edit/style/debug/review/visual verification across web/UI apps, pages, components, dashboards, games, HTML/CSS, React/Vue/Svelte, Tailwind, responsive browser UX."
 ---
 
 # AGY Frontend
@@ -37,7 +37,7 @@ AGY_BIN="${AGY_BIN:-agy}"
 Use `--dangerously-skip-permissions` only when the user has asked for autonomous file edits or the task cannot proceed without approval prompts. Prefer a bounded prompt over broad permission.
 
 6. If `agy` returns a plan instead of editing files, rerun with explicit approval to implement. If it returns instructions or a patch, apply the result carefully with local tools.
-7. Verify locally: install-free checks first, then typecheck/lint/tests/build as appropriate, then browser or screenshot proof for visible UI. For static media-led pages, run `ASSET_MIN_IMAGES=<n> ASSET_MIN_VIDEOS=<n> scripts/verify-static-frontend.sh <site-dir>` when applicable.
+7. Verify locally: install-free checks first, then typecheck/lint/tests/build as appropriate, then browser or screenshot proof for visible UI. For static media-led pages, run `ASSET_MIN_IMAGES=<n> ASSET_MIN_VIDEOS=<n> node --experimental-strip-types scripts/verify-static-frontend.ts <site-dir>` when applicable.
 8. Report what `agy` did, what Codex verified, and any gap.
 
 ## Visual Media Rule
@@ -111,7 +111,7 @@ When `frontend-skill` or `frontend-design` also applies, use their design constr
 
 - Read `references/asset-pack.md` before generating assets for image-led, video-led, cinematic, or polished demo work.
 - Read `references/frontend-verification.md` before final verification for visible UI work.
-- Use `scripts/verify-static-frontend.sh` for static HTML/CSS/JS pages when a local server can be run.
+- Use `node --experimental-strip-types scripts/verify-static-frontend.ts` for static HTML/CSS/JS pages when a local server can be run.
 
 ## Failure Handling
 

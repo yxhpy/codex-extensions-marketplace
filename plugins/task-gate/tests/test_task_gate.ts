@@ -1,0 +1,408 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+
+import {
+  ClaudeCliThinker,
+  PlanError,
+  THINK_SCHEMA,
+  Task,
+  TaskPlan,
+  TaskPlanner,
+  ThinkingPlanner,
+  parsePlanOutput,
+  parseThinkingOutput,
+} from "../scripts/task_gate.ts";
+import {
+  CodexExecutor,
+  CodexGate,
+  FollowupDecision,
+  buildCodexExecutionPrompt,
+} from "../scripts/codex_gate.ts";
+
+class FakeThinker {
+  output: string;
+  prompts: string[] = [];
+
+  constructor(output: string) {
+    this.output = output;
+  }
+
+  think(prompt: string): string {
+    this.prompts.push(prompt);
+    return this.output;
+  }
+}
+
+test("planner turns prompt into numbered tasks", () => {
+  const thinker = new FakeThinker(
+    JSON.stringify({
+      tasks: [
+        { title: "Inspect the repository" },
+        { title: "Implement the requested change" },
+        { title: "Run focused verification" },
+      ],
+    }),
+  );
+
+  const plan = new TaskPlanner({ thinker }).plan("Add task gating to this plugin");
+
+  assert.deepEqual(
+    plan.tasks.map((task) => task.id),
+    [1, 2, 3],
+  );
+  assert.deepEqual(
+    plan.tasks.map((task) => task.title),
+    ["Inspect the repository", "Implement the requested change", "Run focused verification"],
+  );
+  assert.match(thinker.prompts[0], /Add task gating to this plugin/);
+  assert.match(thinker.prompts[0], /Preserve exact filenames/);
+  assert.equal(
+    plan.asNumberedText(),
+    "1. Inspect the repository\n2. Implement the requested change\n3. Run focused verification",
+  );
+});
+
+test("parser accepts numbered text fallback", () => {
+  const plan = parsePlanOutput("1. Clarify scope\n2. Write tests\n3. Implement and verify", {
+    sourcePrompt: "Build a gate",
+  });
+
+  assert.deepEqual(
+    plan.tasks.map((task) => task.title),
+    ["Clarify scope", "Write tests", "Implement and verify"],
+  );
+});
+
+test("parser accepts Claude CLI structured output envelope", () => {
+  const plan = parsePlanOutput(
+    JSON.stringify({
+      type: "result",
+      result: "Natural language summary",
+      structured_output: {
+        tasks: [
+          {
+            title: "Use the structured output field",
+            details: "Claude CLI wraps JSON schema results here.",
+          },
+        ],
+      },
+    }),
+    { sourcePrompt: "Plan with Claude CLI" },
+  );
+
+  assert.equal(plan.tasks[0].title, "Use the structured output field");
+});
+
+test("thinking planner turns stuck prompt into candidate ideas", () => {
+  const thinker = new FakeThinker(
+    JSON.stringify({
+      ideas: [
+        {
+          title: "Trace the smallest failing surface",
+          rationale: "A narrow reproduction can reveal the next move.",
+          tradeoffs: ["Fast to run", "May miss systemic causes"],
+          risks: ["Could overfit to one symptom"],
+          validation: ["One focused test fails before implementation"],
+        },
+        {
+          title: "Map adjacent approaches",
+          rationale: "Comparing alternatives can unlock a better path.",
+        },
+      ],
+      recommendation: "Start with the smallest failing surface.",
+      next_tasks: [
+        { title: "Write a failing characterization test" },
+        { title: "Pick the cheapest reversible fix" },
+      ],
+    }),
+  );
+
+  const plan = new ThinkingPlanner({ thinker, maxIdeas: 7 }).think(
+    "Codex is stuck and has no good next step",
+  );
+
+  assert.deepEqual(
+    plan.ideas.map((idea) => idea.id),
+    [1, 2],
+  );
+  assert.equal(plan.ideas[0].title, "Trace the smallest failing surface");
+  assert.deepEqual(plan.ideas[0].tradeoffs, ["Fast to run", "May miss systemic causes"]);
+  assert.equal(plan.recommendation, "Start with the smallest failing surface.");
+  assert.deepEqual(
+    plan.nextTasks.map((task) => task.title),
+    ["Write a failing characterization test", "Pick the cheapest reversible fix"],
+  );
+  assert.match(thinker.prompts[0], /divergent thinking mode/);
+  assert.match(thinker.prompts[0], /Codex is stuck and has no good next step/);
+});
+
+test("thinking parser accepts Claude CLI structured output envelope", () => {
+  const plan = parseThinkingOutput(
+    JSON.stringify({
+      type: "result",
+      result: "Natural language summary",
+      structured_output: {
+        ideas: [
+          {
+            title: "Read structured_output first",
+            rationale: "Claude CLI returns schema data separately.",
+          },
+        ],
+        next_tasks: [{ title: "Keep parser aligned" }],
+      },
+    }),
+    { sourcePrompt: "Codex is stuck" },
+  );
+
+  assert.equal(plan.ideas[0].title, "Read structured_output first");
+  assert.equal(plan.nextTasks[0].title, "Keep parser aligned");
+});
+
+test("blank prompt is rejected before calling thinker", () => {
+  const thinker = new FakeThinker('{"tasks":["unused"]}');
+
+  assert.throws(() => new TaskPlanner({ thinker }).plan("   "), /prompt must not be blank/);
+  assert.deepEqual(thinker.prompts, []);
+});
+
+test("Claude CLI thinker uses noninteractive structured mode", () => {
+  const calls: Array<[string[], Record<string, unknown>]> = [];
+  const thinker = new ClaudeCliThinker({
+    command: "/fake/claude",
+    timeoutSeconds: 9,
+    runner(args, options) {
+      calls.push([args, options]);
+      return { status: 0, stdout: '{"tasks":["Split prompt"]}', stderr: "" };
+    },
+  });
+
+  assert.equal(thinker.think("Plan this"), '{"tasks":["Split prompt"]}');
+  const [args, options] = calls[0];
+  assert.equal(args[0], "/fake/claude");
+  assert.ok(args.includes("--print"));
+  assert.equal(args[args.indexOf("--output-format") + 1], "json");
+  assert.ok(args.includes("--json-schema"));
+  assert.ok(!args.includes("--tools"));
+  assert.match(args.at(-1) || "", /Plan this/);
+  assert.equal(options.timeout, 9000);
+  assert.equal(options.captureOutput, true);
+});
+
+test("Claude CLI error reports stdout when stderr is empty", () => {
+  const thinker = new ClaudeCliThinker({
+    command: "/fake/claude",
+    runner() {
+      return { status: 1, stdout: "Error: Exceeded USD budget", stderr: "" };
+    },
+  });
+
+  assert.throws(() => thinker.think("Plan this"), /Exceeded USD budget/);
+});
+
+test("Claude CLI thinker defaults to long timeout", () => {
+  const oldEnv = process.env.TASK_GATE_CLAUDE_TIMEOUT;
+  delete process.env.TASK_GATE_CLAUDE_TIMEOUT;
+  try {
+    const thinker = new ClaudeCliThinker({ command: "/fake/claude" });
+    assert.equal(thinker.timeoutSeconds, 300);
+  } finally {
+    if (oldEnv === undefined) delete process.env.TASK_GATE_CLAUDE_TIMEOUT;
+    else process.env.TASK_GATE_CLAUDE_TIMEOUT = oldEnv;
+  }
+});
+
+test("default thinker uses CLI even when API credentials exist", async () => {
+  const oldEnv = { ...process.env };
+  process.env.ANTHROPIC_AUTH_TOKEN = "secret-token";
+  process.env.ANTHROPIC_BASE_URL = "https://example.test/anthropic";
+  process.env.ANTHROPIC_MODEL = "fast-model";
+  process.env.TASK_GATE_THINKER = "auto";
+  try {
+    const { buildDefaultThinker } = await import("../scripts/task_gate.ts");
+    const thinker = buildDefaultThinker();
+    assert.ok(thinker instanceof ClaudeCliThinker);
+    assert.deepEqual((thinker as ClaudeCliThinker).outputSchema.required, ["tasks"]);
+  } finally {
+    process.env = oldEnv;
+  }
+});
+
+test("thinking planner default thinker uses thinking schema", () => {
+  const oldEnv = { ...process.env };
+  process.env.TASK_GATE_THINKER = "auto";
+  try {
+    const planner = new ThinkingPlanner();
+    assert.equal((planner.thinker as ClaudeCliThinker).outputSchema, THINK_SCHEMA);
+  } finally {
+    process.env = oldEnv;
+  }
+});
+
+test("codex gate dry run plans without executing codex", () => {
+  const codexCalls: string[][] = [];
+  const gate = new CodexGate({
+    planner: new TaskPlanner({ thinker: new FakeThinker('{"tasks":["Plan only"]}') }),
+    executor: new CodexExecutor({
+      command: "/fake/codex",
+      runner(args) {
+        codexCalls.push(args);
+        return { status: 0 };
+      },
+    }),
+  });
+
+  const result = gate.run({ prompt: "Sensitive raw prompt", execute: false });
+
+  assert.equal(result.exitCode, 0);
+  assert.deepEqual(codexCalls, []);
+  assert.match(result.output, /1\. Plan only/);
+});
+
+test("codex gate execute sends only task plan to codex", () => {
+  const codexCalls: Array<[string[], Record<string, unknown>]> = [];
+  class CompleteFollowup {
+    assess(): FollowupDecision {
+      return new FollowupDecision({ complete: true, summary: "All tasks are complete." });
+    }
+  }
+  const gate = new CodexGate({
+    planner: new TaskPlanner({
+      thinker: new FakeThinker(
+        JSON.stringify({
+          tasks: [{ title: "Inspect files" }, { title: "Run verification" }],
+        }),
+      ),
+    }),
+    executor: new CodexExecutor({
+      command: "/fake/codex",
+      runner(args, options) {
+        codexCalls.push([args, options]);
+        return { status: 0, stdout: "Detailed completion summary: complete", stderr: "" };
+      },
+    }),
+    followupPlanner: new CompleteFollowup(),
+  });
+
+  const result = gate.run({ prompt: "Sensitive raw prompt", execute: true, cwd: "/tmp/work" });
+
+  assert.equal(result.exitCode, 0);
+  const [args, options] = codexCalls[0];
+  assert.deepEqual(args.slice(0, 2), ["/fake/codex", "exec"]);
+  assert.ok(args.includes("-C"));
+  assert.ok(args.includes("/tmp/work"));
+  const codexPrompt = args.at(-1) || "";
+  assert.match(codexPrompt, /1\. Inspect files/);
+  assert.match(codexPrompt, /2\. Run verification/);
+  assert.doesNotMatch(codexPrompt, /Sensitive raw prompt/);
+  assert.equal(options.check, false);
+  assert.equal(options.captureOutput, true);
+  assert.match(codexPrompt, /Detailed completion summary/);
+  assert.match(result.output, /Gate follow-up/);
+});
+
+test("codex gate continues with gate next tasks until complete", () => {
+  class StaticPlanner {
+    plan(prompt: string): TaskPlan {
+      return new TaskPlan({ sourcePrompt: prompt, tasks: [new Task({ id: 1, title: "Implement slice" })] });
+    }
+  }
+  class Followup {
+    calls: Record<string, unknown>[] = [];
+
+    assess(kwargs: Record<string, unknown>): FollowupDecision {
+      this.calls.push(kwargs);
+      if (kwargs.roundNumber === 1) {
+        return new FollowupDecision({
+          complete: false,
+          summary: "Verification is still missing.",
+          nextTasks: [new Task({ id: 1, title: "Run verification" })],
+        });
+      }
+      return new FollowupDecision({ complete: true, summary: "Verification passed." });
+    }
+  }
+  const codexCalls: string[] = [];
+  const followup = new Followup();
+  const gate = new CodexGate({
+    planner: new StaticPlanner(),
+    executor: new CodexExecutor({
+      command: "/fake/codex",
+      runner(args) {
+        codexCalls.push(args.at(-1) || "");
+        return { status: 0, stdout: `Detailed completion summary: round ${codexCalls.length}`, stderr: "" };
+      },
+    }),
+    followupPlanner: followup,
+  });
+
+  const result = gate.run({ prompt: "Sensitive raw prompt", execute: true, maxRounds: 3 });
+
+  assert.equal(result.exitCode, 0);
+  assert.equal(codexCalls.length, 2);
+  assert.match(codexCalls[0], /1\. Implement slice/);
+  assert.match(codexCalls[1], /1\. Run verification/);
+  assert.doesNotMatch(codexCalls[0], /Sensitive raw prompt/);
+  assert.doesNotMatch(codexCalls[1], /Sensitive raw prompt/);
+  assert.equal(followup.calls.length, 2);
+  assert.match(String(followup.calls[0].codexOutput), /round 1/);
+  assert.match(result.output, /Verification is still missing/);
+  assert.match(result.output, /Verification passed/);
+});
+
+test("codex gate returns failure when max rounds reached before completion", () => {
+  class StaticPlanner {
+    plan(prompt: string): TaskPlan {
+      return new TaskPlan({ sourcePrompt: prompt, tasks: [new Task({ id: 1, title: "Keep working" })] });
+    }
+  }
+  class IncompleteFollowup {
+    assess(): FollowupDecision {
+      return new FollowupDecision({
+        complete: false,
+        summary: "More work remains.",
+        nextTasks: [new Task({ id: 1, title: "Continue the remaining work" })],
+      });
+    }
+  }
+  const codexCalls: string[] = [];
+  const gate = new CodexGate({
+    planner: new StaticPlanner(),
+    executor: new CodexExecutor({
+      command: "/fake/codex",
+      runner(args) {
+        codexCalls.push(args.at(-1) || "");
+        return { status: 0, stdout: "Detailed completion summary: incomplete", stderr: "" };
+      },
+    }),
+    followupPlanner: new IncompleteFollowup(),
+  });
+
+  const result = gate.run({ prompt: "Sensitive raw prompt", execute: true, maxRounds: 2 });
+
+  assert.equal(result.exitCode, 1);
+  assert.equal(codexCalls.length, 2);
+  assert.match(result.output, /max execution rounds reached before completion/);
+});
+
+test("codex execution prompt includes details and acceptance criteria", () => {
+  const plan = new TaskPlan({
+    sourcePrompt: "Create a file with secret raw wording",
+    tasks: [
+      new Task({
+        id: 1,
+        title: "Create ACTUAL_REMOTE_TEST_RESULT.txt",
+        details: "Write TASK_GATE_REMOTE_CODEX_OK into ACTUAL_REMOTE_TEST_RESULT.txt.",
+        acceptanceCriteria: ["ACTUAL_REMOTE_TEST_RESULT.txt contains TASK_GATE_REMOTE_CODEX_OK"],
+      }),
+    ],
+  });
+
+  const codexPrompt = buildCodexExecutionPrompt(plan);
+
+  assert.match(codexPrompt, /1\. Create ACTUAL_REMOTE_TEST_RESULT.txt/);
+  assert.match(codexPrompt, /Write TASK_GATE_REMOTE_CODEX_OK/);
+  assert.match(codexPrompt, /ACTUAL_REMOTE_TEST_RESULT.txt contains TASK_GATE_REMOTE_CODEX_OK/);
+  assert.match(codexPrompt, /Detailed completion summary/);
+  assert.match(codexPrompt, /Completion verdict/);
+  assert.doesNotMatch(codexPrompt, /secret raw wording/);
+});

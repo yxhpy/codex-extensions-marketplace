@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Thinking Gate",
     "shortDescription": "Brainstorm when Codex is stuck.",
-    "longDescription": "Thinking Gate gives Codex a dedicated divergent-thinking escape hatch for moments when it is stuck, unsure, looping, out of ideas, or has no good next step. Chinese trigger phrases include \u5361\u4f4f, \u6ca1\u601d\u8def, \u6ca1\u6709\u597d\u60f3\u6cd5, \u4e0d\u77e5\u9053\u4e0b\u4e00\u6b65, \u60f3\u4e0d\u51fa\u6765, \u53d1\u6563\u4e00\u4e0b, \u5934\u8111\u98ce\u66b4, and \u6362\u4e2a\u601d\u8def. The plugin is script-only for stability: skills call scripts/task_gate.py directly for divergent ideas or numbered plans, and scripts/codex_gate.py can pass only the generated task plan into codex exec. After each codex exec round, Codex must produce a detailed completion summary; Task Gate reviews that summary and continues with next numbered tasks until completion or the configured safety limit. The thinker backend directly calls the local Claude CLI with a longer default timeout.",
+    "longDescription": "Thinking Gate gives Codex a dedicated divergent-thinking escape hatch for moments when it is stuck, unsure, looping, out of ideas, or has no good next step. Chinese trigger phrases include \u5361\u4f4f, \u6ca1\u601d\u8def, \u6ca1\u6709\u597d\u60f3\u6cd5, \u4e0d\u77e5\u9053\u4e0b\u4e00\u6b65, \u60f3\u4e0d\u51fa\u6765, \u53d1\u6563\u4e00\u4e0b, \u5934\u8111\u98ce\u66b4, and \u6362\u4e2a\u601d\u8def. The plugin is script-only for stability: skills call scripts/task_gate.ts directly for divergent ideas or numbered plans, and scripts/codex_gate.ts can pass only the generated task plan into codex exec. After each codex exec round, Codex must produce a detailed completion summary; Task Gate reviews that summary and continues with next numbered tasks until completion or the configured safety limit. The thinker backend directly calls the local Claude CLI with a longer default timeout.",
     "developerName": "yxhpy",
     "category": "Productivity",
     "capabilities": [
@@ -17,9 +17,9 @@
       "Planning"
     ],
     "defaultPrompt": [
-      "Codex is stuck; run scripts/task_gate.py --think --json to generate divergent options.",
+      "Codex is stuck; run node --experimental-strip-types scripts/task_gate.ts --think --json to generate divergent options.",
       "When the user says \u5361\u4f4f, \u6ca1\u601d\u8def, \u6ca1\u6709\u597d\u60f3\u6cd5, \u4e0d\u77e5\u9053\u4e0b\u4e00\u6b65, \u60f3\u4e0d\u51fa\u6765, \u53d1\u6563\u4e00\u4e0b, \u5934\u8111\u98ce\u66b4, or \u6362\u4e2a\u601d\u8def, use Thinking Gate.",
-      "When using scripts/codex_gate.py --execute, require Codex to summarize completed work, verification, remaining work, blockers, and completion verdict, then ask Task Gate for next tasks before stopping."
+      "When using node --experimental-strip-types scripts/codex_gate.ts --execute, require Codex to summarize completed work, verification, remaining work, blockers, and completion verdict, then ask Task Gate for next tasks before stopping."
     ]
   }
 }

@@ -14,7 +14,7 @@ Use this skill when Codex does not know the next move, has no strong idea, is lo
 1. Run the local script from the plugin root:
 
 ```bash
-python3 scripts/task_gate.py --think --json "<stuck prompt>"
+node --experimental-strip-types scripts/task_gate.ts --think --json "<stuck prompt>"
 ```
 
 2. Treat the returned `ideas` array as candidate directions, not an execution plan.
@@ -29,7 +29,7 @@ Use this workflow when the user wants Codex to work only after a prompt has been
 1. Run the local planner script from the plugin root:
 
 ```bash
-python3 scripts/task_gate.py --json "<raw user prompt>"
+node --experimental-strip-types scripts/task_gate.ts --json "<raw user prompt>"
 ```
 
 2. Treat the returned `tasks` array as the execution plan.
@@ -41,7 +41,7 @@ python3 scripts/task_gate.py --json "<raw user prompt>"
 For stronger gating outside Codex, use the wrapper script from the plugin root:
 
 ```bash
-python3 scripts/codex_gate.py --execute "<raw user prompt>"
+node --experimental-strip-types scripts/codex_gate.ts --execute "<raw user prompt>"
 ```
 
 That wrapper sends the raw prompt only to the planner, then passes only the numbered task plan into `codex exec`.
@@ -69,11 +69,11 @@ Claude API mode and MCP mode are intentionally not part of the normal workflow.
 Task planning:
 
 ```bash
-python3 scripts/task_gate.py --json "<raw user prompt>"
+node --experimental-strip-types scripts/task_gate.ts --json "<raw user prompt>"
 ```
 
 Divergent thinking:
 
 ```bash
-python3 scripts/task_gate.py --think --json "<stuck prompt>"
+node --experimental-strip-types scripts/task_gate.ts --think --json "<stuck prompt>"
 ```

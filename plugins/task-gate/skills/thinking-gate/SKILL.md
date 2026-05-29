@@ -29,7 +29,7 @@ Common trigger phrases include:
 1. Run the local script from the plugin root:
 
 ```bash
-python3 scripts/task_gate.py --think --json "<stuck prompt>"
+node --experimental-strip-types scripts/task_gate.ts --think --json "<stuck prompt>"
 ```
 
 2. Treat the returned `ideas` as candidate directions, not commands.
@@ -50,7 +50,7 @@ Useful overrides:
 ## Script Reference
 
 ```bash
-python3 scripts/task_gate.py --think --json "<stuck prompt>"
+node --experimental-strip-types scripts/task_gate.ts --think --json "<stuck prompt>"
 ```
 
-Use `scripts/task_gate.py --json` or `scripts/codex_gate.py --execute` only after a direction has been chosen and the work needs an execution task list.
+Use `scripts/task_gate.ts --json` or `scripts/codex_gate.ts --execute` only after a direction has been chosen and the work needs an execution task list.

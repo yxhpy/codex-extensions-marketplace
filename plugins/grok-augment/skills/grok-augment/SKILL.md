@@ -12,18 +12,18 @@ Use this skill when Grok should enhance Codex without taking over local executio
 1. Verify the configured CLI:
 
 ```bash
-python3 scripts/grok_augment.py inspect --json
+node --experimental-strip-types scripts/grok_augment.ts inspect --json
 ```
 
 2. Choose one mode:
 
 ```bash
-python3 scripts/grok_augment.py research --json "<question>"
-python3 scripts/grok_augment.py critic --json "<summary, diff, or test result>"
-python3 scripts/grok_augment.py creative --json "<product or frontend brief>"
-python3 scripts/grok_augment.py video --json "<video asset brief>"
-GROK_VIDEO_API_KEY="$LOCAL_GROK2API_KEY" python3 scripts/grok_augment.py video-generate --json "<video prompt>"
-python3 scripts/grok_augment.py diverge --json "<stuck point or decision>"
+node --experimental-strip-types scripts/grok_augment.ts research --json "<question>"
+node --experimental-strip-types scripts/grok_augment.ts critic --json "<summary, diff, or test result>"
+node --experimental-strip-types scripts/grok_augment.ts creative --json "<product or frontend brief>"
+node --experimental-strip-types scripts/grok_augment.ts video --json "<video asset brief>"
+GROK_VIDEO_API_KEY="$LOCAL_GROK2API_KEY" node --experimental-strip-types scripts/grok_augment.ts video-generate --json "<video prompt>"
+node --experimental-strip-types scripts/grok_augment.ts diverge --json "<stuck point or decision>"
 ```
 
 3. Codex must verify or implement the result locally. Grok output is advisory unless a local check proves it.

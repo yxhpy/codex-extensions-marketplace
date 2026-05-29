@@ -19,8 +19,8 @@
       "Video"
     ],
     "defaultPrompt": [
-      "Use scripts/grok_augment.py inspect --json to verify the local Grok CLI before relying on it.",
-      "Use scripts/grok_augment.py research, critic, creative, video, or diverge when Grok should augment Codex without mutating files.",
+      "Use node --experimental-strip-types scripts/grok_augment.ts inspect --json to verify the local Grok CLI before relying on it.",
+      "Use node --experimental-strip-types scripts/grok_augment.ts research, critic, creative, video, or diverge when Grok should augment Codex without mutating files.",
       "Do not use fallback providers: image assets remain image_gen, video assets remain Grok video, and unavailable Grok access must be reported as a failure."
     ]
   }
