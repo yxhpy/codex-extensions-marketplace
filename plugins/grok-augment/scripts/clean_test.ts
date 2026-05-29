@@ -7,12 +7,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const PLUGIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const REPO_ROOT = path.resolve(PLUGIN_ROOT, "../..");
 
 function run(args: string[], env?: NodeJS.ProcessEnv): void {
   const [command, ...rest] = args;
   const completed = spawnSync(command, rest, {
-    cwd: REPO_ROOT,
+    cwd: PLUGIN_ROOT,
     env,
     encoding: "utf8",
   });
@@ -62,7 +61,7 @@ esac
     CODEX_HOME: fakeCodexHome,
     GROK_AUGMENT_GROK_BIN: fakeGrok,
   };
-  run(["node", "--experimental-strip-types", "--test", "plugins/grok-augment/tests/*.ts"], env);
+  run(["node", "--experimental-strip-types", "--test", "tests/*.ts"], env);
   run(["node", "--experimental-strip-types", path.join(PLUGIN_ROOT, "scripts/grok_augment.ts"), "inspect", "--json"], env);
   run(
     [
