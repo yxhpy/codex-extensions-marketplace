@@ -69,6 +69,97 @@ class TaskGateTests(unittest.TestCase):
             ["Clarify scope", "Write tests", "Implement and verify"],
         )
 
+    def test_parser_accepts_claude_cli_structured_output_envelope(self):
+        from scripts.task_gate import parse_plan_output
+
+        plan = parse_plan_output(
+            json.dumps(
+                {
+                    "type": "result",
+                    "result": "Natural language summary",
+                    "structured_output": {
+                        "tasks": [
+                            {
+                                "title": "Use the structured output field",
+                                "details": "Claude CLI wraps JSON schema results here.",
+                            }
+                        ]
+                    },
+                }
+            ),
+            source_prompt="Plan with Claude CLI",
+        )
+
+        self.assertEqual(plan.tasks[0].title, "Use the structured output field")
+
+    def test_thinking_planner_turns_stuck_prompt_into_candidate_ideas(self):
+        from scripts.task_gate import ThinkingPlanner
+
+        thinker = FakeThinker(
+            json.dumps(
+                {
+                    "ideas": [
+                        {
+                            "title": "Trace the smallest failing surface",
+                            "rationale": "A narrow reproduction can reveal the next move.",
+                            "tradeoffs": ["Fast to run", "May miss systemic causes"],
+                            "risks": ["Could overfit to one symptom"],
+                            "validation": ["One focused test fails before implementation"],
+                        },
+                        {
+                            "title": "Map adjacent approaches",
+                            "rationale": "Comparing alternatives can unlock a better path.",
+                        },
+                    ],
+                    "recommendation": "Start with the smallest failing surface.",
+                    "next_tasks": [
+                        {"title": "Write a failing characterization test"},
+                        {"title": "Pick the cheapest reversible fix"},
+                    ],
+                }
+            )
+        )
+
+        plan = ThinkingPlanner(thinker=thinker, max_ideas=7).think(
+            "Codex is stuck and has no good next step"
+        )
+
+        self.assertEqual([idea.id for idea in plan.ideas], [1, 2])
+        self.assertEqual(plan.ideas[0].title, "Trace the smallest failing surface")
+        self.assertEqual(plan.ideas[0].tradeoffs, ["Fast to run", "May miss systemic causes"])
+        self.assertEqual(plan.recommendation, "Start with the smallest failing surface.")
+        self.assertEqual(
+            [task.title for task in plan.next_tasks],
+            ["Write a failing characterization test", "Pick the cheapest reversible fix"],
+        )
+        self.assertIn("divergent thinking mode", thinker.prompts[0])
+        self.assertIn("Codex is stuck and has no good next step", thinker.prompts[0])
+
+    def test_thinking_parser_accepts_claude_cli_structured_output_envelope(self):
+        from scripts.task_gate import parse_thinking_output
+
+        plan = parse_thinking_output(
+            json.dumps(
+                {
+                    "type": "result",
+                    "result": "Natural language summary",
+                    "structured_output": {
+                        "ideas": [
+                            {
+                                "title": "Read structured_output first",
+                                "rationale": "Claude CLI returns schema data separately.",
+                            }
+                        ],
+                        "next_tasks": [{"title": "Keep parser aligned"}],
+                    },
+                }
+            ),
+            source_prompt="Codex is stuck",
+        )
+
+        self.assertEqual(plan.ideas[0].title, "Read structured_output first")
+        self.assertEqual(plan.next_tasks[0].title, "Keep parser aligned")
+
     def test_blank_prompt_is_rejected_before_calling_thinker(self):
         from scripts.task_gate import PlanError, TaskPlanner
 
@@ -98,81 +189,43 @@ class TaskGateTests(unittest.TestCase):
         args, kwargs = calls[0]
         self.assertEqual(args[0], "/fake/claude")
         self.assertIn("--print", args)
+        self.assertEqual(args[args.index("--output-format") + 1], "json")
         self.assertIn("--json-schema", args)
+        self.assertNotIn("--tools", args)
         self.assertIn("Plan this", args[-1])
         self.assertEqual(kwargs["timeout"], 9)
         self.assertTrue(kwargs["capture_output"])
 
-    def test_claude_settings_env_loads_auth_without_logging_secret(self):
-        from scripts.task_gate import load_claude_settings_env
+    def test_claude_cli_error_reports_stdout_when_stderr_is_empty(self):
+        from scripts.task_gate import ClaudeCliThinker, PlanError
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            settings = Path(temp_dir) / "settings.json"
-            settings.write_text(
-                json.dumps(
-                    {
-                        "env": {
-                            "ANTHROPIC_AUTH_TOKEN": "secret-token",
-                            "ANTHROPIC_BASE_URL": "https://example.test/anthropic",
-                            "ANTHROPIC_MODEL": "fast-model",
-                        }
-                    }
-                )
+        def fake_runner(args, **kwargs):
+            raise __import__("subprocess").CalledProcessError(
+                returncode=1,
+                cmd=args,
+                output="Error: Exceeded USD budget",
+                stderr="",
             )
 
-            env = load_claude_settings_env([settings])
+        thinker = ClaudeCliThinker(command="/fake/claude", runner=fake_runner)
 
-        self.assertEqual(env["ANTHROPIC_AUTH_TOKEN"], "secret-token")
-        self.assertEqual(env["ANTHROPIC_BASE_URL"], "https://example.test/anthropic")
-        self.assertEqual(env["ANTHROPIC_MODEL"], "fast-model")
+        with self.assertRaisesRegex(PlanError, "Exceeded USD budget"):
+            thinker.think("Plan this")
 
-    def test_claude_api_thinker_calls_messages_api_with_settings_env(self):
-        from scripts.task_gate import ClaudeApiThinker
+    def test_claude_cli_thinker_defaults_to_long_timeout(self):
+        from scripts.task_gate import ClaudeCliThinker
 
-        calls = []
+        with patch.dict(
+            os.environ,
+            {},
+            clear=True,
+        ):
+            thinker = ClaudeCliThinker(command="/fake/claude")
 
-        class FakeResponse:
-            def __enter__(self):
-                return self
+        self.assertEqual(thinker.timeout_seconds, 300)
 
-            def __exit__(self, exc_type, exc, tb):
-                return False
-
-            def read(self):
-                return json.dumps(
-                    {"content": [{"type": "text", "text": '{"tasks":["Fast path"]}'}]}
-                ).encode()
-
-        def fake_urlopen(request, timeout, **kwargs):
-            calls.append((request, timeout, kwargs))
-            return FakeResponse()
-
-        thinker = ClaudeApiThinker(
-            env={
-                "ANTHROPIC_AUTH_TOKEN": "secret-token",
-                "ANTHROPIC_BASE_URL": "https://example.test/anthropic",
-                "ANTHROPIC_MODEL": "fast-model",
-            },
-            urlopen=fake_urlopen,
-            timeout_seconds=7,
-        )
-
-        output = thinker.think("Plan this quickly")
-
-        self.assertEqual(output, '{"tasks":["Fast path"]}')
-        request, timeout, kwargs = calls[0]
-        self.assertEqual(timeout, 7)
-        self.assertIn("context", kwargs)
-        self.assertEqual(request.full_url, "https://example.test/anthropic/v1/messages")
-        self.assertEqual(request.headers["Authorization"], "Bearer secret-token")
-        self.assertEqual(request.headers["Anthropic-version"], "2023-06-01")
-        body = json.loads(request.data.decode())
-        self.assertEqual(body["model"], "fast-model")
-        self.assertEqual(body["messages"][0]["content"], "Plan this quickly")
-        self.assertEqual(body["output_config"]["format"]["type"], "json_schema")
-
-    def test_default_thinker_uses_api_with_cli_fallback_when_credentials_exist(self):
-        from scripts.task_gate import FallbackThinker, build_default_thinker
+    def test_default_thinker_uses_cli_even_when_api_credentials_exist(self):
+        from scripts.task_gate import ClaudeCliThinker, build_default_thinker
 
         with patch.dict(
             os.environ,
@@ -180,131 +233,22 @@ class TaskGateTests(unittest.TestCase):
                 "ANTHROPIC_AUTH_TOKEN": "secret-token",
                 "ANTHROPIC_BASE_URL": "https://example.test/anthropic",
                 "ANTHROPIC_MODEL": "fast-model",
+                "TASK_GATE_THINKER": "auto",
             },
             clear=True,
         ):
             thinker = build_default_thinker()
 
-        self.assertIsInstance(thinker, FallbackThinker)
+        self.assertIsInstance(thinker, ClaudeCliThinker)
+        self.assertEqual(thinker.output_schema["required"], ["tasks"])
 
-    def test_fallback_thinker_uses_cli_when_api_times_out(self):
-        from scripts.task_gate import FallbackThinker, PlanError
+    def test_thinking_planner_default_thinker_uses_thinking_schema(self):
+        from scripts.task_gate import THINK_SCHEMA, ThinkingPlanner
 
-        class TimeoutThinker:
-            def think(self, prompt):
-                raise PlanError("Claude API task planning timed out")
+        with patch.dict(os.environ, {"TASK_GATE_THINKER": "auto"}, clear=True):
+            planner = ThinkingPlanner()
 
-        fallback = FakeThinker('{"tasks":["Fallback worked"]}')
-        thinker = FallbackThinker(primary=TimeoutThinker(), fallback=fallback)
-
-        self.assertEqual(thinker.think("Plan with fallback"), '{"tasks":["Fallback worked"]}')
-        self.assertEqual(fallback.prompts, ["Plan with fallback"])
-
-    def test_claude_api_thinker_retries_empty_text_once(self):
-        from scripts.task_gate import ClaudeApiThinker
-
-        responses = [
-            {"content": [{"type": "thinking", "thinking": "No visible text"}]},
-            {"content": [{"type": "text", "text": '{"tasks":["Retried"]}'}]},
-        ]
-
-        class FakeResponse:
-            def __init__(self, payload):
-                self.payload = payload
-
-            def __enter__(self):
-                return self
-
-            def __exit__(self, exc_type, exc, tb):
-                return False
-
-            def read(self):
-                return json.dumps(self.payload).encode()
-
-        def fake_urlopen(request, timeout, **kwargs):
-            return FakeResponse(responses.pop(0))
-
-        thinker = ClaudeApiThinker(
-            env={
-                "ANTHROPIC_AUTH_TOKEN": "secret-token",
-                "ANTHROPIC_BASE_URL": "https://example.test/anthropic",
-                "ANTHROPIC_MODEL": "fast-model",
-            },
-            urlopen=fake_urlopen,
-        )
-
-        self.assertEqual(thinker.think("Plan with retry"), '{"tasks":["Retried"]}')
-        self.assertEqual(responses, [])
-
-    def test_claude_api_thinker_wraps_ssl_read_timeout(self):
-        import ssl
-
-        from scripts.task_gate import ClaudeApiThinker, PlanError
-
-        class TimeoutResponse:
-            def __enter__(self):
-                return self
-
-            def __exit__(self, exc_type, exc, tb):
-                return False
-
-            def read(self):
-                raise ssl.SSLError("The read operation timed out")
-
-        def fake_urlopen(request, timeout, **kwargs):
-            return TimeoutResponse()
-
-        thinker = ClaudeApiThinker(
-            env={
-                "ANTHROPIC_AUTH_TOKEN": "secret-token",
-                "ANTHROPIC_BASE_URL": "https://example.test/anthropic",
-                "ANTHROPIC_MODEL": "fast-model",
-            },
-            urlopen=fake_urlopen,
-            timeout_seconds=1,
-        )
-
-        with self.assertRaisesRegex(PlanError, "Claude API request failed"):
-            thinker.think("Plan with API read timeout")
-
-    def test_mcp_list_tools_exposes_plan_prompt_tool(self):
-        from scripts.mcp_server import TaskGateMcpServer
-
-        response = TaskGateMcpServer().handle(
-            {
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "tools/list",
-                "params": {},
-            }
-        )
-
-        tool_names = [tool["name"] for tool in response["result"]["tools"]]
-        self.assertIn("plan_prompt", tool_names)
-
-    def test_mcp_tool_call_returns_structured_tasks(self):
-        from scripts.mcp_server import TaskGateMcpServer
-        from scripts.task_gate import TaskPlanner
-
-        server = TaskGateMcpServer(
-            planner=TaskPlanner(thinker=FakeThinker('{"tasks":["First","Second"]}'))
-        )
-
-        response = server.handle(
-            {
-                "jsonrpc": "2.0",
-                "id": 2,
-                "method": "tools/call",
-                "params": {
-                    "name": "plan_prompt",
-                    "arguments": {"prompt": "Do the work"},
-                },
-            }
-        )
-
-        tasks = response["result"]["structuredContent"]["tasks"]
-        self.assertEqual([task["id"] for task in tasks], [1, 2])
-        self.assertEqual([task["title"] for task in tasks], ["First", "Second"])
+        self.assertIs(planner.thinker.output_schema, THINK_SCHEMA)
 
     def test_codex_gate_dry_run_plans_without_executing_codex(self):
         from scripts.codex_gate import CodexGate, CodexExecutor
@@ -323,14 +267,22 @@ class TaskGateTests(unittest.TestCase):
         self.assertIn("1. Plan only", result.output)
 
     def test_codex_gate_execute_sends_only_task_plan_to_codex(self):
-        from scripts.codex_gate import CodexGate, CodexExecutor
+        from scripts.codex_gate import CodexGate, CodexExecutor, FollowupDecision
         from scripts.task_gate import TaskPlanner
 
         codex_calls = []
 
         def fake_runner(args, **kwargs):
             codex_calls.append((args, kwargs))
-            return types.SimpleNamespace(returncode=0)
+            return types.SimpleNamespace(
+                returncode=0,
+                stdout="Detailed completion summary: complete",
+                stderr="",
+            )
+
+        class CompleteFollowup:
+            def assess(self, **kwargs):
+                return FollowupDecision(complete=True, summary="All tasks are complete.")
 
         gate = CodexGate(
             planner=TaskPlanner(
@@ -346,6 +298,7 @@ class TaskGateTests(unittest.TestCase):
                 )
             ),
             executor=CodexExecutor(command="/fake/codex", runner=fake_runner),
+            followup_planner=CompleteFollowup(),
         )
 
         result = gate.run("Sensitive raw prompt", execute=True, cwd="/tmp/work")
@@ -360,6 +313,99 @@ class TaskGateTests(unittest.TestCase):
         self.assertIn("2. Run verification", codex_prompt)
         self.assertNotIn("Sensitive raw prompt", codex_prompt)
         self.assertFalse(kwargs["check"])
+        self.assertTrue(kwargs["capture_output"])
+        self.assertIn("Detailed completion summary", codex_prompt)
+        self.assertIn("Gate follow-up", result.output)
+
+    def test_codex_gate_continues_with_gate_next_tasks_until_complete(self):
+        from scripts.codex_gate import CodexGate, CodexExecutor, FollowupDecision
+        from scripts.task_gate import Task, TaskPlan
+
+        class StaticPlanner:
+            def plan(self, prompt):
+                return TaskPlan(source_prompt=prompt, tasks=[Task(id=1, title="Implement slice")])
+
+        class Followup:
+            def __init__(self):
+                self.calls = []
+
+            def assess(self, **kwargs):
+                self.calls.append(kwargs)
+                if kwargs["round_number"] == 1:
+                    return FollowupDecision(
+                        complete=False,
+                        summary="Verification is still missing.",
+                        next_tasks=[Task(id=1, title="Run verification")],
+                    )
+                return FollowupDecision(complete=True, summary="Verification passed.")
+
+        codex_calls = []
+
+        def fake_runner(args, **kwargs):
+            codex_calls.append(args[-1])
+            return types.SimpleNamespace(
+                returncode=0,
+                stdout=f"Detailed completion summary: round {len(codex_calls)}",
+                stderr="",
+            )
+
+        followup = Followup()
+        gate = CodexGate(
+            planner=StaticPlanner(),
+            executor=CodexExecutor(command="/fake/codex", runner=fake_runner),
+            followup_planner=followup,
+        )
+
+        result = gate.run("Sensitive raw prompt", execute=True, max_rounds=3)
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(len(codex_calls), 2)
+        self.assertIn("1. Implement slice", codex_calls[0])
+        self.assertIn("1. Run verification", codex_calls[1])
+        self.assertNotIn("Sensitive raw prompt", codex_calls[0])
+        self.assertNotIn("Sensitive raw prompt", codex_calls[1])
+        self.assertEqual(len(followup.calls), 2)
+        self.assertIn("round 1", followup.calls[0]["codex_output"])
+        self.assertIn("Verification is still missing.", result.output)
+        self.assertIn("Verification passed.", result.output)
+
+    def test_codex_gate_returns_failure_when_max_rounds_reached_before_completion(self):
+        from scripts.codex_gate import CodexGate, CodexExecutor, FollowupDecision
+        from scripts.task_gate import Task, TaskPlan
+
+        class StaticPlanner:
+            def plan(self, prompt):
+                return TaskPlan(source_prompt=prompt, tasks=[Task(id=1, title="Keep working")])
+
+        class IncompleteFollowup:
+            def assess(self, **kwargs):
+                return FollowupDecision(
+                    complete=False,
+                    summary="More work remains.",
+                    next_tasks=[Task(id=1, title="Continue the remaining work")],
+                )
+
+        codex_calls = []
+
+        def fake_runner(args, **kwargs):
+            codex_calls.append(args[-1])
+            return types.SimpleNamespace(
+                returncode=0,
+                stdout="Detailed completion summary: incomplete",
+                stderr="",
+            )
+
+        gate = CodexGate(
+            planner=StaticPlanner(),
+            executor=CodexExecutor(command="/fake/codex", runner=fake_runner),
+            followup_planner=IncompleteFollowup(),
+        )
+
+        result = gate.run("Sensitive raw prompt", execute=True, max_rounds=2)
+
+        self.assertEqual(result.exit_code, 1)
+        self.assertEqual(len(codex_calls), 2)
+        self.assertIn("max execution rounds reached before completion", result.output)
 
     def test_codex_execution_prompt_includes_details_and_acceptance_criteria(self):
         from scripts.codex_gate import build_codex_execution_prompt
@@ -387,6 +433,8 @@ class TaskGateTests(unittest.TestCase):
             "ACTUAL_REMOTE_TEST_RESULT.txt contains TASK_GATE_REMOTE_CODEX_OK",
             codex_prompt,
         )
+        self.assertIn("Detailed completion summary", codex_prompt)
+        self.assertIn("Completion verdict", codex_prompt)
         self.assertNotIn("secret raw wording", codex_prompt)
 
 

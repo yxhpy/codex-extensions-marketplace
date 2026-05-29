@@ -57,19 +57,31 @@ else
   say "WARN: node not found; skipping JavaScript parse check"
 fi
 
-asset_min="${ASSET_MIN_IMAGES:-0}"
-if [[ "$asset_min" =~ ^[0-9]+$ && "$asset_min" -gt 0 ]]; then
+asset_min_images="${ASSET_MIN_IMAGES:-0}"
+asset_min_videos="${ASSET_MIN_VIDEOS:-0}"
+asset_min_media="${ASSET_MIN_MEDIA:-0}"
+for asset_min_value in "$asset_min_images" "$asset_min_videos" "$asset_min_media"; do
+  if [[ ! "$asset_min_value" =~ ^[0-9]+$ ]]; then
+    fail "asset minimums must be numeric"
+  fi
+done
+if [[ "$asset_min_images" =~ ^[0-9]+$ && "$asset_min_videos" =~ ^[0-9]+$ && "$asset_min_media" =~ ^[0-9]+$ ]] &&
+  (( asset_min_images > 0 || asset_min_videos > 0 || asset_min_media > 0 )); then
   if command -v python3 >/dev/null 2>&1; then
-    if python3 - "$ROOT" "$asset_min" <<'PY'
+    if python3 - "$ROOT" "$asset_min_images" "$asset_min_videos" "$asset_min_media" <<'PY'
 import pathlib
 import re
 import sys
 
-root = pathlib.Path(sys.argv[1])
-minimum = int(sys.argv[2])
+root = pathlib.Path(sys.argv[1]).resolve()
+min_images = int(sys.argv[2])
+min_videos = int(sys.argv[3])
+min_media = int(sys.argv[4])
+image_exts = {".png", ".jpg", ".jpeg", ".webp", ".avif", ".gif", ".svg"}
+video_exts = {".mp4", ".webm", ".mov", ".m4v", ".ogv"}
 patterns = [
-    re.compile(r'''(?:src|href)\s*=\s*["']([^"']+\.(?:png|jpe?g|webp|avif|gif|svg))(?:[#?][^"']*)?["']''', re.I),
-    re.compile(r'''url\(\s*["']?([^"')]+\.(?:png|jpe?g|webp|avif|gif|svg))(?:[#?][^"')]+)?["']?\s*\)''', re.I),
+    re.compile(r'''(?:src|href|poster)\s*=\s*["']([^"']+\.(?:png|jpe?g|webp|avif|gif|svg|mp4|webm|mov|m4v|ogv))(?:[#?][^"']*)?["']''', re.I),
+    re.compile(r'''url\(\s*["']?([^"')]+\.(?:png|jpe?g|webp|avif|gif|svg|mp4|webm|mov|m4v|ogv))(?:[#?][^"')]+)?["']?\s*\)''', re.I),
 ]
 seen = {}
 for suffix in ("*.html", "*.css", "*.js", "*.jsx", "*.ts", "*.tsx", "*.vue", "*.svelte"):
@@ -82,32 +94,62 @@ for suffix in ("*.html", "*.css", "*.js", "*.jsx", "*.ts", "*.tsx", "*.vue", "*.
                 ref = match.group(1)
                 if ref.startswith(("http://", "https://", "data:", "#")):
                     continue
-                path = (file.parent / ref).resolve()
+                path = (root / ref.lstrip("/")).resolve() if ref.startswith("/") else (file.parent / ref).resolve()
                 try:
                     path.relative_to(root)
                 except ValueError:
                     continue
-                seen[str(path)] = path.exists()
+                suffix = pathlib.Path(ref.split("?", 1)[0].split("#", 1)[0]).suffix.lower()
+                media_type = "video" if suffix in video_exts else "image"
+                seen[str(path)] = (path, media_type)
 
-existing = [p for p, ok in seen.items() if ok]
-missing = [p for p, ok in seen.items() if not ok]
-print(f"local image assets referenced: {len(existing)}")
-for p in sorted(existing):
-    print(f"  ok: {pathlib.Path(p).relative_to(root)}")
+existing_images = []
+existing_videos = []
+missing = []
+empty_videos = []
+for path, media_type in seen.values():
+    if not path.exists():
+        missing.append(path)
+        continue
+    if media_type == "video":
+        if path.stat().st_size <= 0:
+            empty_videos.append(path)
+        else:
+            existing_videos.append(path)
+    else:
+        existing_images.append(path)
+
+print(f"local image assets referenced: {len(existing_images)}")
+for p in sorted(existing_images):
+    print(f"  image ok: {p.relative_to(root)}")
+print(f"local video assets referenced: {len(existing_videos)}")
+for p in sorted(existing_videos):
+    print(f"  video ok: {p.relative_to(root)}")
 for p in sorted(missing):
     print(f"  missing: {p}")
+for p in sorted(empty_videos):
+    print(f"  empty video: {p.relative_to(root)}")
 if missing:
     sys.exit(2)
-if len(existing) < minimum:
+if empty_videos:
+    sys.exit(2)
+if len(existing_images) < min_images:
+    print(f"expected at least {min_images} image asset(s)")
+    sys.exit(3)
+if len(existing_videos) < min_videos:
+    print(f"expected at least {min_videos} video asset(s)")
+    sys.exit(3)
+if len(existing_images) + len(existing_videos) < min_media:
+    print(f"expected at least {min_media} total media asset(s)")
     sys.exit(3)
 PY
     then
-      say "PASS: local image asset count meets ASSET_MIN_IMAGES=$asset_min"
+      say "PASS: local media asset counts meet ASSET_MIN_IMAGES=$asset_min_images ASSET_MIN_VIDEOS=$asset_min_videos ASSET_MIN_MEDIA=$asset_min_media"
     else
-      fail "local image asset check failed for ASSET_MIN_IMAGES=$asset_min"
+      fail "local media asset check failed for ASSET_MIN_IMAGES=$asset_min_images ASSET_MIN_VIDEOS=$asset_min_videos ASSET_MIN_MEDIA=$asset_min_media"
     fi
   else
-    say "WARN: python3 not found; skipping local image asset count"
+    say "WARN: python3 not found; skipping local media asset count"
   fi
 fi
 

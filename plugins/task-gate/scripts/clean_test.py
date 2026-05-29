@@ -23,15 +23,14 @@ def validate_plugin_manifest() -> None:
     manifest_path = PLUGIN_ROOT / ".codex-plugin" / "plugin.json"
     manifest = json.loads(manifest_path.read_text())
     assert manifest["name"] == "task-gate"
-    assert manifest["mcpServers"] == "./.mcp.json"
+    assert "mcpServers" not in manifest
     assert manifest["skills"] == "./skills/"
-    assert "Task Gate" in manifest["interface"]["displayName"]
-
-    mcp = json.loads((PLUGIN_ROOT / ".mcp.json").read_text())
-    server = mcp["mcpServers"]["task-gate"]
-    assert server["command"] == "python3"
-    assert server["args"] == ["./scripts/mcp_server.py"]
-    assert server["cwd"] == "."
+    assert "Thinking Gate" in manifest["interface"]["displayName"]
+    assert "Brainstorming" in manifest["interface"]["capabilities"]
+    assert len(manifest["interface"]["defaultPrompt"]) <= 3
+    assert "MCP" not in manifest["interface"]["capabilities"]
+    assert not (PLUGIN_ROOT / ".mcp.json").exists()
+    assert not (PLUGIN_ROOT / "scripts" / "mcp_server.py").exists()
 
 
 def validate_skill() -> None:
@@ -39,8 +38,26 @@ def validate_skill() -> None:
     text = skill_path.read_text()
     assert text.startswith("---\n")
     assert "\nname: task-gate\n" in text
-    assert "plan_prompt" in text
+    assert "scripts/task_gate.py --think --json" in text
+    assert "scripts/task_gate.py --json" in text
     assert "codex_gate.py --execute" in text
+
+    thinking_skill_path = PLUGIN_ROOT / "skills" / "thinking-gate" / "SKILL.md"
+    thinking_text = thinking_skill_path.read_text()
+    assert "\nname: thinking-gate\n" in thinking_text
+    assert "scripts/task_gate.py --think --json" in thinking_text
+    trigger_terms = [
+        "卡住",
+        "没思路",
+        "发散",
+        "不知道下一步",
+        "stuck",
+        "no good next step",
+        "brainstorm",
+        "divergent",
+    ]
+    for term in trigger_terms:
+        assert term in thinking_text
 
 
 def run_unit_tests() -> None:
@@ -50,26 +67,21 @@ def run_unit_tests() -> None:
         raise SystemExit(1)
 
 
-def run_mcp_smoke() -> None:
-    payload = '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}\n'
-    completed = run(
-        ["python3", "-B", "scripts/mcp_server.py"],
-        cwd=PLUGIN_ROOT,
-        input=payload,
-        capture_output=True,
-    )
-    response = json.loads(completed.stdout)
-    tools = response["result"]["tools"]
-    assert tools[0]["name"] == "plan_prompt"
-
-
 def run_gate_smoke() -> None:
     with tempfile.TemporaryDirectory() as temp_dir:
         fake_claude = Path(temp_dir) / "claude"
         fake_claude.write_text(
             "#!/bin/sh\n"
-            "printf '%s\\n' "
+            "case \"$*\" in\n"
+            "  *\"reviewing the end of a Codex execution round\"*)\n"
+            "    printf '%s\\n' "
+            "'{\"complete\":true,\"summary\":\"Docker gate follow-up complete.\",\"next_tasks\":[]}'\n"
+            "    ;;\n"
+            "  *)\n"
+            "    printf '%s\\n' "
             "'{\"tasks\":[{\"title\":\"Plan in Docker\"},{\"title\":\"Verify in Docker\"}]}'\n"
+            "    ;;\n"
+            "esac\n"
         )
         fake_claude.chmod(0o755)
 
@@ -93,13 +105,47 @@ def run_gate_smoke() -> None:
         assert "2. Verify in Docker" in completed.stdout
 
 
+def run_think_smoke() -> None:
+    with tempfile.TemporaryDirectory() as temp_dir:
+        fake_claude = Path(temp_dir) / "claude"
+        fake_claude.write_text(
+            "#!/bin/sh\n"
+            "printf '%s\\n' "
+            "'{\"ideas\":[{\"title\":\"Try a smaller reversible check\","
+            "\"rationale\":\"It can unstick Codex without overcommitting.\"}],"
+            "\"recommendation\":\"Start with the reversible check.\","
+            "\"next_tasks\":[{\"title\":\"Run one focused smoke\"}]}'\n"
+        )
+        fake_claude.chmod(0o755)
+
+        env = os.environ.copy()
+        env["TASK_GATE_THINKER"] = "cli"
+        env["TASK_GATE_CLAUDE_BIN"] = str(fake_claude)
+        completed = run(
+            [
+                "python3",
+                "-B",
+                "scripts/task_gate.py",
+                "--think",
+                "--json",
+                "Codex is stuck with no good next step",
+            ],
+            cwd=PLUGIN_ROOT,
+            env=env,
+            capture_output=True,
+        )
+        payload = json.loads(completed.stdout)
+        assert payload["ideas"][0]["title"] == "Try a smaller reversible check"
+        assert payload["recommendation"] == "Start with the reversible check."
+
+
 def main() -> int:
     validate_plugin_manifest()
     validate_skill()
-    run(["python3", "-m", "py_compile", "scripts/task_gate.py", "scripts/mcp_server.py", "scripts/codex_gate.py"], cwd=PLUGIN_ROOT)
+    run(["python3", "-m", "py_compile", "scripts/task_gate.py", "scripts/codex_gate.py"], cwd=PLUGIN_ROOT)
     run_unit_tests()
-    run_mcp_smoke()
     run_gate_smoke()
+    run_think_smoke()
     print("clean test passed")
     return 0
 

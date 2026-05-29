@@ -6,7 +6,7 @@ Public catalog for optional Codex plugins, skills, and MCP-oriented tools.
 
 | Type | Name | Path | Purpose |
 | --- | --- | --- | --- |
-| Plugin + MCP | `task-gate` | `plugins/task-gate` | Converts raw prompts into numbered task plans before Codex executes. Includes `scripts/codex_gate.py` and an MCP stdio server. |
+| Plugin + Scripts | `task-gate` | `plugins/task-gate` | Gives Codex a divergent-thinking gate for stuck moments through local scripts, while retaining numbered task planning and the `scripts/codex_gate.py` wrapper. |
 | Plugin + Scripts | `grok-augment` | `plugins/grok-augment` | Lets Codex call Grok for non-mutating research, critique, creative direction, divergence, Grok-video-only briefs, and real MP4 generation. |
 | Skill | `agy-frontend` | `skills/agy-frontend` | Routes frontend implementation through the Antigravity CLI and requires local visual verification. |
 
@@ -31,7 +31,6 @@ Update later:
 ```bash
 codex plugin marketplace upgrade yxhpy-codex-extensions
 codex plugin add task-gate@yxhpy-codex-extensions
-codex plugin add grok-augment@yxhpy-codex-extensions
 ```
 
 ## Install Skills
@@ -49,8 +48,10 @@ Restart Codex after installing a skill.
 
 ## Requirements
 
-- `task-gate` uses Python 3 and Claude credentials from Claude settings or environment.
-- `task-gate` prefers Claude API in `auto` mode and falls back to Claude CLI when API planning fails.
+- `task-gate` uses Python 3 and the local Claude CLI.
+- `task-gate` runs `scripts/task_gate.py --think --json` for divergent candidate ideas and `scripts/task_gate.py --json` for numbered execution plans.
+- `task-gate` runs `scripts/codex_gate.py --execute` as an execution loop: Codex must produce a detailed completion summary, Task Gate reviews it, and incomplete work is converted into the next numbered tasks until completion or `--max-rounds` is reached.
+- `task-gate` defaults to a 300 second Claude CLI timeout; override with `TASK_GATE_CLAUDE_TIMEOUT`.
 - `grok-augment` expects the `grok` CLI on `PATH`, or set `GROK_AUGMENT_GROK_BIN=/path/to/grok`.
 - `grok-augment` is deliberately non-mutating for code: it uses Grok for research, critique, creative direction, divergence, Grok-video-only briefs, and `video-generate` MP4 resources while Codex keeps file edits and verification.
 - `agy-frontend` expects the `agy` CLI on `PATH`, or set `AGY_BIN=/path/to/agy`.
