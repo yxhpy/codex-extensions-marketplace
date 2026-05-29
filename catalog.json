@@ -7,6 +7,12 @@
       "path": "plugins/task-gate",
       "install": "codex plugin add task-gate@yxhpy-codex-extensions",
       "summary": "Plan raw prompts into numbered tasks before Codex executes. Includes MCP server and codex_gate wrapper."
+    },
+    {
+      "name": "grok-augment",
+      "path": "plugins/grok-augment",
+      "install": "codex plugin add grok-augment@yxhpy-codex-extensions",
+      "summary": "Use Grok as a non-mutating research, critique, creative, divergence, Grok-video-only brief, and real MP4 generation layer for Codex."
     }
   ],
   "skills": [
