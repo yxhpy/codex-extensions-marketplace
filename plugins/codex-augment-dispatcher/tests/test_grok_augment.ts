@@ -21,6 +21,8 @@ test("single turn uses configured grok without approval or fallback", () => {
     command: "/fake/grok",
     timeoutSeconds: 17,
     runner(args, options) {
+      const cwd = String(args[args.indexOf("--cwd") + 1] || "");
+      assert.ok(existsSync(path.join(cwd, "README.md")));
       calls.push([args, options]);
       return { status: 0, stdout: "ok from grok", stderr: "" };
     },
@@ -31,6 +33,7 @@ test("single turn uses configured grok without approval or fallback", () => {
   assert.equal(response, "ok from grok");
   const [args, options] = calls[0];
   assert.equal(args[0], "/fake/grok");
+  assert.ok(args.includes("--cwd"));
   assert.ok(args.includes("--no-alt-screen"));
   assert.ok(args.includes("--no-plan"));
   assert.ok(args.includes("--disable-web-search"));

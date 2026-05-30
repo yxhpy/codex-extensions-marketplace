@@ -1,6 +1,6 @@
 #!/usr/bin/env -S node --experimental-strip-types
 import { spawnSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -68,14 +68,24 @@ export class GrokCli {
       disableWebSearch = false,
     }: { effort?: string; outputFormat?: string; disableWebSearch?: boolean } = {},
   ): string {
-    const args = [this.command, "--no-alt-screen", "--no-plan", "--output-format", outputFormat];
-    if (disableWebSearch) args.push("--disable-web-search");
-    if (effort) args.push("--effort", effort);
-    args.push("-p", prompt);
-    const completed = this.run(args);
-    const output = (completed.stdout || "").trim();
-    if (!output) throw new GrokAugmentError("grok returned an empty response");
-    return output;
+    const isolatedCwd = mkdtempSync(path.join(tmpdir(), "grok-augment-cwd-"));
+    writeFileSync(
+      path.join(isolatedCwd, "README.md"),
+      "Grok Augment advisory run. No repository context is available. Use only the supplied prompt.\n",
+      "utf8",
+    );
+    try {
+      const args = [this.command, "--cwd", isolatedCwd, "--no-alt-screen", "--no-plan", "--output-format", outputFormat];
+      if (disableWebSearch) args.push("--disable-web-search");
+      if (effort) args.push("--effort", effort);
+      args.push("-p", prompt);
+      const completed = this.run(args);
+      const output = (completed.stdout || "").trim();
+      if (!output) throw new GrokAugmentError("grok returned an empty response");
+      return output;
+    } finally {
+      rmSync(isolatedCwd, { recursive: true, force: true });
+    }
   }
 
   inspect(): JsonPayload {
