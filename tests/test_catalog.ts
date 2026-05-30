@@ -37,5 +37,22 @@ test("install docs include recommended AGENTS.md proactive trigger rules", () =>
   assert.match(agents, /`task-gate`: broad/);
   assert.match(agents, /`grok-augment`: current research/);
   assert.match(agents, /`agy-frontend`: frontend build/);
+  assert.match(agents, /Codex Thread Fanout/);
+  assert.match(agents, /`research`: read-only context gathering/);
+  assert.match(agents, /`review`: independent risk review/);
+  assert.match(agents, /Do not let multiple threads write the same working tree/);
   assert.match(agents, /Extending to More CLIs/);
+});
+
+test("install docs describe background thread owner and verification boundaries", () => {
+  const readme = readFileSync(path.join(REPO_ROOT, "README.md"), "utf8");
+  const changelog = readFileSync(path.join(REPO_ROOT, "CHANGELOG.md"), "utf8");
+
+  assert.match(readme, /Codex Background Threads/);
+  assert.match(readme, /one owner\s+thread keeps responsibility for edits, tests, release gates, and final claims/);
+  assert.match(readme, /Research thread: read-only context gathering/);
+  assert.match(readme, /Review thread: release, regression, or security risk review/);
+  assert.match(readme, /Never run parallel writers against the same working tree/);
+  assert.match(changelog, /0\.1\.3 - 2026-05-30/);
+  assert.match(changelog, /background thread fanout guidance/);
 });

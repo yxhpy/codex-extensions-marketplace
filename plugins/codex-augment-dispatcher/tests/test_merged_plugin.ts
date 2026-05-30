@@ -26,14 +26,17 @@ test("merged plugin manifest uses a generic extensible name", () => {
   const manifest = readJson(path.join(PLUGIN_ROOT, ".codex-plugin/plugin.json"));
 
   assert.equal(manifest.name, "codex-augment-dispatcher");
+  assert.equal(manifest.version, "0.1.3");
   assert.equal(manifest.skills, "./skills/");
   assert.equal(manifest.interface.displayName, "Codex Augment Dispatcher");
   assert.deepEqual(manifest.author, { name: "yxhpy" });
-  for (const capability of ["Planning", "Research", "Review", "Frontend"]) {
+  for (const capability of ["Planning", "Research", "Review", "Frontend", "Coordination"]) {
     assert.ok(manifest.interface.capabilities.includes(capability), `missing ${capability}`);
   }
   assert.match(manifest.description, /external CLI adapters/);
   assert.match(manifest.interface.longDescription, /initial adapters/);
+  assert.match(manifest.interface.longDescription, /background thread fanout/);
+  assert.match(manifest.interface.defaultPrompt.join("\n"), /read-only Codex background threads/);
   assert.ok(!("mcpServers" in manifest));
   assert.ok(!("hooks" in manifest));
 });
@@ -52,6 +55,9 @@ test("main dispatch skill defines generic adapter routing without taking over Co
     "Do not pass secrets, raw credentials, private tokens, or unnecessary full-repo context",
     "No fallback provider is allowed.",
     "Superpowers",
+    "Codex Thread Fanout",
+    "owner Codex thread responsible for file edits",
+    "Do not run parallel writers against the same working tree.",
   ]) {
     assert.match(text, new RegExp(escapeRegExp(phrase)));
   }

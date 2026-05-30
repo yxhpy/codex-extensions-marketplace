@@ -6,7 +6,7 @@
       "name": "codex-augment-dispatcher",
       "path": "plugins/codex-augment-dispatcher",
       "install": "codex plugin add codex-augment-dispatcher@yxhpy-codex-extensions",
-      "summary": "Extensible external CLI adapter hub for supplementing Codex; initial adapters cover Claude task gating, Grok non-mutating augmentation, and AGY frontend implementation under Codex verification."
+      "summary": "Extensible external CLI adapter and Codex background-thread coordination hub for supplementing Codex; initial adapters cover Claude task gating, Grok non-mutating augmentation, and AGY frontend implementation under Codex verification."
     }
   ],
   "skills": []

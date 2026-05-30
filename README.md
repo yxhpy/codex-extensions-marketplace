@@ -6,7 +6,7 @@ Public catalog for optional Codex plugins and MCP-oriented tools.
 
 | Type | Name | Path | Purpose |
 | --- | --- | --- | --- |
-| Plugin + Scripts + Skills | `codex-augment-dispatcher` | `plugins/codex-augment-dispatcher` | Extensible external CLI adapter hub for supplementing Codex; initial adapters cover Claude task gating, Grok augmentation, and AGY frontend implementation. |
+| Plugin + Scripts + Skills | `codex-augment-dispatcher` | `plugins/codex-augment-dispatcher` | Extensible external CLI adapter and Codex background-thread coordination hub; initial adapters cover Claude task gating, Grok augmentation, and AGY frontend implementation. |
 
 ## Install Plugin
 
@@ -29,6 +29,9 @@ Recommended project instructions:
   `AGENTS.md`; keep project-specific rules first.
 - These rules help Codex proactively choose `task-gate`, `thinking-gate`,
   `grok-augment`, or `agy-frontend` without waiting for explicit mentions.
+- The included thread fanout rules let Codex use read-only background threads
+  for research, planning, frontend checks, and release review while one owner
+  thread keeps responsibility for edits, tests, release gates, and final claims.
 
 Update later:
 
@@ -41,7 +44,7 @@ During development, do not publish or install this merge for normal use until th
 
 ## Capabilities
 
-This plugin is intentionally named generically so more external CLI adapters can be added later without changing the install identity.
+This plugin is intentionally named generically so more external CLI adapters and Codex thread coordination rules can be added later without changing the install identity.
 
 Initial adapters:
 
@@ -54,6 +57,24 @@ Future adapters should be added as focused skills and scripts with fake-binary t
 Codex owns local file edits, verification, commits, and final claims. AGY can edit frontend files only inside the bounded AGY workflow; Codex still gathers context, supervises scope, runs checks, and reports evidence.
 
 No secrets, raw credentials, private tokens, or unnecessary full-repo context should be passed to Claude, Grok, or AGY. No fallback provider is allowed for Grok, Grok Video, or image generation paths.
+
+## Codex Background Threads
+
+Use background threads as bounded assistants, not as release authority:
+
+- Research thread: read-only context gathering or option comparison; use
+  low/medium thinking and `grok-augment` for outside input when useful.
+- Plan thread: advisory decomposition only; use `task-gate` in the owner thread
+  for the final numbered task order before implementation.
+- Review thread: release, regression, or security risk review; use high/xhigh
+  thinking and verify every actionable claim locally after final edits.
+- Frontend thread: pair with `agy-frontend` only inside explicit paths; Codex
+  still owns browser checks and evidence.
+
+Never run parallel writers against the same working tree. Prefer read-only
+threads, or isolated worktrees for independent implementation experiments.
+If a model override or background thread fails, retry once with default thread
+settings and continue without treating the failed thread as evidence.
 
 ## Requirements
 

@@ -44,6 +44,34 @@ node --experimental-strip-types scripts/task_gate.ts --think --json "<stuck poin
 
 5. If Superpowers skills apply in the active Codex session, follow them as workflow gates. This dispatcher does not replace Superpowers; it selects helper CLIs while preserving Superpowers planning, TDD, review, and verification discipline.
 
+## Codex Thread Fanout
+
+Use Codex background threads when independent read-only work can shorten the
+critical path. Keep one owner Codex thread responsible for file edits, test
+commands, commits, release gates, and final claims.
+
+Recommended thread roles:
+
+- `research`: low/medium thinking for read-only context, current-source checks,
+  and option comparison. Use Grok first for outside critique or creative/current
+  research, but stop waiting after roughly one minute with no usable output.
+- `plan`: task decomposition for broad or risky work. Use `task-gate` in the
+  owner thread for the final numbered plan; background plan threads are
+  advisory only.
+- `review`: high/xhigh thinking for release, regression, security, and
+  cross-file risk review. The owner thread must re-check every actionable claim
+  against final files and fresh command output.
+- `frontend`: route frontend implementation through `agy-frontend` with explicit
+  bounded paths, then have Codex verify locally with tests and browser evidence.
+- `stuck`: use `thinking-gate` for divergent ideas when Codex is looping or
+  lacks a good next move, then convert the chosen idea into concrete tasks.
+
+Do not run parallel writers against the same working tree. Use read-only thread
+prompts by default, or isolated worktrees for independent implementation
+experiments. If a model override or background thread fails, retry once with the
+default thread settings and continue without treating that failed thread as
+evidence.
+
 ## Adding Future CLI Adapters
 
 Add future CLI adapters without renaming this plugin:

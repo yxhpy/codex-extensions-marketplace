@@ -57,6 +57,9 @@ function validateSkills(): void {
   assert.match(dispatch, /AGY CLI/);
   assert.match(dispatch, /Codex owns local file edits/);
   assert.match(dispatch, /No fallback provider is allowed/);
+  assert.match(dispatch, /Codex Thread Fanout/);
+  assert.match(dispatch, /owner Codex thread responsible for file edits/);
+  assert.match(dispatch, /Do not run parallel writers against the same working tree/);
 
   const agy = readFileSync(path.join(PLUGIN_ROOT, "skills/agy-frontend/SKILL.md"), "utf8");
   assert.match(agy, /Images MUST be generated with image_gen/);
