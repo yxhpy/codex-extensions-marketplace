@@ -61,7 +61,7 @@ export class GrokCli {
   }
 
   singleTurn(prompt: string, { effort, outputFormat = "plain" }: { effort?: string; outputFormat?: string } = {}): string {
-    const args = [this.command, "--no-alt-screen", "--output-format", outputFormat];
+    const args = [this.command, "--no-alt-screen", "--no-plan", "--output-format", outputFormat];
     if (effort) args.push("--effort", effort);
     args.push("-p", prompt);
     const completed = this.run(args);

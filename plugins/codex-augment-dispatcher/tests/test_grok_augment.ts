@@ -32,6 +32,7 @@ test("single turn uses configured grok without approval or fallback", () => {
   const [args, options] = calls[0];
   assert.equal(args[0], "/fake/grok");
   assert.ok(args.includes("--no-alt-screen"));
+  assert.ok(args.includes("--no-plan"));
   assert.ok(args.includes("--output-format"));
   assert.equal(args[args.indexOf("--output-format") + 1], "plain");
   assert.ok(args.includes("--effort"));
@@ -39,6 +40,7 @@ test("single turn uses configured grok without approval or fallback", () => {
   assert.ok(args.includes("-p"));
   assert.equal(args.at(-1), "Research this");
   assert.ok(!args.includes("--always-approve"));
+  assert.ok(!args.includes("--max-turns"));
   assert.ok(!args.includes("--permission-mode"));
   assert.equal(options.timeout, 17_000);
   assert.equal(options.captureOutput, true);
