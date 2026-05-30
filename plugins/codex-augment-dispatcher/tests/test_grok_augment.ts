@@ -26,13 +26,14 @@ test("single turn uses configured grok without approval or fallback", () => {
     },
   });
 
-  const response = cli.singleTurn("Research this", { effort: "high" });
+  const response = cli.singleTurn("Research this", { effort: "high", disableWebSearch: true });
 
   assert.equal(response, "ok from grok");
   const [args, options] = calls[0];
   assert.equal(args[0], "/fake/grok");
   assert.ok(args.includes("--no-alt-screen"));
   assert.ok(args.includes("--no-plan"));
+  assert.ok(args.includes("--disable-web-search"));
   assert.ok(args.includes("--output-format"));
   assert.equal(args[args.indexOf("--output-format") + 1], "plain");
   assert.ok(args.includes("--effort"));

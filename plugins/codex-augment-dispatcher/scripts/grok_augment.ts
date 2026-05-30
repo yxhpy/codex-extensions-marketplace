@@ -60,8 +60,16 @@ export class GrokCli {
     this.timeoutSeconds = timeoutSeconds;
   }
 
-  singleTurn(prompt: string, { effort, outputFormat = "plain" }: { effort?: string; outputFormat?: string } = {}): string {
+  singleTurn(
+    prompt: string,
+    {
+      effort,
+      outputFormat = "plain",
+      disableWebSearch = false,
+    }: { effort?: string; outputFormat?: string; disableWebSearch?: boolean } = {},
+  ): string {
     const args = [this.command, "--no-alt-screen", "--no-plan", "--output-format", outputFormat];
+    if (disableWebSearch) args.push("--disable-web-search");
     if (effort) args.push("--effort", effort);
     args.push("-p", prompt);
     const completed = this.run(args);
@@ -382,7 +390,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
       return 0;
     }
 
-    const response = cli.singleTurn(prompt, { effort: args.effort });
+    const response = cli.singleTurn(prompt, { effort: args.effort, disableWebSearch: args.mode !== "research" });
     emitResult({ provider: "grok-cli", mode: args.mode, response }, args.json);
     return 0;
   } catch (error) {
