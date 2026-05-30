@@ -15,6 +15,19 @@ Initial adapters:
 
 Codex owns local file edits, verification, commits, and final claims. AGY CLI may edit frontend files only when the AGY frontend workflow is explicitly selected; Codex still gathers context, supervises scope, runs verification, and reports evidence.
 
+## Mandatory Gate
+
+For gated execution through `scripts/codex_gate.ts`, the raw prompt is first
+classified with a route classification step before Codex receives any execution
+prompt. The route decision lists required helper plugins for planning, stuck,
+research, review, or frontend work. If the route requires plugins, Codex's
+Detailed completion summary must include a `Plugin evidence:` line that names
+each required plugin and the exact command, tool, or transcript evidence.
+
+The follow-up gate rejects completion when required Plugin evidence is missing,
+even if Codex says the work is complete. This makes plugin use mandatory for
+plugin-demanding routes without requiring project `AGENTS.md` changes.
+
 ## Routing Order
 
 1. If the task needs current research, an outside critique, creative product/frontend direction, divergent candidate paths, or Grok-video-only briefs, run Grok CLI first:

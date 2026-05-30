@@ -29,6 +29,9 @@ Recommended project instructions:
   `AGENTS.md`; keep project-specific rules first.
 - These rules help Codex proactively choose `task-gate`, `thinking-gate`,
   `grok-augment`, or `agy-frontend` without waiting for explicit mentions.
+- Mandatory gated execution does not require editing project `AGENTS.md`; use
+  `scripts/codex_gate.ts` when the raw prompt must be classified before Codex
+  receives execution tasks.
 - The included thread fanout rules let Codex use read-only background threads
   for research, planning, frontend checks, and release review while one owner
   thread keeps responsibility for edits, tests, release gates, and final claims.
@@ -51,6 +54,18 @@ Initial adapters:
 - Claude CLI task gating: `scripts/task_gate.ts` generates divergent ideas and numbered task plans, while `scripts/codex_gate.ts` can pass only the generated task plan into `codex exec` for gated execution rounds.
 - Grok CLI augmentation: `scripts/grok_augment.ts` uses Grok for non-mutating research, critique, creative direction, divergence, Grok-video-only briefs, and real MP4 generation through a configured Grok-compatible `/v1/videos` endpoint.
 - AGY CLI frontend workflow: `skills/agy-frontend` routes frontend build, edit, redesign, styling, layout, interaction, and visual verification through Antigravity CLI.
+
+## Mandatory gated execution
+
+`scripts/codex_gate.ts --execute "<raw prompt>"` now classifies the route before
+Codex receives an execution prompt. The route can require `task-gate`,
+`thinking-gate`, `grok-augment`, or `agy-frontend` for planning, stuck,
+research/review, or frontend work.
+
+When a route requires helper plugins, Codex's Detailed completion summary must
+include a `Plugin evidence:` line naming every required plugin and the command,
+tool, or transcript evidence. The follow-up gate rejects completion when that
+Plugin evidence is missing, even if Codex reports the work as complete.
 
 Future adapters should be added as focused skills and scripts with fake-binary tests, explicit dispatch rules, and the same no-secret/no-fallback boundaries.
 

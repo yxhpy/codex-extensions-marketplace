@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.6 - 2026-05-30
+
+- Add route classification and Plugin evidence enforcement to gated Codex execution.
+- Document mandatory gated execution without requiring project `AGENTS.md` edits.
+
 ## 0.1.5 - 2026-05-30
 
 - Limit dispatcher manifest default prompts to the loader-supported maximum of three entries.

@@ -30,6 +30,8 @@ test("install docs include recommended AGENTS.md proactive trigger rules", () =>
   const agents = readFileSync(path.join(REPO_ROOT, "AGENTS.md"), "utf8");
 
   assert.match(readme, /Recommended project instructions/);
+  assert.match(readme, /Mandatory gated execution/);
+  assert.match(readme, /Plugin evidence/);
   assert.match(readme, /AGENTS\.md/);
   assert.match(readme, /proactively choose/);
   assert.match(agents, /Plugin Trigger Rules/);

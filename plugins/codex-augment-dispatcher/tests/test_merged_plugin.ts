@@ -26,7 +26,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
   const manifest = readJson(path.join(PLUGIN_ROOT, ".codex-plugin/plugin.json"));
 
   assert.equal(manifest.name, "codex-augment-dispatcher");
-  assert.equal(manifest.version, "0.1.5");
+  assert.equal(manifest.version, "0.1.6");
   assert.equal(manifest.skills, "./skills/");
   assert.equal(manifest.interface.displayName, "Codex Augment Dispatcher");
   assert.deepEqual(manifest.author, { name: "yxhpy" });
@@ -36,7 +36,11 @@ test("merged plugin manifest uses a generic extensible name", () => {
   assert.match(manifest.description, /external CLI adapters/);
   assert.match(manifest.interface.longDescription, /initial adapters/);
   assert.match(manifest.interface.longDescription, /background thread fanout/);
-  assert.match(manifest.interface.defaultPrompt.join("\n"), /read-only Codex background threads/);
+  const defaultPrompt = manifest.interface.defaultPrompt.join("\n");
+  assert.match(defaultPrompt, /classify the route/);
+  assert.match(defaultPrompt, /Plugin evidence/);
+  assert.match(defaultPrompt, /task-gate/);
+  assert.match(defaultPrompt, /read-only Codex background threads/);
   assert.ok(manifest.interface.defaultPrompt.length <= 3);
   for (const prompt of manifest.interface.defaultPrompt) {
     assert.ok(prompt.length <= 128, `default prompt too long: ${prompt.length}`);
@@ -50,6 +54,9 @@ test("main dispatch skill defines generic adapter routing without taking over Co
 
   for (const phrase of [
     "external CLI adapters",
+    "Mandatory Gate",
+    "route classification",
+    "Plugin evidence",
     "Initial adapters",
     "Add future CLI adapters",
     "Claude CLI",

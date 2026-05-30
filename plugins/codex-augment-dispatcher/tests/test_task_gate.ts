@@ -16,6 +16,8 @@ import {
   CodexExecutor,
   CodexGate,
   FollowupDecision,
+  RouteDecision,
+  RoutePlanner,
   buildCodexExecutionPrompt,
 } from "../scripts/codex_gate.ts";
 
@@ -30,6 +32,20 @@ class FakeThinker {
   think(prompt: string): string {
     this.prompts.push(prompt);
     return this.output;
+  }
+}
+
+class StaticRoutePlanner {
+  decision: RouteDecision;
+  prompts: string[] = [];
+
+  constructor(decision = new RouteDecision({ route: "simple", requiredPlugins: [], reason: "No plugin required." })) {
+    this.decision = decision;
+  }
+
+  classify(prompt: string): RouteDecision {
+    this.prompts.push(prompt);
+    return this.decision;
   }
 }
 
@@ -238,10 +254,30 @@ test("thinking planner default thinker uses thinking schema", () => {
   }
 });
 
+test("route planner classifies plugin-demanding prompts", () => {
+  const thinker = new FakeThinker(
+    JSON.stringify({
+      route: "frontend",
+      reason: "Frontend implementation should route through AGY.",
+      required_plugins: ["agy-frontend"],
+      plugin_evidence_required: true,
+    }),
+  );
+
+  const decision = new RoutePlanner({ thinker }).classify("Redesign the React dashboard");
+
+  assert.equal(decision.route, "frontend");
+  assert.deepEqual(decision.requiredPlugins, ["agy-frontend"]);
+  assert.equal(decision.pluginEvidenceRequired, true);
+  assert.match(thinker.prompts[0], /Classify the raw user prompt/);
+  assert.match(thinker.prompts[0], /agy-frontend/);
+});
+
 test("codex gate dry run plans without executing codex", () => {
   const codexCalls: string[][] = [];
   const gate = new CodexGate({
     planner: new TaskPlanner({ thinker: new FakeThinker('{"tasks":["Plan only"]}') }),
+    routePlanner: new StaticRoutePlanner(),
     executor: new CodexExecutor({
       command: "/fake/codex",
       runner(args) {
@@ -280,6 +316,7 @@ test("codex gate execute sends only task plan to codex", () => {
         return { status: 0, stdout: "Detailed completion summary: complete", stderr: "" };
       },
     }),
+    routePlanner: new StaticRoutePlanner(),
     followupPlanner: new CompleteFollowup(),
   });
 
@@ -298,6 +335,63 @@ test("codex gate execute sends only task plan to codex", () => {
   assert.equal(options.captureOutput, true);
   assert.match(codexPrompt, /Detailed completion summary/);
   assert.match(result.output, /Gate follow-up/);
+});
+
+test("codex gate execution prompt requires plugin evidence for plugin routes", () => {
+  const plan = new TaskPlan({
+    sourcePrompt: "Fix frontend layout",
+    tasks: [new Task({ id: 1, title: "Update the dashboard layout" })],
+  });
+  const route = new RouteDecision({
+    route: "frontend",
+    reason: "Frontend work must route through AGY.",
+    requiredPlugins: ["agy-frontend"],
+    pluginEvidenceRequired: true,
+  });
+
+  const codexPrompt = buildCodexExecutionPrompt(plan, 1, route);
+
+  assert.match(codexPrompt, /Route decision: frontend/);
+  assert.match(codexPrompt, /agy-frontend/);
+  assert.match(codexPrompt, /Plugin evidence/);
+  assert.match(codexPrompt, /Completion verdict/);
+});
+
+test("codex gate refuses completion when required plugin evidence is missing", () => {
+  class StaticPlanner {
+    plan(prompt: string): TaskPlan {
+      return new TaskPlan({ sourcePrompt: prompt, tasks: [new Task({ id: 1, title: "Implement frontend slice" })] });
+    }
+  }
+  class CompleteFollowup {
+    assess(): FollowupDecision {
+      return new FollowupDecision({ complete: true, summary: "All tasks are complete." });
+    }
+  }
+  const gate = new CodexGate({
+    planner: new StaticPlanner(),
+    routePlanner: new StaticRoutePlanner(
+      new RouteDecision({
+        route: "frontend",
+        reason: "Frontend work requires AGY.",
+        requiredPlugins: ["agy-frontend"],
+        pluginEvidenceRequired: true,
+      }),
+    ),
+    executor: new CodexExecutor({
+      command: "/fake/codex",
+      runner() {
+        return { status: 0, stdout: "Detailed completion summary: complete", stderr: "" };
+      },
+    }),
+    followupPlanner: new CompleteFollowup(),
+  });
+
+  const result = gate.run({ prompt: "Fix frontend layout", execute: true, maxRounds: 1 });
+
+  assert.equal(result.exitCode, 1);
+  assert.match(result.output, /missing required plugin evidence/);
+  assert.doesNotMatch(result.output, /Task Gate completion verdict: complete/);
 });
 
 test("codex gate continues with gate next tasks until complete", () => {
@@ -325,6 +419,7 @@ test("codex gate continues with gate next tasks until complete", () => {
   const followup = new Followup();
   const gate = new CodexGate({
     planner: new StaticPlanner(),
+    routePlanner: new StaticRoutePlanner(),
     executor: new CodexExecutor({
       command: "/fake/codex",
       runner(args) {
@@ -367,6 +462,7 @@ test("codex gate returns failure when max rounds reached before completion", () 
   const codexCalls: string[] = [];
   const gate = new CodexGate({
     planner: new StaticPlanner(),
+    routePlanner: new StaticRoutePlanner(),
     executor: new CodexExecutor({
       command: "/fake/codex",
       runner(args) {

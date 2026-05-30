@@ -1,6 +1,6 @@
 {
   "name": "codex-augment-dispatcher",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Unified Codex plugin for external CLI adapters that supplement Codex with planning, research, review, frontend, and future capabilities.",
   "author": {
     "name": "yxhpy"
@@ -20,9 +20,9 @@
       "Coordination"
     ],
     "defaultPrompt": [
-      "Use dispatch when helper CLIs can improve planning, research, review, frontend work, or thread fanout.",
-      "Use read-only Codex background threads for independent research, planning, checks, or review.",
-      "Codex owns edits, verification, commits, publishing, final claims; never pass secrets or silently fallback."
+      "Before non-trivial work, classify the route; required helper routes need Plugin evidence.",
+      "Route planning/stuck/research/review/frontend work through task-gate, thinking-gate, grok-augment, or agy-frontend.",
+      "Use read-only Codex background threads only as advisory; Codex owns edits, verification, commits, and final claims."
     ]
   }
 }

@@ -50,6 +50,9 @@ function validateNoPythonFiles(root: string): void {
 function validateSkills(): void {
   const dispatch = readFileSync(path.join(PLUGIN_ROOT, "skills/dispatch/SKILL.md"), "utf8");
   assert.match(dispatch, /external CLI adapters/);
+  assert.match(dispatch, /Mandatory Gate/);
+  assert.match(dispatch, /route classification/);
+  assert.match(dispatch, /Plugin evidence/);
   assert.match(dispatch, /Initial adapters/);
   assert.match(dispatch, /Add future CLI adapters/);
   assert.match(dispatch, /Claude CLI/);
