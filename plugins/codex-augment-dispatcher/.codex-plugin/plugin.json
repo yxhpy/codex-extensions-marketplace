@@ -1,6 +1,6 @@
 {
   "name": "codex-augment-dispatcher",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Unified Codex plugin for external CLI adapters that supplement Codex with planning, research, review, frontend, and future capabilities.",
   "author": {
     "name": "yxhpy"
@@ -20,10 +20,10 @@
       "Coordination"
     ],
     "defaultPrompt": [
-      "Use the dispatch skill first when a task might benefit from an external CLI adapter; the initial adapters are Claude, Grok, and AGY.",
-      "Use read-only Codex background threads for research, planning, frontend checks, and review when independent work can shorten the critical path.",
-      "Codex owns local execution, verification, commits, and final claims; external CLIs are advisory or delegated helpers with explicit boundaries.",
-      "Never pass secrets or unnecessary private context to Grok, Claude, or AGY; no fallback provider is allowed for Grok/video/image-generation paths."
+      "Use dispatch when helper CLIs can improve planning, research, review, or frontend work.",
+      "Use read-only Codex background threads for independent research, planning, checks, or review.",
+      "Codex owns local edits, verification, commits, publishing, and final claims.",
+      "Never pass secrets to helper CLIs; do not silently fallback for Grok, video, or image generation."
     ]
   }
 }

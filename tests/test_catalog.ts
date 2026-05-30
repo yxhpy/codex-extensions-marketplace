@@ -53,6 +53,8 @@ test("install docs describe background thread owner and verification boundaries"
   assert.match(readme, /Research thread: read-only context gathering/);
   assert.match(readme, /Review thread: release, regression, or security risk review/);
   assert.match(readme, /Never run parallel writers against the same working tree/);
+  assert.match(changelog, /0\.1\.4 - 2026-05-30/);
+  assert.match(changelog, /128-character limit/);
   assert.match(changelog, /0\.1\.3 - 2026-05-30/);
   assert.match(changelog, /background thread fanout guidance/);
 });
