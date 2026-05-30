@@ -5,22 +5,10 @@
   },
   "plugins": [
     {
-      "name": "task-gate",
+      "name": "codex-augment-dispatcher",
       "source": {
         "source": "local",
-        "path": "./plugins/task-gate"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Productivity"
-    },
-    {
-      "name": "grok-augment",
-      "source": {
-        "source": "local",
-        "path": "./plugins/grok-augment"
+        "path": "./plugins/codex-augment-dispatcher"
       },
       "policy": {
         "installation": "AVAILABLE",

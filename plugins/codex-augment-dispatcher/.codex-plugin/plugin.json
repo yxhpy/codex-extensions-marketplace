@@ -1,0 +1,27 @@
+{
+  "name": "codex-augment-dispatcher",
+  "version": "0.1.0",
+  "description": "Unified Codex plugin for external CLI adapters that supplement Codex with planning, research, review, frontend, and future capabilities.",
+  "author": {
+    "name": "yxhpy"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Codex Augment Dispatcher",
+    "shortDescription": "Route Codex work through extensible external CLI adapters.",
+    "longDescription": "Codex Augment Dispatcher is an extensible adapter hub for external CLIs that fill gaps in Codex workflows while preserving Codex as the local executor. The initial adapters are Claude CLI for numbered task gating and follow-up review, Grok CLI for external research, critique, creative direction, divergence, and Grok-video-only assets, and AGY CLI for frontend implementation under Codex supervision. Future CLI adapters can be added as separate skills, scripts, tests, and dispatch rules without renaming the plugin.",
+    "developerName": "yxhpy",
+    "category": "Productivity",
+    "capabilities": [
+      "Planning",
+      "Research",
+      "Review",
+      "Frontend"
+    ],
+    "defaultPrompt": [
+      "Use the dispatch skill first when a task might benefit from an external CLI adapter; the initial adapters are Claude, Grok, and AGY.",
+      "Codex owns local execution, verification, commits, and final claims; external CLIs are advisory or delegated helpers with explicit boundaries.",
+      "Never pass secrets or unnecessary private context to Grok, Claude, or AGY; no fallback provider is allowed for Grok/video/image-generation paths."
+    ]
+  }
+}

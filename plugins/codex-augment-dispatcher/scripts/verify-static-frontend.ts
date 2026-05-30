@@ -163,7 +163,7 @@ async function httpCheck(url: string): Promise<void> {
 }
 
 function runBrowserChecks(url: string): void {
-  const pwcli = process.env.PWCLI || path.join(process.env.HOME || "", ".codex/skills/playwright/scripts/playwright_cli.sh");
+  const pwcli = process.env.PWCLI || "";
   if (process.env.VERIFY_BROWSER === "0" || !existsSync(pwcli)) {
     say("WARN: Playwright browser verification skipped");
     return;

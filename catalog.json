@@ -1,26 +1,13 @@
 {
   "name": "yxhpy-codex-extensions",
-  "description": "Public catalog of optional Codex plugins, skills, and MCP-oriented tools.",
+  "description": "Public catalog of optional Codex plugins and MCP-oriented tools.",
   "plugins": [
     {
-      "name": "task-gate",
-      "path": "plugins/task-gate",
-      "install": "codex plugin add task-gate@yxhpy-codex-extensions",
-      "summary": "Generate divergent candidate ideas through local scripts when Codex is stuck, while retaining numbered task planning and the codex_gate wrapper."
-    },
-    {
-      "name": "grok-augment",
-      "path": "plugins/grok-augment",
-      "install": "codex plugin add grok-augment@yxhpy-codex-extensions",
-      "summary": "Use Grok as a non-mutating research, critique, creative, divergence, Grok-video-only brief, and real MP4 generation layer for Codex."
+      "name": "codex-augment-dispatcher",
+      "path": "plugins/codex-augment-dispatcher",
+      "install": "codex plugin add codex-augment-dispatcher@yxhpy-codex-extensions",
+      "summary": "Extensible external CLI adapter hub for supplementing Codex; initial adapters cover Claude task gating, Grok non-mutating augmentation, and AGY frontend implementation under Codex verification."
     }
   ],
-  "skills": [
-    {
-      "name": "agy-frontend",
-      "path": "skills/agy-frontend",
-      "install": "python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py --repo yxhpy/codex-extensions-marketplace --path skills/agy-frontend --method git",
-      "summary": "Frontend workflow skill that routes implementation through the Antigravity CLI and requires local verification."
-    }
-  ]
+  "skills": []
 }
