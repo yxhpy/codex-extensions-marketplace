@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.5 - 2026-05-30
+
+- Limit dispatcher manifest default prompts to the loader-supported maximum of three entries.
+
 ## 0.1.4 - 2026-05-30
 
 - Shorten dispatcher manifest default prompts so Codex accepts them under the loader's 128-character limit.

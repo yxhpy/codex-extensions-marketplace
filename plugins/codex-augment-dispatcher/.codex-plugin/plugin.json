@@ -1,6 +1,6 @@
 {
   "name": "codex-augment-dispatcher",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Unified Codex plugin for external CLI adapters that supplement Codex with planning, research, review, frontend, and future capabilities.",
   "author": {
     "name": "yxhpy"
@@ -20,10 +20,9 @@
       "Coordination"
     ],
     "defaultPrompt": [
-      "Use dispatch when helper CLIs can improve planning, research, review, or frontend work.",
+      "Use dispatch when helper CLIs can improve planning, research, review, frontend work, or thread fanout.",
       "Use read-only Codex background threads for independent research, planning, checks, or review.",
-      "Codex owns local edits, verification, commits, publishing, and final claims.",
-      "Never pass secrets to helper CLIs; do not silently fallback for Grok, video, or image generation."
+      "Codex owns edits, verification, commits, publishing, final claims; never pass secrets or silently fallback."
     ]
   }
 }
