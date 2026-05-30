@@ -1,6 +1,6 @@
 {
   "name": "codex-augment-dispatcher",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Unified Codex plugin for external CLI adapters that supplement Codex with planning, research, review, frontend, and future capabilities.",
   "author": {
     "name": "yxhpy"

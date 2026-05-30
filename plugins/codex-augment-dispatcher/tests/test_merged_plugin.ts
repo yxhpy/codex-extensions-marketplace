@@ -26,7 +26,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
   const manifest = readJson(path.join(PLUGIN_ROOT, ".codex-plugin/plugin.json"));
 
   assert.equal(manifest.name, "codex-augment-dispatcher");
-  assert.equal(manifest.version, "0.1.6");
+  assert.equal(manifest.version, "0.1.7");
   assert.equal(manifest.skills, "./skills/");
   assert.equal(manifest.interface.displayName, "Codex Augment Dispatcher");
   assert.deepEqual(manifest.author, { name: "yxhpy" });
@@ -72,6 +72,18 @@ test("main dispatch skill defines generic adapter routing without taking over Co
   ]) {
     assert.match(text, new RegExp(escapeRegExp(phrase)));
   }
+});
+
+test("routing skill descriptions favor dispatcher before direct adapters", () => {
+  const dispatch = readFileSync(path.join(PLUGIN_ROOT, "skills/dispatch/SKILL.md"), "utf8");
+  const taskGate = readFileSync(path.join(PLUGIN_ROOT, "skills/task-gate/SKILL.md"), "utf8");
+
+  assert.match(dispatch, /description: Use before any non-trivial Codex task/);
+  assert.match(dispatch, /classify whether `task-gate`, `thinking-gate`, `grok-augment`, or `agy-frontend` should run/);
+  assert.match(dispatch, /Use this skill before non-trivial Codex work/);
+  assert.match(taskGate, /description: Use for broad, multi-step, ambiguous, risky, or decomposition-first work/);
+  assert.match(taskGate, /# Task Gate/);
+  assert.doesNotMatch(taskGate, /# Thinking Gate/);
 });
 
 test("merged plugin keeps existing capability skills under one plugin", () => {

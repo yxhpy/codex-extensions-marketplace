@@ -1,11 +1,15 @@
 ---
 name: dispatch
-description: Route Codex tasks across extensible external CLI adapters while keeping Codex responsible for local execution and verification.
+description: Use before any non-trivial Codex task to classify whether `task-gate`, `thinking-gate`, `grok-augment`, or `agy-frontend` should run; route helper CLIs while Codex owns execution and verification.
 ---
 
 # Codex Augment Dispatcher
 
-Use this skill when a Codex task may benefit from one or more external CLI adapters.
+Use this skill before non-trivial Codex work when external CLI adapters or
+helper CLI routing might apply.
+It is the front door for deciding whether `task-gate`, `thinking-gate`,
+`grok-augment`, or `agy-frontend` should run before implementation or final
+claims.
 
 Initial adapters:
 

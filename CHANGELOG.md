@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.7 - 2026-05-30
+
+- Strengthen dispatcher and task-gate skill descriptions so normal Codex sessions route through the dispatcher before direct adapters.
+
 ## 0.1.6 - 2026-05-30
 
 - Add route classification and Plugin evidence enforcement to gated Codex execution.

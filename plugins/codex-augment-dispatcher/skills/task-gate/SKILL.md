@@ -1,13 +1,17 @@
 ---
 name: task-gate
-description: Use when Codex is stuck, lacks a good next step, or needs divergent candidate ideas before acting; script-only workflow using local Claude CLI, with numbered task planning support before execution.
+description: Use for broad, multi-step, ambiguous, risky, or decomposition-first work before Codex executes; also use for stuck or divergent planning through the local Claude CLI.
 metadata:
-  short-description: Diverge when Codex is stuck
+  short-description: Plan or diverge with Claude
 ---
 
-# Thinking Gate
+# Task Gate
 
-Use this skill when Codex does not know the next move, has no strong idea, is looping on a weak approach, or needs several candidate directions before acting.
+Use this skill when work should be decomposed into numbered tasks before Codex
+executes, especially for broad, multi-step, ambiguous, risky, or
+decomposition-first requests. Also use it when Codex does not know the next
+move, has no strong idea, is looping on a weak approach, or needs several
+candidate directions before acting.
 
 ## Divergent Thinking Workflow
 
