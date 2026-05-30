@@ -24,3 +24,18 @@ test("repo catalog and marketplace install only the merged plugin", () => {
   );
   assert.equal(marketplace.plugins[0].source.path, "./plugins/codex-augment-dispatcher");
 });
+
+test("install docs include recommended AGENTS.md proactive trigger rules", () => {
+  const readme = readFileSync(path.join(REPO_ROOT, "README.md"), "utf8");
+  const agents = readFileSync(path.join(REPO_ROOT, "AGENTS.md"), "utf8");
+
+  assert.match(readme, /Recommended project instructions/);
+  assert.match(readme, /AGENTS\.md/);
+  assert.match(readme, /proactively choose/);
+  assert.match(agents, /Plugin Trigger Rules/);
+  assert.match(agents, /Use plugins proactively/);
+  assert.match(agents, /`task-gate`: broad/);
+  assert.match(agents, /`grok-augment`: current research/);
+  assert.match(agents, /`agy-frontend`: frontend build/);
+  assert.match(agents, /Extending to More CLIs/);
+});

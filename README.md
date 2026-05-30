@@ -23,6 +23,13 @@ Install the merged plugin:
 codex plugin add codex-augment-dispatcher@yxhpy-codex-extensions
 ```
 
+Recommended project instructions:
+
+- Merge [`AGENTS.md`](AGENTS.md) into the target project's existing
+  `AGENTS.md`; keep project-specific rules first.
+- These rules help Codex proactively choose `task-gate`, `thinking-gate`,
+  `grok-augment`, or `agy-frontend` without waiting for explicit mentions.
+
 Update later:
 
 ```bash
