@@ -1,6 +1,6 @@
 {
   "name": "codex-augment-dispatcher",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Route Codex work through extensible external CLI adapters for planning, brainstorming, research, review, frontend, and Plugin evidence.",
   "author": {
     "name": "yxhpy"

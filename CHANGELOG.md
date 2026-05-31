@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.9 - 2026-06-01
+
+- Move `@types/node` into production dependencies so Pi git/package installs include Node built-in type declarations for bundled TypeScript test files.
+
 ## 0.1.8 - 2026-06-01
 
 - Add Pi package metadata so the dispatcher skills can be installed by `pi install` from the same repository.

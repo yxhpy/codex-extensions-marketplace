@@ -1,6 +1,6 @@
 {
   "name": "yxhpy-codex-extensions",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "private": true,
   "type": "module",
   "keywords": [
@@ -20,7 +20,7 @@
       "./plugins/codex-augment-dispatcher/skills"
     ]
   },
-  "devDependencies": {
+  "dependencies": {
     "@types/node": "^25.9.1"
   }
 }
