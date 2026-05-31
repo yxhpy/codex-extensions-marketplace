@@ -10,8 +10,13 @@ function readJson(filePath: string) {
 }
 
 test("repo catalog and marketplace install only the merged plugin", () => {
+  const pkg = readJson(path.join(REPO_ROOT, "package.json"));
   const catalog = readJson(path.join(REPO_ROOT, "catalog.json"));
   const marketplace = readJson(path.join(REPO_ROOT, ".agents/plugins/marketplace.json"));
+
+  assert.equal(pkg.version, "0.1.8");
+  assert.ok(pkg.keywords.includes("pi-package"));
+  assert.deepEqual(pkg.pi.skills, ["./plugins/codex-augment-dispatcher/skills"]);
 
   assert.deepEqual(
     catalog.plugins.map((plugin: { name: string }) => plugin.name),
@@ -30,6 +35,8 @@ test("install docs include recommended AGENTS.md proactive trigger rules", () =>
   const agents = readFileSync(path.join(REPO_ROOT, "AGENTS.md"), "utf8");
 
   assert.match(readme, /Recommended project instructions/);
+  assert.match(readme, /Install in Pi/);
+  assert.match(readme, /pi install git:github\.com\/yxhpy\/codex-extensions-marketplace@main/);
   assert.match(readme, /Mandatory gated execution/);
   assert.match(readme, /Plugin evidence/);
   assert.match(readme, /AGENTS\.md/);
@@ -55,6 +62,8 @@ test("install docs describe background thread owner and verification boundaries"
   assert.match(readme, /Research thread: read-only context gathering/);
   assert.match(readme, /Review thread: release, regression, or security risk review/);
   assert.match(readme, /Never run parallel writers against the same working tree/);
+  assert.match(changelog, /0\.1\.8 - 2026-06-01/);
+  assert.match(changelog, /isolated Codex\/Pi CLI E2E coverage/);
   assert.match(changelog, /0\.1\.5 - 2026-05-30/);
   assert.match(changelog, /maximum of three entries/);
   assert.match(changelog, /0\.1\.4 - 2026-05-30/);

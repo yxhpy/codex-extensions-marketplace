@@ -1,6 +1,6 @@
 ---
 name: task-gate
-description: Use for broad, multi-step, ambiguous, risky, or decomposition-first work before Codex executes; also use for stuck or divergent planning through the local Claude CLI.
+description: Use for broad, multi-step, ambiguous, risky, or decomposition-first work before Codex executes; trigger on plan, decompose, break down, task list, 规划, 拆解, 分解任务, 复杂任务.
 metadata:
   short-description: Plan or diverge with Claude
 ---
@@ -8,17 +8,27 @@ metadata:
 # Task Gate
 
 Use this skill when work should be decomposed into numbered tasks before Codex
-executes, especially for broad, multi-step, ambiguous, risky, or
-decomposition-first requests. Also use it when Codex does not know the next
-move, has no strong idea, is looping on a weak approach, or needs several
-candidate directions before acting.
+executes. Strong triggers include: plan, decompose, break down, task list,
+step-by-step, broad work, multi-step work, ambiguous request, risky change,
+release gate, migration, refactor plan, 规划, 拆解, 分解任务, 任务列表, 复杂任务.
+
+Also use it when Codex does not know the next move, has no strong idea, is
+looping on a weak approach, or needs several candidate directions before acting.
+
+## Script Path Resolution
+
+For Codex plugin installs, run commands from the plugin root. For Pi package
+installs, resolve this skill directory first; the plugin root is `../..` from
+this `SKILL.md`, so the same helper is `../../scripts/task_gate.ts` when
+resolved relative to the skill directory.
 
 ## Divergent Thinking Workflow
 
-1. Run the local script from the plugin root:
+1. Run the local script from the plugin root, or use the Pi-compatible
+   skill-relative script path:
 
 ```bash
-node --experimental-strip-types scripts/task_gate.ts --think --json "<stuck prompt>"
+node --experimental-strip-types ../../scripts/task_gate.ts --think --json "<stuck prompt>"
 ```
 
 2. Treat the returned `ideas` array as candidate directions, not an execution plan.
@@ -30,10 +40,11 @@ node --experimental-strip-types scripts/task_gate.ts --think --json "<stuck prom
 
 Use this workflow when the user wants Codex to work only after a prompt has been decomposed into tasks.
 
-1. Run the local planner script from the plugin root:
+1. Run the local planner script from the plugin root, or use the Pi-compatible
+   skill-relative script path:
 
 ```bash
-node --experimental-strip-types scripts/task_gate.ts --json "<raw user prompt>"
+node --experimental-strip-types ../../scripts/task_gate.ts --json "<raw user prompt>"
 ```
 
 2. Treat the returned `tasks` array as the execution plan.
@@ -42,10 +53,11 @@ node --experimental-strip-types scripts/task_gate.ts --json "<raw user prompt>"
 
 ## External Gate
 
-For stronger gating outside Codex, use the wrapper script from the plugin root:
+For stronger gating outside Codex, use the wrapper script from the plugin root,
+or the Pi-compatible skill-relative script path:
 
 ```bash
-node --experimental-strip-types scripts/codex_gate.ts --execute "<raw user prompt>"
+node --experimental-strip-types ../../scripts/codex_gate.ts --execute "<raw user prompt>"
 ```
 
 That wrapper sends the raw prompt only to the planner, then passes only the numbered task plan into `codex exec`.
@@ -73,11 +85,11 @@ Claude API mode and MCP mode are intentionally not part of the normal workflow.
 Task planning:
 
 ```bash
-node --experimental-strip-types scripts/task_gate.ts --json "<raw user prompt>"
+node --experimental-strip-types ../../scripts/task_gate.ts --json "<raw user prompt>"
 ```
 
 Divergent thinking:
 
 ```bash
-node --experimental-strip-types scripts/task_gate.ts --think --json "<stuck prompt>"
+node --experimental-strip-types ../../scripts/task_gate.ts --think --json "<stuck prompt>"
 ```

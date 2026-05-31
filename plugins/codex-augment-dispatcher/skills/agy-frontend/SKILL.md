@@ -1,11 +1,16 @@
 ---
 name: agy-frontend
-description: "Use AGY for frontend build/edit/style/debug/review/visual verification across web/UI apps, pages, components, dashboards, games, HTML/CSS, React/Vue/Svelte, Tailwind, responsive browser UX."
+description: "AGY frontend implementer. Trigger on frontend, UI, landing page, redesign, styling, CSS, animation, interaction, responsive, browser visual verification, React/Vue/Svelte/Tailwind, 前端, 落地页, 动效, 视觉检查."
 ---
 
 # AGY Frontend
 
 For frontend-related work, Antigravity CLI (`agy`) owns the frontend implementation. Codex handles context gathering, prompt construction, supervision, verification, and final reporting.
+
+Strong triggers include: frontend, UI, landing page, website, page, component,
+dashboard, game UI, redesign, restyle, CSS, Tailwind, animation, interaction,
+responsive, browser visual verification, screenshot proof, React, Vue, Svelte,
+HTML/CSS, 前端, 落地页, 页面, 组件, 动效, 视觉检查, 响应式.
 
 ## Hard Rule
 
@@ -17,6 +22,14 @@ Do not hand-write the final frontend implementation in Codex unless one of these
 - The task is a tiny non-visual text/config change and the user asks for speed over design.
 
 If an exception is used, say so plainly in the final answer.
+
+## Script Path Resolution
+
+For Codex plugin installs, run commands from the plugin root when using
+plugin-level scripts. For Pi package installs, resolve paths in this skill
+relative to this `SKILL.md`; `references/*` and `scripts/verify-static-frontend.ts`
+are intentionally skill-local and can be called via absolute paths derived from
+this skill directory.
 
 ## Workflow
 
@@ -37,7 +50,7 @@ AGY_BIN="${AGY_BIN:-agy}"
 Use `--dangerously-skip-permissions` only when the user has asked for autonomous file edits or the task cannot proceed without approval prompts. Prefer a bounded prompt over broad permission.
 
 6. If `agy` returns a plan instead of editing files, rerun with explicit approval to implement. If it returns instructions or a patch, apply the result carefully with local tools.
-7. Verify locally: install-free checks first, then typecheck/lint/tests/build as appropriate, then browser or screenshot proof for visible UI. For static media-led pages, run `ASSET_MIN_IMAGES=<n> ASSET_MIN_VIDEOS=<n> node --experimental-strip-types scripts/verify-static-frontend.ts <site-dir>` when applicable.
+7. Verify locally: install-free checks first, then typecheck/lint/tests/build as appropriate, then browser or screenshot proof for visible UI. For static media-led pages, run `ASSET_MIN_IMAGES=<n> ASSET_MIN_VIDEOS=<n> node --experimental-strip-types <absolute-skill-dir>/scripts/verify-static-frontend.ts <site-dir>` when applicable.
 8. Report what `agy` did, what Codex verified, and any gap.
 
 ## Visual Media Rule
@@ -111,7 +124,7 @@ When `frontend-skill` or `frontend-design` also applies, use their design constr
 
 - Read `references/asset-pack.md` before generating assets for image-led, video-led, cinematic, or polished demo work.
 - Read `references/frontend-verification.md` before final verification for visible UI work.
-- Use `node --experimental-strip-types scripts/verify-static-frontend.ts` for static HTML/CSS/JS pages when a local server can be run.
+- Use `node --experimental-strip-types <absolute-skill-dir>/scripts/verify-static-frontend.ts` for static HTML/CSS/JS pages when a local server can be run.
 
 ## Failure Handling
 

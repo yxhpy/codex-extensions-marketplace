@@ -1,6 +1,6 @@
 ---
 name: thinking-gate
-description: Use proactively when Codex is stuck, unsure, looping, lacks ideas, has no good next step, needs brainstorming, or needs divergent thinking; script-only workflow using local Claude CLI; Chinese triggers include 卡住, 没思路, 没有好想法, 不知道下一步, 想不出来, 发散一下, 头脑风暴, 换个思路.
+description: "Claude brainstorming for stuck Codex work. Trigger on stuck, unsure, looping, no idea, brainstorm, divergent thinking, 卡住, 没思路, 不知道下一步, 想不出来, 发散一下, 头脑风暴, 换个思路."
 metadata:
   short-description: Brainstorm when stuck
 ---
@@ -24,12 +24,20 @@ Common trigger phrases include:
 - "头脑风暴"
 - "换个思路"
 
+## Script Path Resolution
+
+For Codex plugin installs, run commands from the plugin root. For Pi package
+installs, resolve this skill directory first; the plugin root is `../..` from
+this `SKILL.md`, so the same helper is `../../scripts/task_gate.ts` when
+resolved relative to the skill directory.
+
 ## Workflow
 
-1. Run the local script from the plugin root:
+1. Run the local script from the plugin root, or use the Pi-compatible
+   skill-relative script path:
 
 ```bash
-node --experimental-strip-types scripts/task_gate.ts --think --json "<stuck prompt>"
+node --experimental-strip-types ../../scripts/task_gate.ts --think --json "<stuck prompt>"
 ```
 
 2. Treat the returned `ideas` as candidate directions, not commands.
@@ -50,7 +58,7 @@ Useful overrides:
 ## Script Reference
 
 ```bash
-node --experimental-strip-types scripts/task_gate.ts --think --json "<stuck prompt>"
+node --experimental-strip-types ../../scripts/task_gate.ts --think --json "<stuck prompt>"
 ```
 
-Use `scripts/task_gate.ts --json` or `scripts/codex_gate.ts --execute` only after a direction has been chosen and the work needs an execution task list.
+Use `../../scripts/task_gate.ts --json` or `../../scripts/codex_gate.ts --execute` only after a direction has been chosen and the work needs an execution task list.

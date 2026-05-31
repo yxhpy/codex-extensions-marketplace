@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.8 - 2026-06-01
+
+- Add Pi package metadata so the dispatcher skills can be installed by `pi install` from the same repository.
+- Add isolated Codex/Pi CLI E2E coverage for marketplace install, Pi package install, and installed script execution.
+- Document skill-relative script paths so Pi and Codex can resolve helper scripts consistently.
+
 ## 0.1.7 - 2026-05-30
 
 - Strengthen dispatcher and task-gate skill descriptions so normal Codex sessions route through the dispatcher before direct adapters.

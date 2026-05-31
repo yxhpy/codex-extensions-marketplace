@@ -1,29 +1,41 @@
 ---
 name: grok-augment
-description: Use when Codex should call the local Grok CLI for non-mutating current research, independent critique, creative direction, divergent candidate paths, or Grok-video-only briefs before Codex implements and verifies locally.
+description: "Grok CLI augmentation for current research, external critique, risk review, creative/product/frontend direction, divergent paths, Grok video briefs/generation, 最新信息, 调研, 外部评审 before Codex implements."
 ---
 
 # Grok Augment
 
 Use this skill when Grok should enhance Codex without taking over local execution.
+Strong triggers include: current research, latest info, web/current-source check,
+independent critique, outside opinion, risk review, product direction, frontend
+creative direction, divergent candidate paths, Grok video, video brief, 最新信息,
+调研, 外部评审, 风险复核, 创意方向.
+
+## Script Path Resolution
+
+For Codex plugin installs, run commands from the plugin root. For Pi package
+installs, resolve this skill directory first; the plugin root is `../..` from
+this `SKILL.md`, so the same helper is `../../scripts/grok_augment.ts` when
+resolved relative to the skill directory.
 
 ## Workflow
 
-1. Verify the configured CLI:
+1. Verify the configured CLI from the plugin root, or use the Pi-compatible
+   skill-relative script path:
 
 ```bash
-node --experimental-strip-types scripts/grok_augment.ts inspect --json
+node --experimental-strip-types ../../scripts/grok_augment.ts inspect --json
 ```
 
 2. Choose one mode:
 
 ```bash
-node --experimental-strip-types scripts/grok_augment.ts research --json "<question>"
-node --experimental-strip-types scripts/grok_augment.ts critic --json "<summary, diff, or test result>"
-node --experimental-strip-types scripts/grok_augment.ts creative --json "<product or frontend brief>"
-node --experimental-strip-types scripts/grok_augment.ts video --json "<video asset brief>"
-GROK_VIDEO_API_KEY="$LOCAL_GROK2API_KEY" node --experimental-strip-types scripts/grok_augment.ts video-generate --json "<video prompt>"
-node --experimental-strip-types scripts/grok_augment.ts diverge --json "<stuck point or decision>"
+node --experimental-strip-types ../../scripts/grok_augment.ts research --json "<question>"
+node --experimental-strip-types ../../scripts/grok_augment.ts critic --json "<summary, diff, or test result>"
+node --experimental-strip-types ../../scripts/grok_augment.ts creative --json "<product or frontend brief>"
+node --experimental-strip-types ../../scripts/grok_augment.ts video --json "<video asset brief>"
+GROK_VIDEO_API_KEY="$LOCAL_GROK2API_KEY" node --experimental-strip-types ../../scripts/grok_augment.ts video-generate --json "<video prompt>"
+node --experimental-strip-types ../../scripts/grok_augment.ts diverge --json "<stuck point or decision>"
 ```
 
 3. Codex must verify or implement the result locally. Grok output is advisory unless a local check proves it.

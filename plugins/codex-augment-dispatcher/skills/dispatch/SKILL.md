@@ -6,16 +6,33 @@ description: Use before any non-trivial Codex task to classify whether `task-gat
 # Codex Augment Dispatcher
 
 Use this skill before non-trivial Codex work when external CLI adapters or
-helper CLI routing might apply.
+helper CLI routing might apply. Also use it when the user says to use plugins,
+augment Codex, improve routing, dispatch work, fan out threads, or require
+Plugin evidence.
+
 It is the front door for deciding whether `task-gate`, `thinking-gate`,
 `grok-augment`, or `agy-frontend` should run before implementation or final
 claims.
 
-Initial adapters:
+Initial adapters and trigger language:
+
+- `task-gate`: plan, decompose, break down, multi-step, ambiguous, risky, 规划, 拆解, 分解任务, 复杂任务.
+- `thinking-gate`: stuck, looping, brainstorm, no idea, divergent thinking, 卡住, 没思路, 头脑风暴, 换个思路.
+- `grok-augment`: current research, external critique, risk review, creative/product/frontend direction, Grok video, 最新, 调研, 外部评审, 创意方向.
+- `agy-frontend`: frontend, UI, landing page, redesign, CSS, animation, responsive, browser visual verification, 前端, 落地页, 动效, 视觉检查.
+
+Adapter backends:
 
 - Claude CLI for numbered task planning, divergent thinking, and follow-up review through `scripts/task_gate.ts` and `scripts/codex_gate.ts`.
 - Grok CLI for non-mutating research, critique, creative direction, divergence, Grok-video-only briefs, and Grok video generation through `scripts/grok_augment.ts`.
 - AGY CLI for frontend build, edit, redesign, styling, interaction, and browser-rendered UI implementation through the `agy-frontend` skill.
+
+## Script Path Resolution
+
+For Codex plugin installs, run commands from the plugin root. For Pi package
+installs, resolve the active skill directory first; the plugin root is `../..`
+from every bundled `SKILL.md`, so helper scripts can be called with
+`../../scripts/<name>.ts` when resolved relative to the skill directory.
 
 Codex owns local file edits, verification, commits, and final claims. AGY CLI may edit frontend files only when the AGY frontend workflow is explicitly selected; Codex still gathers context, supervises scope, runs verification, and reports evidence.
 
@@ -37,8 +54,8 @@ plugin-demanding routes without requiring project `AGENTS.md` changes.
 1. If the task needs current research, an outside critique, creative product/frontend direction, divergent candidate paths, or Grok-video-only briefs, run Grok CLI first:
 
 ```bash
-node --experimental-strip-types scripts/grok_augment.ts inspect --json
-node --experimental-strip-types scripts/grok_augment.ts critic --json "<redacted summary>"
+node --experimental-strip-types ../../scripts/grok_augment.ts inspect --json
+node --experimental-strip-types ../../scripts/grok_augment.ts critic --json "<redacted summary>"
 ```
 
 Treat Grok output as advisory until Codex verifies it locally. Do not pass secrets, raw credentials, private tokens, or unnecessary full-repo context to Grok CLI.
@@ -46,13 +63,13 @@ Treat Grok output as advisory until Codex verifies it locally. Do not pass secre
 2. If the task is broad, ambiguous, multi-step, risky, or should be decomposed before execution, run Claude CLI task gating:
 
 ```bash
-node --experimental-strip-types scripts/task_gate.ts --json "<raw task>"
+node --experimental-strip-types ../../scripts/task_gate.ts --json "<raw task>"
 ```
 
 Execute the returned numbered tasks in order. For stuck/uncertain work, use:
 
 ```bash
-node --experimental-strip-types scripts/task_gate.ts --think --json "<stuck point>"
+node --experimental-strip-types ../../scripts/task_gate.ts --think --json "<stuck point>"
 ```
 
 3. If the task is frontend build/edit/style/debug/review/visual verification, use the `agy-frontend` skill. Build a bounded prompt, set explicit workspace scope with `--add-dir`, and verify locally after AGY returns.
@@ -114,7 +131,7 @@ Before claiming completion, run the relevant checks:
 ```bash
 python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py plugins/codex-augment-dispatcher
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/dispatch
-node --experimental-strip-types --test plugins/codex-augment-dispatcher/tests/*.ts
+node --experimental-strip-types --test tests/*.ts plugins/codex-augment-dispatcher/tests/*.ts
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/clean_test.ts
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/docker_clean_test.ts
 ```

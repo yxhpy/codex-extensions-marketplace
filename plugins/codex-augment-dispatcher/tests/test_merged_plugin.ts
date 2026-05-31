@@ -26,7 +26,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
   const manifest = readJson(path.join(PLUGIN_ROOT, ".codex-plugin/plugin.json"));
 
   assert.equal(manifest.name, "codex-augment-dispatcher");
-  assert.equal(manifest.version, "0.1.7");
+  assert.equal(manifest.version, "0.1.8");
   assert.equal(manifest.skills, "./skills/");
   assert.equal(manifest.interface.displayName, "Codex Augment Dispatcher");
   assert.deepEqual(manifest.author, { name: "yxhpy" });
@@ -84,6 +84,18 @@ test("routing skill descriptions favor dispatcher before direct adapters", () =>
   assert.match(taskGate, /description: Use for broad, multi-step, ambiguous, risky, or decomposition-first work/);
   assert.match(taskGate, /# Task Gate/);
   assert.doesNotMatch(taskGate, /# Thinking Gate/);
+});
+
+test("skills document Pi-compatible helper script paths", () => {
+  for (const skill of ["task-gate", "thinking-gate", "grok-augment", "dispatch"]) {
+    const text = readFileSync(path.join(PLUGIN_ROOT, `skills/${skill}/SKILL.md`), "utf8");
+    assert.match(text, /Script Path Resolution/);
+    assert.match(text, /\.\.\/\.\.\/scripts\//);
+  }
+
+  const agy = readFileSync(path.join(PLUGIN_ROOT, "skills/agy-frontend/SKILL.md"), "utf8");
+  assert.match(agy, /Script Path Resolution/);
+  assert.match(agy, /<absolute-skill-dir>\/scripts\/verify-static-frontend\.ts/);
 });
 
 test("merged plugin keeps existing capability skills under one plugin", () => {

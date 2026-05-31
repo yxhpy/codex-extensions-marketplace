@@ -45,6 +45,27 @@ codex plugin add codex-augment-dispatcher@yxhpy-codex-extensions
 
 During development, do not publish or install this merge for normal use until the isolated release gates pass.
 
+## Install in Pi
+
+Install the same repository as a Pi package to expose the bundled dispatcher
+skills to Pi sessions:
+
+```bash
+pi install git:github.com/yxhpy/codex-extensions-marketplace@main
+pi list
+```
+
+For local development, install the checkout path instead:
+
+```bash
+pi install /path/to/codex-extensions-marketplace
+```
+
+Pi loads the skills from `plugins/codex-augment-dispatcher/skills`. The helper
+scripts remain repository-owned TypeScript scripts; when a Pi-loaded skill needs
+to invoke one, resolve the active `SKILL.md` directory and use the documented
+skill-relative path such as `../../scripts/task_gate.ts`.
+
 ## Capabilities
 
 This plugin is intentionally named generically so more external CLI adapters and Codex thread coordination rules can be added later without changing the install identity.
@@ -110,7 +131,7 @@ python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/thinking-gate
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/grok-augment
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/agy-frontend
-node --experimental-strip-types --test plugins/codex-augment-dispatcher/tests/*.ts
+node --experimental-strip-types --test tests/*.ts plugins/codex-augment-dispatcher/tests/*.ts
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/clean_test.ts
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/docker_clean_test.ts
 ```

@@ -1,7 +1,11 @@
 {
   "name": "yxhpy-codex-extensions",
+  "version": "0.1.8",
   "private": true,
   "type": "module",
+  "keywords": [
+    "pi-package"
+  ],
   "scripts": {
     "test": "node --experimental-strip-types --test tests/*.ts plugins/codex-augment-dispatcher/tests/*.ts",
     "test:dispatcher": "node --experimental-strip-types --test plugins/codex-augment-dispatcher/tests/*.ts",
@@ -10,5 +14,13 @@
   },
   "engines": {
     "node": ">=22.18"
+  },
+  "pi": {
+    "skills": [
+      "./plugins/codex-augment-dispatcher/skills"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1"
   }
 }

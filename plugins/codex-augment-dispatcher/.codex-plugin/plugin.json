@@ -1,15 +1,15 @@
 {
   "name": "codex-augment-dispatcher",
-  "version": "0.1.7",
-  "description": "Unified Codex plugin for external CLI adapters that supplement Codex with planning, research, review, frontend, and future capabilities.",
+  "version": "0.1.8",
+  "description": "Route Codex work through extensible external CLI adapters for planning, brainstorming, research, review, frontend, and Plugin evidence.",
   "author": {
     "name": "yxhpy"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "Codex Augment Dispatcher",
-    "shortDescription": "Route Codex work through extensible external CLI adapters.",
-    "longDescription": "Codex Augment Dispatcher is an extensible adapter hub for external CLIs and Codex background thread fanout that fill gaps in Codex workflows while preserving Codex as the local executor. The initial adapters are Claude CLI for numbered task gating and follow-up review, Grok CLI for external research, critique, creative direction, divergence, and Grok-video-only assets, and AGY CLI for frontend implementation under Codex supervision. Future CLI adapters can be added as separate skills, scripts, tests, and dispatch rules without renaming the plugin.",
+    "shortDescription": "Auto-route planning, research, stuck, review, and frontend work to helper CLIs.",
+    "longDescription": "Codex Augment Dispatcher is an extensible adapter hub for external CLIs and Codex background thread fanout while preserving Codex as the local executor. It should be considered for non-trivial tasks and explicitly triggered by planning/decomposition, stuck/brainstorming, current research/latest info, external critique/risk review, creative direction, frontend/UI/landing page/redesign/animation, browser visual verification, and Grok video requests. The initial adapters are Claude task-gate/thinking-gate, Grok augment, and AGY frontend. Future CLI adapters can be added as separate skills, scripts, tests, and dispatch rules without renaming the plugin.",
     "developerName": "yxhpy",
     "category": "Productivity",
     "capabilities": [
@@ -21,7 +21,7 @@
     ],
     "defaultPrompt": [
       "Before non-trivial work, classify the route; required helper routes need Plugin evidence.",
-      "Route planning/stuck/research/review/frontend work through task-gate, thinking-gate, grok-augment, or agy-frontend.",
+      "Route plan/stuck/research/review/frontend work through task-gate, thinking-gate, grok-augment, or agy-frontend.",
       "Use read-only Codex background threads only as advisory; Codex owns edits, verification, commits, and final claims."
     ]
   }
