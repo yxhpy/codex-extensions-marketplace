@@ -25,7 +25,7 @@ Adapter backends:
 
 - Claude CLI for numbered task planning, divergent thinking, and follow-up review through `scripts/task_gate.ts` and `scripts/codex_gate.ts`.
 - Grok CLI for non-mutating research, critique, creative direction, divergence, Grok-video-only briefs, and Grok video generation through `scripts/grok_augment.ts`.
-- AGY CLI for frontend build, edit, redesign, styling, interaction, and browser-rendered UI implementation through the `agy-frontend` skill.
+- AGY CLI for frontend build, edit, redesign, styling, interaction, and browser-rendered UI implementation through the `agy-frontend` skill. AGY must not start or keep alive frontend dev/preview servers; Codex handles bounded server-based verification after AGY exits.
 
 ## Script Path Resolution
 
@@ -34,7 +34,7 @@ installs, resolve the active skill directory first; the plugin root is `../..`
 from every bundled `SKILL.md`, so helper scripts can be called with
 `../../scripts/<name>.ts` when resolved relative to the skill directory.
 
-Codex owns local file edits, verification, commits, and final claims. AGY CLI may edit frontend files only when the AGY frontend workflow is explicitly selected; Codex still gathers context, supervises scope, runs verification, and reports evidence.
+Codex owns local file edits, verification, commits, and final claims. AGY CLI may edit frontend files only when the AGY frontend workflow is explicitly selected; it must not launch blocking dev/preview servers. Codex still gathers context, supervises scope, runs verification, and reports evidence.
 
 ## Mandatory Gate
 
@@ -72,7 +72,7 @@ Execute the returned numbered tasks in order. For stuck/uncertain work, use:
 node --experimental-strip-types ../../scripts/task_gate.ts --think --json "<stuck point>"
 ```
 
-3. If the task is frontend build/edit/style/debug/review/visual verification, use the `agy-frontend` skill. Build a bounded prompt, set explicit workspace scope with `--add-dir`, and verify locally after AGY returns.
+3. If the task is frontend build/edit/style/debug/review/visual verification, use the `agy-frontend` skill. Build a bounded prompt, set explicit workspace scope with `--add-dir`, tell AGY not to start any frontend dev/preview server, and verify locally after AGY returns.
 
 4. If both Grok and Claude are relevant, use Grok CLI for outside critique/research first, then Claude CLI to convert the chosen direction into numbered tasks.
 
@@ -96,7 +96,8 @@ Recommended thread roles:
   cross-file risk review. The owner thread must re-check every actionable claim
   against final files and fresh command output.
 - `frontend`: route frontend implementation through `agy-frontend` with explicit
-  bounded paths, then have Codex verify locally with tests and browser evidence.
+  bounded paths, forbid AGY from starting dev/preview servers, then have Codex
+  verify locally with tests and browser evidence.
 - `stuck`: use `thinking-gate` for divergent ideas when Codex is looping or
   lacks a good next move, then convert the chosen idea into concrete tasks.
 

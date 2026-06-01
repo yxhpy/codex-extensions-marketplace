@@ -16,6 +16,8 @@ HTML/CSS, 前端, 落地页, 页面, 组件, 动效, 视觉检查, 响应式.
 
 Use the Antigravity CLI for all frontend build, edit, redesign, styling, layout, interaction, visual polish, and browser-rendered UI tasks. Resolve the binary with `AGY_BIN="${AGY_BIN:-agy}"`.
 
+AGY must not start, run, or keep alive frontend dev servers or preview servers (`npm run dev`, `vite --host`, `next dev`, `astro dev`, `pnpm dev`, etc.). Dev-server commands are blocking and can hang the adapter. Codex owns any bounded local server startup for verification after AGY exits, using explicit timeouts/background handling and cleanup.
+
 Do not hand-write the final frontend implementation in Codex unless one of these is true:
 - The user explicitly says not to use `agy`.
 - `agy` is unavailable after a version/auth smoke check and one retry.
@@ -36,7 +38,7 @@ this skill directory.
 1. Inspect the project first: package manager, framework, entry files, design system, existing components, scripts, and local verification commands.
 2. Decide the visual media strategy before invoking `agy`. For image-led or cinematic work, read `references/asset-pack.md`, generate the image/video pack first, and pass local paths plus roles to `agy`.
 3. Pick the task mode: `landing`, `app`, `redesign`, or `game`. For visual-led landing/product/brand/portfolio work, read `references/taste-lite.md` and include only the relevant checks in the `agy` prompt.
-4. Build a concrete `agy` prompt with: user request, allowed scope, exact files/directories, asset manifest, task mode, design constraints, repo conventions, expected verification, and "do not touch unrelated files".
+4. Build a concrete `agy` prompt with: user request, allowed scope, exact files/directories, asset manifest, task mode, design constraints, repo conventions, expected verification, "do not touch unrelated files", and "do not start or keep alive any frontend dev/preview server".
 5. Run `agy` with explicit workspace scope:
 
 ```bash
@@ -50,7 +52,7 @@ AGY_BIN="${AGY_BIN:-agy}"
 Use `--dangerously-skip-permissions` only when the user has asked for autonomous file edits or the task cannot proceed without approval prompts. Prefer a bounded prompt over broad permission.
 
 6. If `agy` returns a plan instead of editing files, rerun with explicit approval to implement. If it returns instructions or a patch, apply the result carefully with local tools.
-7. Verify locally: install-free checks first, then typecheck/lint/tests/build as appropriate, then browser or screenshot proof for visible UI. For static media-led pages, run `ASSET_MIN_IMAGES=<n> ASSET_MIN_VIDEOS=<n> node --experimental-strip-types <absolute-skill-dir>/scripts/verify-static-frontend.ts <site-dir>` when applicable.
+7. Verify locally after AGY exits: install-free checks first, then typecheck/lint/tests/build as appropriate, then browser or screenshot proof for visible UI. If a local frontend server is needed, Codex starts it separately with bounded timeout/background handling and cleanup; AGY does not start it. For static media-led pages, run `ASSET_MIN_IMAGES=<n> ASSET_MIN_VIDEOS=<n> node --experimental-strip-types <absolute-skill-dir>/scripts/verify-static-frontend.ts <site-dir>` when applicable.
 8. Report what `agy` did, what Codex verified, and any gap.
 
 ## Visual Media Rule
@@ -89,6 +91,7 @@ Scope:
 - Work only in <paths>.
 - Preserve existing framework, package manager, design system, and conventions.
 - Do not change unrelated behavior or metadata.
+- Do not start, run, or keep alive any frontend dev/preview server. Do not run `npm run dev`, `pnpm dev`, `yarn dev`, `vite --host`, `next dev`, `astro dev`, or similar blocking server commands. Codex will handle bounded server-based verification after you exit.
 
 Assets:
 - Asset manifest: <role | type:image|video | local path | section | crop/focal point or motion | alt text or aria label | poster path when video>.
@@ -107,8 +110,8 @@ Design bar:
 - For visual-led pages, satisfy the relevant checks from `references/taste-lite.md`.
 
 Verification expected:
-- Run <commands>.
-- If a dev server is needed, state the URL and what to visually check.
+- Run only non-blocking checks such as typecheck, lint, tests, build, or static analyzers.
+- Do not start a dev server. If server-based visual verification is needed, state the command/URL Codex should run separately and what to visually check.
 
 Return:
 - Files changed.

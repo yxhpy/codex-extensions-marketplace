@@ -131,7 +131,7 @@ Initial adapters:
 
 - Claude CLI task gating: `scripts/task_gate.ts` generates divergent ideas and numbered task plans, while `scripts/codex_gate.ts` can pass only the generated task plan into `codex exec` for gated execution rounds.
 - Grok CLI augmentation: `scripts/grok_augment.ts` uses Grok for non-mutating research, critique, creative direction, divergence, Grok-video-only briefs, and real MP4 generation through a configured Grok-compatible `/v1/videos` endpoint.
-- AGY CLI frontend workflow: `skills/agy-frontend` routes frontend build, edit, redesign, styling, layout, interaction, and visual verification through Antigravity CLI.
+- AGY CLI frontend workflow: `skills/agy-frontend` routes frontend build, edit, redesign, styling, layout, interaction, and visual implementation through Antigravity CLI, while explicitly forbidding AGY from starting blocking frontend dev/preview servers.
 
 ## Mandatory gated execution
 
@@ -147,7 +147,7 @@ Plugin evidence is missing, even if Codex reports the work as complete.
 
 Future adapters should be added as focused skills and scripts with fake-binary tests, explicit dispatch rules, and the same no-secret/no-fallback boundaries.
 
-Codex owns local file edits, verification, commits, and final claims. AGY can edit frontend files only inside the bounded AGY workflow; Codex still gathers context, supervises scope, runs checks, and reports evidence.
+Codex owns local file edits, verification, commits, and final claims. AGY can edit frontend files only inside the bounded AGY workflow and must not start or keep alive dev/preview servers; Codex still gathers context, supervises scope, runs checks, and reports evidence.
 
 No secrets, raw credentials, private tokens, or unnecessary full-repo context should be passed to Claude, Grok, or AGY. No fallback provider is allowed for Grok, Grok Video, or image generation paths.
 
@@ -161,8 +161,9 @@ Use background threads as bounded assistants, not as release authority:
   for the final numbered task order before implementation.
 - Review thread: release, regression, or security risk review; use high/xhigh
   thinking and verify every actionable claim locally after final edits.
-- Frontend thread: pair with `agy-frontend` only inside explicit paths; Codex
-  still owns browser checks and evidence.
+- Frontend thread: pair with `agy-frontend` only inside explicit paths; forbid
+  AGY from starting dev/preview servers. Codex still owns browser checks and
+  evidence.
 
 Never run parallel writers against the same working tree. Prefer read-only
 threads, or isolated worktrees for independent implementation experiments.

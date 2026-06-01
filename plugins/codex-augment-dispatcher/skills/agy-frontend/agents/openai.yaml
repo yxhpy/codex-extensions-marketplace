@@ -1,4 +1,4 @@
 interface:
   display_name: "AGY Frontend"
   short_description: "Route frontend work through Antigravity CLI."
-  default_prompt: "Use AGY to implement and verify this frontend change."
+  default_prompt: "Use AGY to implement this frontend change without starting dev/preview servers; Codex verifies after AGY exits."

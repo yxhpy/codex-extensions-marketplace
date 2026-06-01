@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.12 - 2026-06-01
+
+- Forbid AGY frontend helper runs from starting or keeping alive blocking frontend dev/preview servers; Codex now owns any bounded server-based verification after AGY exits.
+- Update dispatcher, AGY skill prompts, install guidance, and tests to enforce the non-blocking frontend-helper boundary.
+
 ## 0.1.11 - 2026-06-01
 
 - Add the standalone `xai_grok_x_search` and `xai_grok_video_generate` Pi extension tools for xAI/Grok X Search and Grok Imagine Video without depending on Hermes.

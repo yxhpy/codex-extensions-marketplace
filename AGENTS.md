@@ -7,7 +7,9 @@ first; add these plugin routing rules after them.
 
 For frontend work, use `agy-frontend`. AGY owns frontend implementation inside
 the bounded workflow; Codex gathers context, passes explicit paths, verifies
-locally, and reports evidence.
+locally, and reports evidence. AGY must not start or keep alive frontend
+dev/preview servers; Codex handles any bounded server-based verification after
+AGY exits.
 
 ## Plugin Trigger Rules
 
@@ -48,7 +50,8 @@ Thread roles:
   files and commands after final edits.
 - `frontend`: UI implementation, redesign, styling, interaction, or browser
   visual verification. Use `agy-frontend` with explicit bounded paths. AGY may
-  edit only inside the approved frontend scope; Codex still verifies locally.
+  edit only inside the approved frontend scope and must not start blocking
+  dev/preview servers; Codex still verifies locally.
 - `stuck`: divergent thinking when Codex is looping or lacks a good next step.
   Use `thinking-gate`, then convert the chosen idea into concrete tasks before
   editing.
