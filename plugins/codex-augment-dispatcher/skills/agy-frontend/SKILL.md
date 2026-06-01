@@ -36,7 +36,7 @@ this skill directory.
 ## Workflow
 
 1. Inspect the project first: package manager, framework, entry files, design system, existing components, scripts, and local verification commands.
-2. Decide the visual media strategy before invoking `agy`. For image-led or cinematic work, read `references/asset-pack.md`, generate the image/video pack first, and pass local paths plus roles to `agy`.
+2. Decide the visual media strategy before invoking `agy`. For image-led or cinematic work, read `references/asset-pack.md`, generate the image/video pack first, and pass local paths plus roles to `agy`. If one generated image contains multiple icons/sprites/assets that must be split, use the `asset-slicer` skill and `../../scripts/asset_slice.ts` before handing paths to AGY.
 3. Pick the task mode: `landing`, `app`, `redesign`, or `game`. For visual-led landing/product/brand/portfolio work, read `references/taste-lite.md` and include only the relevant checks in the `agy` prompt.
 4. Build a concrete `agy` prompt with: user request, allowed scope, exact files/directories, asset manifest, task mode, design constraints, repo conventions, expected verification, "do not touch unrelated files", and "do not start or keep alive any frontend dev/preview server".
 5. Run `agy` with explicit workspace scope:
@@ -94,7 +94,7 @@ Scope:
 - Do not start, run, or keep alive any frontend dev/preview server. Do not run `npm run dev`, `pnpm dev`, `yarn dev`, `vite --host`, `next dev`, `astro dev`, or similar blocking server commands. Codex will handle bounded server-based verification after you exit.
 
 Assets:
-- Asset manifest: <role | type:image|video | local path | section | crop/focal point or motion | alt text or aria label | poster path when video>.
+- Asset manifest: <role | type:image|video | local path | section | crop/focal point or motion | alt text or aria label | poster path when video>. For sliced icon/sprite sheets, include only files that passed `asset-slicer` and reference the generated `asset-slices.json` report.
 - Image example: role=hero, type=image, path=assets/generated/hero.png, section=hero, crop=subject right with safe dark space left, alt=<specific useful alt text>.
 - Video example: role=hero-video, type=video, path=assets/generated/hero-loop.mp4, poster=assets/generated/hero-poster.png, section=hero, motion=muted 6s loop with slow atmospheric movement, aria-label=<specific useful label>.
 - All image assets in the manifest must come from image_gen. All video assets in the manifest must come from Grok Video. Do not invent fallback media or substitute CSS/SVG/local animation for missing generated assets.
@@ -126,6 +126,7 @@ When `frontend-skill` or `frontend-design` also applies, use their design constr
 ## Verification References
 
 - Read `references/asset-pack.md` before generating assets for image-led, video-led, cinematic, or polished demo work.
+- Use the `asset-slicer` skill and `node --experimental-strip-types ../../scripts/asset_slice.ts` before integrating generated icon/sprite sheets or other multi-asset bitmap sheets.
 - Read `references/frontend-verification.md` before final verification for visible UI work.
 - Use `node --experimental-strip-types <absolute-skill-dir>/scripts/verify-static-frontend.ts` for static HTML/CSS/JS pages when a local server can be run.
 

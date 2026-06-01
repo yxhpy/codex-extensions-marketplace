@@ -1,15 +1,15 @@
 {
   "name": "codex-augment-dispatcher",
-  "version": "0.1.12",
-  "description": "Route Codex work through extensible external CLI adapters for planning, brainstorming, research, review, frontend, and Plugin evidence.",
+  "version": "0.1.13",
+  "description": "Route Codex work through extensible external CLI adapters and deterministic asset workflows for planning, brainstorming, research, review, frontend, generated asset slicing, and Plugin evidence.",
   "author": {
     "name": "yxhpy"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "Codex Augment Dispatcher",
-    "shortDescription": "Auto-route planning, research, stuck, review, and frontend work to helper CLIs.",
-    "longDescription": "Codex Augment Dispatcher is an extensible adapter hub for external CLIs and Codex background thread fanout while preserving Codex as the local executor. It should be considered for non-trivial tasks and explicitly triggered by planning/decomposition, stuck/brainstorming, current research/latest info, external critique/risk review, creative direction, frontend/UI/landing page/redesign/animation, browser visual verification, and Grok video requests. The initial adapters are Claude task-gate/thinking-gate, Grok augment, and AGY frontend. Future CLI adapters can be added as separate skills, scripts, tests, and dispatch rules without renaming the plugin.",
+    "shortDescription": "Auto-route planning, research, review, frontend, and asset slicing workflows.",
+    "longDescription": "Codex Augment Dispatcher is an extensible adapter hub for external CLIs, deterministic generated-asset workflows, and Codex background thread fanout while preserving Codex as the local executor. It should be considered for non-trivial tasks and explicitly triggered by planning/decomposition, stuck/brainstorming, current research/latest info, external critique/risk review, creative direction, frontend/UI/landing page/redesign/animation, browser visual verification, generated icon/sprite sheet slicing, and Grok video requests. The initial adapters are Claude task-gate/thinking-gate, Grok augment, AGY frontend, and asset-slicer. Future CLI adapters can be added as separate skills, scripts, tests, and dispatch rules without renaming the plugin.",
     "developerName": "yxhpy",
     "category": "Productivity",
     "capabilities": [
@@ -17,11 +17,12 @@
       "Research",
       "Review",
       "Frontend",
-      "Coordination"
+      "Coordination",
+      "Assets"
     ],
     "defaultPrompt": [
       "Before non-trivial work, classify the route; required helper routes need Plugin evidence.",
-      "Route plan/stuck/research/review/frontend work through task-gate, thinking-gate, grok-augment, or agy-frontend.",
+      "Route plan/stuck/research/review/frontend/assets through task-gate, thinking-gate, grok-augment, agy-frontend, or asset-slicer.",
       "Use read-only Codex background threads only as advisory; Codex owns edits, verification, commits, and final claims."
     ]
   }

@@ -24,6 +24,9 @@ Use plugins proactively. Explicit plugin names are strong hints, not required.
   Non-mutating only; redact secrets and unnecessary repo context.
 - `agy-frontend`: frontend build, edit, redesign, styling, layout, interaction,
   browser UI work, or visual verification. Bound paths and verify the result.
+- `asset-slicer`: generated icon sheets, sprite sheets, multi-asset images,
+  dirty cuts, crop drift, 切图, or 切分图标. Run deterministic slicing and gate on
+  the JSON report before AGY or frontend code consumes the assets.
 
 When multiple apply, use Grok for outside input first, then Task Gate for the
 execution plan. Codex owns edits, tests, commits, and final claims.
@@ -52,6 +55,9 @@ Thread roles:
   visual verification. Use `agy-frontend` with explicit bounded paths. AGY may
   edit only inside the approved frontend scope and must not start blocking
   dev/preview servers; Codex still verifies locally.
+- `assets`: generated icon/sprite sheet slicing, dirty-cut cleanup, crop drift,
+  and expected-count checks. Use `asset-slicer`; treat failed reports as
+  blockers instead of hand-waving visual acceptance.
 - `stuck`: divergent thinking when Codex is looping or lacks a good next step.
   Use `thinking-gate`, then convert the chosen idea into concrete tasks before
   editing.

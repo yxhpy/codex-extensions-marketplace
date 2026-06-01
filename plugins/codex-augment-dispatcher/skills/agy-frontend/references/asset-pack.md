@@ -20,6 +20,7 @@ Image roles:
 - `section-detail`: ingredient, material, place, feature, or process close-up.
 - `texture`: subtle background material such as glass, paper, mist, shadow, fabric, terrain.
 - `state`: visual for empty/loading/error/success when the interface depends on states.
+- `icon-sheet` / `sprite-sheet`: a generated sheet that intentionally contains multiple small assets; it must be processed with the `asset-slicer` workflow before AGY receives individual paths.
 
 Video roles:
 
@@ -74,6 +75,7 @@ Asset manifest:
 ## Generation Guidance
 
 - Generate separate assets for different section jobs instead of cropping one image or stretching one loop for everything.
+- Exception: when the request explicitly needs an icon sheet, sprite sheet, sticker pack, or game item sheet, require flat transparent/chroma background, clear gutters, and one asset per cell/island, then run `asset-slicer` before using the outputs.
 - Avoid baked-in UI text, fake logos, watermarks, and unreadable label text.
 - For product pages, generate image_gen hero/detail/mobile/section assets until every visual section has real media.
 - For cinematic or interactive pages, generate Grok Video hero/ambient/section clips and image_gen posters/section images until the experience is complete.

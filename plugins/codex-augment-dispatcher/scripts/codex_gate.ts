@@ -447,6 +447,7 @@ export function buildRoutePrompt(prompt: string): string {
 		'{"route":"simple","reason":"short reason","required_plugins":["plugin-name"],"plugin_evidence_required":true}.\n' +
 		"Available routes and mandatory plugins:\n" +
 		"- frontend: use agy-frontend for frontend build, edit, redesign, styling, layout, interaction, browser UI work, or visual verification; AGY must not start dev/preview servers.\n" +
+		"- assets: use asset-slicer for generated icon sheets, sprite sheets, multi-asset bitmap slicing, crop drift checks, dirty-cut checks, or 切图/切分图标 requests.\n" +
 		"- research: use grok-augment for current research, outside critique, risk review, product/frontend direction, creative paths, or Grok video briefs/generation.\n" +
 		"- planning: use task-gate for broad, multi-step, ambiguous, risky, or decomposition-first work.\n" +
 		"- stuck: use thinking-gate when Codex is stuck, uncertain, looping, or needs divergent thinking.\n" +

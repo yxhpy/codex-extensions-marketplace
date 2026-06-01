@@ -1,6 +1,6 @@
 ---
 name: dispatch
-description: Use before any non-trivial Codex task to classify whether `task-gate`, `thinking-gate`, `grok-augment`, or `agy-frontend` should run; route helper CLIs while Codex owns execution and verification.
+description: Use before any non-trivial Codex task to classify whether `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, or `asset-slicer` should run; route helper CLIs/tools while Codex owns execution and verification.
 ---
 
 # Codex Augment Dispatcher
@@ -11,8 +11,8 @@ augment Codex, improve routing, dispatch work, fan out threads, or require
 Plugin evidence.
 
 It is the front door for deciding whether `task-gate`, `thinking-gate`,
-`grok-augment`, or `agy-frontend` should run before implementation or final
-claims.
+`grok-augment`, `agy-frontend`, or `asset-slicer` should run before
+implementation or final claims.
 
 Initial adapters and trigger language:
 
@@ -20,12 +20,14 @@ Initial adapters and trigger language:
 - `thinking-gate`: stuck, looping, brainstorm, no idea, divergent thinking, 卡住, 没思路, 头脑风暴, 换个思路.
 - `grok-augment`: current research, external critique, risk review, creative/product/frontend direction, Grok video, 最新, 调研, 外部评审, 创意方向.
 - `agy-frontend`: frontend, UI, landing page, redesign, CSS, animation, responsive, browser visual verification, 前端, 落地页, 动效, 视觉检查.
+- `asset-slicer`: generated icon sheets, sprite sheets, multi-asset images, crop drift, dirty cuts, 切图, 切分图标, 多素材切分.
 
 Adapter backends:
 
 - Claude CLI for numbered task planning, divergent thinking, and follow-up review through `scripts/task_gate.ts` and `scripts/codex_gate.ts`.
 - Grok CLI for non-mutating research, critique, creative direction, divergence, Grok-video-only briefs, and Grok video generation through `scripts/grok_augment.ts`.
 - AGY CLI for frontend build, edit, redesign, styling, interaction, and browser-rendered UI implementation through the `agy-frontend` skill. AGY must not start or keep alive frontend dev/preview servers; Codex handles bounded server-based verification after AGY exits.
+- Deterministic asset slicing for generated icon/sprite sheets through the `asset-slicer` skill and `scripts/asset_slice.ts`.
 
 ## Script Path Resolution
 
@@ -72,11 +74,13 @@ Execute the returned numbered tasks in order. For stuck/uncertain work, use:
 node --experimental-strip-types ../../scripts/task_gate.ts --think --json "<stuck point>"
 ```
 
-3. If the task is frontend build/edit/style/debug/review/visual verification, use the `agy-frontend` skill. Build a bounded prompt, set explicit workspace scope with `--add-dir`, tell AGY not to start any frontend dev/preview server, and verify locally after AGY returns.
+3. If the task involves generated icon sheets, sprite sheets, multi-asset bitmap slicing, dirty cuts, crop drift, or 切图/切分图标, use the `asset-slicer` skill. Run `scripts/asset_slice.ts` with expected count, padding, gutter, and optional expected-box manifest; treat a failed report as a blocker before passing assets to AGY.
 
-4. If both Grok and Claude are relevant, use Grok CLI for outside critique/research first, then Claude CLI to convert the chosen direction into numbered tasks.
+4. If the task is frontend build/edit/style/debug/review/visual verification, use the `agy-frontend` skill. Build a bounded prompt, set explicit workspace scope with `--add-dir`, tell AGY not to start any frontend dev/preview server, and verify locally after AGY returns.
 
-5. If Superpowers skills apply in the active Codex session, follow them as workflow gates. This dispatcher does not replace Superpowers; it selects helper CLIs while preserving Superpowers planning, TDD, review, and verification discipline.
+5. If both Grok and Claude are relevant, use Grok CLI for outside critique/research first, then Claude CLI to convert the chosen direction into numbered tasks.
+
+6. If Superpowers skills apply in the active Codex session, follow them as workflow gates. This dispatcher does not replace Superpowers; it selects helper CLIs while preserving Superpowers planning, TDD, review, and verification discipline.
 
 ## Codex Thread Fanout
 
@@ -98,6 +102,8 @@ Recommended thread roles:
 - `frontend`: route frontend implementation through `agy-frontend` with explicit
   bounded paths, forbid AGY from starting dev/preview servers, then have Codex
   verify locally with tests and browser evidence.
+- `assets`: run deterministic `asset-slicer` checks for generated icon/sprite
+  sheets before AGY or frontend code consumes the sliced files.
 - `stuck`: use `thinking-gate` for divergent ideas when Codex is looping or
   lacks a good next move, then convert the chosen idea into concrete tasks.
 
@@ -111,7 +117,7 @@ evidence.
 
 Add future CLI adapters without renaming this plugin:
 
-1. Add a focused skill under `skills/<adapter-name>/SKILL.md` that defines when to use that CLI, what it may and may not do, and what Codex must verify.
+1. Add a focused skill under `skills/<adapter-name>/SKILL.md` that defines when to use that CLI/tool, what it may and may not do, and what Codex must verify.
 2. Add a script under `scripts/` only when deterministic CLI wrapping, output parsing, fake-binary testing, or repeated command construction is needed.
 3. Add tests under `tests/` that use fake binaries or local mock servers by default.
 4. Update this dispatch skill with the adapter's trigger conditions, boundaries, and verification commands.

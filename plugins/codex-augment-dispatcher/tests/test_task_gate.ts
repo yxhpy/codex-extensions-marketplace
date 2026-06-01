@@ -301,6 +301,28 @@ test("route planner classifies plugin-demanding prompts", () => {
 	assert.equal(decision.pluginEvidenceRequired, true);
 	assert.match(thinker.prompts[0], /Classify the raw user prompt/);
 	assert.match(thinker.prompts[0], /agy-frontend/);
+	assert.match(thinker.prompts[0], /asset-slicer/);
+});
+
+test("route planner advertises asset slicer for generated sheets", () => {
+	const thinker = new FakeThinker(
+		JSON.stringify({
+			route: "assets",
+			reason: "Generated icon sheets need deterministic slicing checks.",
+			required_plugins: ["asset-slicer"],
+			plugin_evidence_required: true,
+		}),
+	);
+
+	const decision = new RoutePlanner({ thinker }).classify(
+		"切分这张生成的图标素材图，避免切偏",
+	);
+
+	assert.equal(decision.route, "assets");
+	assert.deepEqual(decision.requiredPlugins, ["asset-slicer"]);
+	assert.equal(decision.pluginEvidenceRequired, true);
+	assert.match(thinker.prompts[0], /sprite sheets/);
+	assert.match(thinker.prompts[0], /切图/);
 });
 
 test("codex gate dry run plans without executing codex", () => {

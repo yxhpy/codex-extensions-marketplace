@@ -16,7 +16,7 @@ test("repo catalog and marketplace install only the merged plugin", () => {
 		path.join(REPO_ROOT, ".agents/plugins/marketplace.json"),
 	);
 
-	assert.equal(pkg.version, "0.1.12");
+	assert.equal(pkg.version, "0.1.13");
 	assert.ok(pkg.keywords.includes("pi-package"));
 	assert.ok(
 		pkg.dependencies["@types/node"],
@@ -61,6 +61,8 @@ test("install docs include recommended AGENTS.md proactive trigger rules", () =>
 	assert.match(readme, /Codex image generation in Pi/);
 	assert.match(readme, /xai_grok_x_search/);
 	assert.match(readme, /xAI\/Grok X Search and video in Pi/);
+	assert.match(readme, /asset-slicer/);
+	assert.match(readme, /asset_slice\.ts/);
 	assert.match(readme, /AGENTS\.md/);
 	assert.match(readme, /proactively choose/);
 	assert.match(agents, /Plugin Trigger Rules/);
@@ -68,6 +70,7 @@ test("install docs include recommended AGENTS.md proactive trigger rules", () =>
 	assert.match(agents, /`task-gate`: broad/);
 	assert.match(agents, /`grok-augment`: current research/);
 	assert.match(agents, /`agy-frontend`: frontend build/);
+	assert.match(agents, /`asset-slicer`: generated icon sheets/);
 	assert.match(agents, /Codex Thread Fanout/);
 	assert.match(agents, /`research`: read-only context gathering/);
 	assert.match(agents, /`review`: independent risk review/);

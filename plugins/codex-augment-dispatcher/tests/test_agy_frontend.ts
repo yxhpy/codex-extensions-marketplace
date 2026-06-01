@@ -52,6 +52,21 @@ test("AGY frontend skill forbids blocking dev servers", () => {
 	}
 });
 
+test("AGY frontend skill routes generated sheets through asset slicer", () => {
+	const skill = readFileSync(path.join(SKILL_ROOT, "SKILL.md"), "utf8");
+	const pack = readFileSync(
+		path.join(SKILL_ROOT, "references/asset-pack.md"),
+		"utf8",
+	);
+
+	assert.match(skill, /asset-slicer/);
+	assert.match(skill, /asset_slice\.ts/);
+	assert.match(skill, /asset-slices\.json/);
+	assert.match(pack, /icon-sheet/);
+	assert.match(pack, /sprite-sheet/);
+	assert.match(pack, /clear gutters/);
+});
+
 test("AGY asset pack has no resource count ceiling", () => {
 	const text = readFileSync(
 		path.join(SKILL_ROOT, "references/asset-pack.md"),

@@ -6,7 +6,7 @@ Public catalog for optional Codex plugins and MCP-oriented tools.
 
 | Type | Name | Path | Purpose |
 | --- | --- | --- | --- |
-| Plugin + Scripts + Skills | `codex-augment-dispatcher` | `plugins/codex-augment-dispatcher` | Extensible external CLI adapter and Codex background-thread coordination hub; initial adapters cover Claude task gating, Grok augmentation, and AGY frontend implementation. |
+| Plugin + Scripts + Skills | `codex-augment-dispatcher` | `plugins/codex-augment-dispatcher` | Extensible external CLI adapter, deterministic generated-asset workflow, and Codex background-thread coordination hub; initial adapters cover Claude task gating, Grok augmentation, AGY frontend implementation, and asset slicing. |
 | Pi Extension | `codex_generate_image` | `extensions/codex-image-gen` | Generate bitmap images from Pi through the OpenAI Codex Responses backend using the existing `openai-codex` login; backend image model is gpt-image-2. |
 | Pi Extension | `xai_grok_x_search`, `xai_grok_video_generate` | `extensions/xai-grok` | Search X and generate Grok Imagine videos from Pi using xAI API keys or Pi-owned xAI OAuth, without depending on Hermes. |
 
@@ -132,13 +132,14 @@ Initial adapters:
 - Claude CLI task gating: `scripts/task_gate.ts` generates divergent ideas and numbered task plans, while `scripts/codex_gate.ts` can pass only the generated task plan into `codex exec` for gated execution rounds.
 - Grok CLI augmentation: `scripts/grok_augment.ts` uses Grok for non-mutating research, critique, creative direction, divergence, Grok-video-only briefs, and real MP4 generation through a configured Grok-compatible `/v1/videos` endpoint.
 - AGY CLI frontend workflow: `skills/agy-frontend` routes frontend build, edit, redesign, styling, layout, interaction, and visual implementation through Antigravity CLI, while explicitly forbidding AGY from starting blocking frontend dev/preview servers.
+- Asset slicing workflow: `skills/asset-slicer` and `scripts/asset_slice.ts` split generated icon/sprite sheets into deterministic PNG slices, remove background pixels, and fail on dirty borders, clipped assets, insufficient gutters, count mismatches, or expected-box drift.
 
 ## Mandatory gated execution
 
 `scripts/codex_gate.ts --execute "<raw prompt>"` now classifies the route before
 Codex receives an execution prompt. The route can require `task-gate`,
-`thinking-gate`, `grok-augment`, or `agy-frontend` for planning, stuck,
-research/review, or frontend work.
+`thinking-gate`, `grok-augment`, `agy-frontend`, or `asset-slicer` for planning,
+stuck, research/review, frontend work, or generated asset slicing.
 
 When a route requires helper plugins, Codex's Detailed completion summary must
 include a `Plugin evidence:` line naming every required plugin and the command,
@@ -149,7 +150,7 @@ Future adapters should be added as focused skills and scripts with fake-binary t
 
 Codex owns local file edits, verification, commits, and final claims. AGY can edit frontend files only inside the bounded AGY workflow and must not start or keep alive dev/preview servers; Codex still gathers context, supervises scope, runs checks, and reports evidence.
 
-No secrets, raw credentials, private tokens, or unnecessary full-repo context should be passed to Claude, Grok, or AGY. No fallback provider is allowed for Grok, Grok Video, or image generation paths.
+No secrets, raw credentials, private tokens, or unnecessary full-repo context should be passed to Claude, Grok, or AGY. No fallback provider is allowed for Grok, Grok Video, or image generation paths. Generated icon/sprite sheets must pass `asset-slicer` before their individual assets are treated as frontend-ready.
 
 ## Codex Background Threads
 
@@ -176,6 +177,7 @@ settings and continue without treating the failed thread as evidence.
 - Claude task gating expects the `claude` CLI on `PATH`, or set `TASK_GATE_CLAUDE_BIN=/path/to/claude`.
 - Grok augmentation expects the `grok` CLI on `PATH`, or set `GROK_AUGMENT_GROK_BIN=/path/to/grok`.
 - AGY frontend work expects the `agy` CLI on `PATH`, or set `AGY_BIN=/path/to/agy`.
+- Asset slicing uses repository-owned TypeScript only: `node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/asset_slice.ts <sheet.png> --out-dir <dir> --expect-count <n>`.
 - Grok augmentation reads an API key from `GROK_VIDEO_API_KEY` by default when the local video endpoint requires one.
 - The standalone Pi xAI/Grok extension reads `XAI_API_KEY` / `PI_XAI_API_KEY`, optional Pi config, or its own `/xai-grok-login` OAuth credentials; it does not require Hermes.
 
@@ -190,6 +192,7 @@ python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/thinking-gate
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/grok-augment
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/agy-frontend
+python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/asset-slicer
 node --experimental-strip-types --test tests/*.ts plugins/codex-augment-dispatcher/tests/*.ts
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/clean_test.ts
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/docker_clean_test.ts

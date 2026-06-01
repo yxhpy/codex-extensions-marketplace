@@ -43,7 +43,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
 	);
 
 	assert.equal(manifest.name, "codex-augment-dispatcher");
-	assert.equal(manifest.version, "0.1.12");
+	assert.equal(manifest.version, "0.1.13");
 	assert.equal(manifest.skills, "./skills/");
 	assert.equal(manifest.interface.displayName, "Codex Augment Dispatcher");
 	assert.deepEqual(manifest.author, { name: "yxhpy" });
@@ -53,6 +53,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
 		"Review",
 		"Frontend",
 		"Coordination",
+		"Assets",
 	]) {
 		assert.ok(
 			manifest.interface.capabilities.includes(capability),
@@ -66,6 +67,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
 	assert.match(defaultPrompt, /classify the route/);
 	assert.match(defaultPrompt, /Plugin evidence/);
 	assert.match(defaultPrompt, /task-gate/);
+	assert.match(defaultPrompt, /asset-slicer/);
 	assert.match(defaultPrompt, /read-only Codex background threads/);
 	assert.ok(manifest.interface.defaultPrompt.length <= 3);
 	for (const prompt of manifest.interface.defaultPrompt) {
@@ -94,6 +96,7 @@ test("main dispatch skill defines generic adapter routing without taking over Co
 		"Claude CLI",
 		"Grok CLI",
 		"AGY CLI",
+		"asset-slicer",
 		"Codex owns local file edits, verification, commits, and final claims.",
 		"Do not pass secrets, raw credentials, private tokens, or unnecessary full-repo context",
 		"No fallback provider is allowed.",
@@ -119,7 +122,7 @@ test("routing skill descriptions favor dispatcher before direct adapters", () =>
 	assert.match(dispatch, /description: Use before any non-trivial Codex task/);
 	assert.match(
 		dispatch,
-		/classify whether `task-gate`, `thinking-gate`, `grok-augment`, or `agy-frontend` should run/,
+		/classify whether `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, or `asset-slicer` should run/,
 	);
 	assert.match(dispatch, /Use this skill before non-trivial Codex work/);
 	assert.match(
@@ -136,6 +139,7 @@ test("skills document Pi-compatible helper script paths", () => {
 		"thinking-gate",
 		"grok-augment",
 		"dispatch",
+		"asset-slicer",
 	]) {
 		const text = readFileSync(
 			path.join(PLUGIN_ROOT, `skills/${skill}/SKILL.md`),
@@ -162,6 +166,7 @@ test("merged plugin keeps existing capability skills under one plugin", () => {
 		"skills/thinking-gate/SKILL.md",
 		"skills/grok-augment/SKILL.md",
 		"skills/agy-frontend/SKILL.md",
+		"skills/asset-slicer/SKILL.md",
 	]) {
 		assert.ok(existsSync(path.join(PLUGIN_ROOT, skill)), `missing ${skill}`);
 	}

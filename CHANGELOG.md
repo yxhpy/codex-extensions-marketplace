@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.13 - 2026-06-01
+
+- Add the `asset-slicer` workflow and deterministic `asset_slice.ts` PNG slicer for generated icon/sprite sheets, including dirty-border, clipped-edge, gutter, count, and expected-box drift checks.
+- Add E2E coverage for clean slicing, deterministic reruns, dense/merged sheets, blank sheets, clipped assets, and expected-box offset failures.
+- Route generated multi-asset bitmap slicing through dispatcher, AGY asset guidance, README, and project instruction templates before frontend integration.
+
 ## 0.1.12 - 2026-06-01
 
 - Forbid AGY frontend helper runs from starting or keeping alive blocking frontend dev/preview servers; Codex now owns any bounded server-based verification after AGY exits.
