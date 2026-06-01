@@ -5,6 +5,7 @@
 - Add platform-neutral `dynamic-workflow` orchestration for all subagent-capable agents, with durable `.agent-workflows/<id>/` artifacts, approval gates, packet/result lifecycle, structured plugin evidence, simulated-packet fallback, and final verification.
 - Route dynamic workflow scenarios through the dispatcher and Codex gate while keeping the workflow itself agent-neutral rather than Codex-branded.
 - Add Codex and Pi E2E coverage that installs the package/plugin and exercises the dynamic workflow script from installed and skill-relative paths.
+- Add `gsap-animation` guidance, AGY Motion / GSAP prompt references, and routing/test coverage for webpage animation, ScrollTrigger, parallax, lifecycle cleanup, accessibility, and performance.
 
 ## 0.1.13 - 2026-06-01
 

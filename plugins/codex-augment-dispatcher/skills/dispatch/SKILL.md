@@ -1,6 +1,6 @@
 ---
 name: dispatch
-description: Use before any non-trivial agent task to classify whether `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, or `asset-slicer` should run; route helper CLIs/tools while the owner agent keeps execution and verification authority.
+description: Use before any non-trivial agent task to classify whether `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`, or `asset-slicer` should run; route helper CLIs/tools while the owner agent keeps execution and verification authority.
 ---
 
 # Codex Augment Dispatcher
@@ -10,8 +10,8 @@ to use plugins, augment the owner agent, improve routing, dispatch work, fan out
 threads, use subagents, or require Plugin evidence.
 
 It is the front door for deciding whether `dynamic-workflow`, `task-gate`,
-`thinking-gate`, `grok-augment`, `agy-frontend`, or `asset-slicer` should run
-before implementation or final claims.
+`thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`, or
+`asset-slicer` should run before implementation or final claims.
 
 Initial adapters and trigger language:
 
@@ -20,6 +20,7 @@ Initial adapters and trigger language:
 - `thinking-gate`: stuck, looping, brainstorm, no idea, divergent thinking, 卡住, 没思路, 头脑风暴, 换个思路.
 - `grok-augment`: current research, external critique, risk review, creative/product/frontend direction, Grok video, 最新, 调研, 外部评审, 创意方向.
 - `agy-frontend`: frontend, UI, landing page, redesign, CSS, animation, responsive, browser visual verification, 前端, 落地页, 动效, 视觉检查.
+- `gsap-animation`: webpage animation, UI motion, GSAP, ScrollTrigger, timeline choreography, parallax, React/Vue/Svelte animation, 动效, 滚动动画, 视差.
 - `asset-slicer`: generated icon sheets, sprite sheets, multi-asset images, crop drift, dirty cuts, 切图, 切分图标, 多素材切分.
 
 Adapter backends:
@@ -28,6 +29,7 @@ Adapter backends:
 - Claude CLI for numbered task planning, divergent thinking, and follow-up review through `scripts/task_gate.ts` and `scripts/codex_gate.ts`.
 - Grok CLI for non-mutating research, critique, creative direction, divergence, Grok-video-only briefs, and Grok video generation through `scripts/grok_augment.ts`.
 - AGY CLI for frontend build, edit, redesign, styling, interaction, and browser-rendered UI implementation through the `agy-frontend` skill. AGY must not start or keep alive frontend dev/preview servers; Codex handles bounded server-based verification after AGY exits.
+- GSAP motion design guidance through the `gsap-animation` skill. It distills `greensock/gsap-skills` into owner-agent/AGY prompt constraints for webpage animation, ScrollTrigger, framework cleanup, accessibility, and performance; it is advisory and non-mutating.
 - Deterministic asset slicing for generated icon/sprite sheets through the `asset-slicer` skill and `scripts/asset_slice.ts`.
 
 ## Script Path Resolution
@@ -44,7 +46,7 @@ The owner agent owns local file edits, integration, verification, commits, and f
 For gated execution through `scripts/codex_gate.ts`, the raw prompt is first
 classified with a route classification step before Codex receives any execution
 prompt. The route decision lists required helper plugins for dynamic workflows,
-planning, stuck, research, review, frontend work, or assets. If the route requires plugins, Codex's
+planning, stuck, research, review, frontend work, GSAP motion, or assets. If the route requires plugins, Codex's
 Detailed completion summary must include a `Plugin evidence:` line that names
 each required plugin and the exact command, tool, or transcript evidence.
 
@@ -86,11 +88,13 @@ node --experimental-strip-types ../../scripts/task_gate.ts --think --json "<stuc
 
 4. If the task involves generated icon sheets, sprite sheets, multi-asset bitmap slicing, dirty cuts, crop drift, or 切图/切分图标, use the `asset-slicer` skill. Run `scripts/asset_slice.ts` with expected count, padding, gutter, and optional expected-box manifest; treat a failed report as a blocker before passing assets to AGY.
 
-5. If the task is frontend build/edit/style/debug/review/visual verification, use the `agy-frontend` skill. Build a bounded prompt, set explicit workspace scope with `--add-dir`, tell AGY not to start any frontend dev/preview server, and verify locally after AGY returns.
+5. If the task involves webpage animation, UI motion, GSAP, ScrollTrigger, parallax, timeline choreography, or framework animation, use the `gsap-animation` skill. When implementation is also required, pair it with `agy-frontend` and pass a Motion / GSAP brief; verify reduced-motion, cleanup, performance, and scroll positions locally.
 
-6. If multiple helpers are relevant, create the dynamic workflow first, use Grok CLI for outside critique/research, then Claude CLI to convert the chosen direction into numbered tasks.
+6. If the task is frontend build/edit/style/debug/review/visual verification, use the `agy-frontend` skill. Build a bounded prompt, set explicit workspace scope with `--add-dir`, tell AGY not to start any frontend dev/preview server, and verify locally after AGY returns.
 
-7. If platform-native workflow skills apply in the active agent session, including Superpowers-style gates when present, follow them as workflow gates. This dispatcher does not replace them; it selects helper CLIs while preserving planning, TDD, review, and verification discipline.
+7. If multiple helpers are relevant, create the dynamic workflow first, use Grok CLI for outside critique/research, then Claude CLI to convert the chosen direction into numbered tasks.
+
+8. If platform-native workflow skills apply in the active agent session, including Superpowers-style gates when present, follow them as workflow gates. This dispatcher does not replace them; it selects helper CLIs while preserving planning, TDD, review, and verification discipline.
 
 ## Agent Thread And Subagent Fanout
 
@@ -111,7 +115,8 @@ Recommended thread roles:
   against final files and fresh command output.
 - `frontend`: route frontend implementation through `agy-frontend` with explicit
   bounded paths, forbid AGY from starting dev/preview servers, then have the
-  owner agent verify locally with tests and browser evidence.
+  owner agent verify locally with tests and browser evidence. For webpage
+  animation, pair with `gsap-animation` and include a GSAP motion brief.
 - `assets`: run deterministic `asset-slicer` checks for generated icon/sprite
   sheets before AGY or frontend code consumes the sliced files.
 - `stuck`: use `thinking-gate` for divergent ideas when Codex is looping or
@@ -129,7 +134,7 @@ Add future CLI adapters without renaming this plugin:
 
 1. Add a focused skill under `skills/<adapter-name>/SKILL.md` that defines when to use that CLI/tool, what it may and may not do, and what the owner agent must verify.
 2. Add a script under `scripts/` only when deterministic CLI wrapping, output parsing, fake-binary testing, or repeated command construction is needed.
-3. Add tests under `tests/` that use fake binaries or local mock servers by default.
+3. Add tests under `tests/` that use fake binaries or local mock servers by default; purely instructional skills like `gsap-animation` should still have static tests proving trigger, routing, and verification text.
 4. Update this dispatch skill with the adapter's trigger conditions, boundaries, and verification commands.
 5. Keep provider-specific credentials in environment variables and never print token contents.
 
@@ -149,6 +154,7 @@ Before claiming completion, run the relevant checks:
 python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py plugins/codex-augment-dispatcher
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/dispatch
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/dynamic-workflow
+python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/gsap-animation
 node --experimental-strip-types --test tests/*.ts plugins/codex-augment-dispatcher/tests/*.ts
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts e2e --json "Plan a risky subagent migration with approval gates and end-to-end verification"
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/clean_test.ts

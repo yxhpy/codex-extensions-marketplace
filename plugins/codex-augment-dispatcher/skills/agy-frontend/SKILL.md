@@ -1,6 +1,6 @@
 ---
 name: agy-frontend
-description: "AGY frontend implementer. Trigger on frontend, UI, landing page, redesign, styling, CSS, animation, interaction, responsive, browser visual verification, React/Vue/Svelte/Tailwind, 前端, 落地页, 动效, 视觉检查."
+description: "AGY frontend implementer. Trigger on frontend, UI, landing page, redesign, styling, CSS, animation, GSAP, ScrollTrigger, parallax, interaction, responsive, browser visual verification, React/Vue/Svelte/Tailwind, 前端, 落地页, 动效, 滚动动画, 视觉检查."
 ---
 
 # AGY Frontend
@@ -8,9 +8,10 @@ description: "AGY frontend implementer. Trigger on frontend, UI, landing page, r
 For frontend-related work, Antigravity CLI (`agy`) owns the frontend implementation. Codex handles context gathering, prompt construction, supervision, verification, and final reporting.
 
 Strong triggers include: frontend, UI, landing page, website, page, component,
-dashboard, game UI, redesign, restyle, CSS, Tailwind, animation, interaction,
-responsive, browser visual verification, screenshot proof, React, Vue, Svelte,
-HTML/CSS, 前端, 落地页, 页面, 组件, 动效, 视觉检查, 响应式.
+dashboard, game UI, redesign, restyle, CSS, Tailwind, animation, GSAP,
+ScrollTrigger, parallax, timeline choreography, interaction, responsive,
+browser visual verification, screenshot proof, React, Vue, Svelte, HTML/CSS,
+前端, 落地页, 页面, 组件, 动效, 滚动动画, 视差, 视觉检查, 响应式.
 
 ## Hard Rule
 
@@ -38,8 +39,9 @@ this skill directory.
 1. Inspect the project first: package manager, framework, entry files, design system, existing components, scripts, and local verification commands.
 2. Decide the visual media strategy before invoking `agy`. For image-led or cinematic work, read `references/asset-pack.md`, generate the image/video pack first, and pass local paths plus roles to `agy`. If one generated image contains multiple icons/sprites/assets that must be split, use the `asset-slicer` skill and `../../scripts/asset_slice.ts` before handing paths to AGY.
 3. Pick the task mode: `landing`, `app`, `redesign`, or `game`. For visual-led landing/product/brand/portfolio work, read `references/taste-lite.md` and include only the relevant checks in the `agy` prompt.
-4. Build a concrete `agy` prompt with: user request, allowed scope, exact files/directories, asset manifest, task mode, design constraints, repo conventions, expected verification, "do not touch unrelated files", and "do not start or keep alive any frontend dev/preview server".
-5. Run `agy` with explicit workspace scope:
+4. When the task includes webpage animation, UI motion, scroll animation, parallax, GSAP, ScrollTrigger, or framework animation, use the `gsap-animation` skill, read `references/gsap-motion.md`, and include a concise Motion / GSAP brief in the `agy` prompt.
+5. Build a concrete `agy` prompt with: user request, allowed scope, exact files/directories, asset manifest, task mode, design constraints, Motion / GSAP brief when applicable, repo conventions, expected verification, "do not touch unrelated files", and "do not start or keep alive any frontend dev/preview server".
+6. Run `agy` with explicit workspace scope:
 
 ```bash
 AGY_BIN="${AGY_BIN:-agy}"
@@ -51,9 +53,9 @@ AGY_BIN="${AGY_BIN:-agy}"
 
 Use `--dangerously-skip-permissions` only when the user has asked for autonomous file edits or the task cannot proceed without approval prompts. Prefer a bounded prompt over broad permission.
 
-6. If `agy` returns a plan instead of editing files, rerun with explicit approval to implement. If it returns instructions or a patch, apply the result carefully with local tools.
-7. Verify locally after AGY exits: install-free checks first, then typecheck/lint/tests/build as appropriate, then browser or screenshot proof for visible UI. If a local frontend server is needed, Codex starts it separately with bounded timeout/background handling and cleanup; AGY does not start it. For static media-led pages, run `ASSET_MIN_IMAGES=<n> ASSET_MIN_VIDEOS=<n> node --experimental-strip-types <absolute-skill-dir>/scripts/verify-static-frontend.ts <site-dir>` when applicable.
-8. Report what `agy` did, what Codex verified, and any gap.
+7. If `agy` returns a plan instead of editing files, rerun with explicit approval to implement. If it returns instructions or a patch, apply the result carefully with local tools.
+8. Verify locally after AGY exits: install-free checks first, then typecheck/lint/tests/build as appropriate, then browser or screenshot proof for visible UI. If a local frontend server is needed, Codex starts it separately with bounded timeout/background handling and cleanup; AGY does not start it. For static media-led pages, run `ASSET_MIN_IMAGES=<n> ASSET_MIN_VIDEOS=<n> node --experimental-strip-types <absolute-skill-dir>/scripts/verify-static-frontend.ts <site-dir>` when applicable. For GSAP motion, also verify reduced-motion behavior, cleanup/re-render safety, and ScrollTrigger positions when used.
+9. Report what `agy` did, what Codex verified, and any gap.
 
 ## Visual Media Rule
 
@@ -101,6 +103,11 @@ Assets:
 - If a visual asset is provided, integrate it as a real image/media asset with stable dimensions, responsive crops, playback-safe video attributes, alt text or labels, and loading states.
 - Do not replace image-led hero/product visuals with CSS-only or SVG-only approximations unless explicitly requested.
 
+Motion / GSAP:
+- If this task includes webpage animation, UI motion, scroll animation, parallax, GSAP, ScrollTrigger, timeline sequencing, or React/Vue/Svelte animation, follow `gsap-animation` and `references/gsap-motion.md`.
+- Prefer GSAP for non-trivial animation; register plugins once; use timelines/stagger; animate transform/opacity/autoAlpha; include `prefers-reduced-motion`; clean up framework lifecycle and ScrollTrigger instances.
+- Do not use private GreenSock registries, `.npmrc` auth tokens, or paid Club GSAP instructions; use the public `gsap` package.
+
 Design bar:
 - Make the actual usable interface, not a marketing placeholder.
 - No half-finished output: no placeholder copy, empty sections, missing hero visuals, broken media, fake controls, or "continue this pattern" stubs.
@@ -121,13 +128,14 @@ Return:
 
 ## Frontend Skill Coordination
 
-When `frontend-skill` or `frontend-design` also applies, use their design constraints as input to the `agy` prompt. `agy` still owns implementation; Codex verifies the result against those constraints.
+When `frontend-skill`, `frontend-design`, or `gsap-animation` also applies, use their design and motion constraints as input to the `agy` prompt. `agy` still owns implementation; Codex verifies the result against those constraints.
 
 ## Verification References
 
 - Read `references/asset-pack.md` before generating assets for image-led, video-led, cinematic, or polished demo work.
 - Use the `asset-slicer` skill and `node --experimental-strip-types ../../scripts/asset_slice.ts` before integrating generated icon/sprite sheets or other multi-asset bitmap sheets.
 - Read `references/frontend-verification.md` before final verification for visible UI work.
+- Read `references/gsap-motion.md` before animation-heavy frontend work, especially GSAP, ScrollTrigger, parallax, timeline, or framework lifecycle animation.
 - Use `node --experimental-strip-types <absolute-skill-dir>/scripts/verify-static-frontend.ts` for static HTML/CSS/JS pages when a local server can be run.
 
 ## Failure Handling

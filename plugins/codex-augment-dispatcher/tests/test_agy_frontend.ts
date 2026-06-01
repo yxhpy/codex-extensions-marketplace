@@ -52,6 +52,21 @@ test("AGY frontend skill forbids blocking dev servers", () => {
 	}
 });
 
+test("AGY frontend skill routes GSAP motion through the animation brief", () => {
+	const skill = readFileSync(path.join(SKILL_ROOT, "SKILL.md"), "utf8");
+	const motion = readFileSync(
+		path.join(SKILL_ROOT, "references/gsap-motion.md"),
+		"utf8",
+	);
+
+	assert.match(skill, /gsap-animation/);
+	assert.match(skill, /references\/gsap-motion\.md/);
+	assert.match(skill, /ScrollTrigger/);
+	assert.match(motion, /Use GSAP for non-trivial animation/);
+	assert.match(motion, /prefers-reduced-motion/);
+	assert.match(motion, /private GreenSock registries/);
+});
+
 test("AGY frontend skill routes generated sheets through asset slicer", () => {
 	const skill = readFileSync(path.join(SKILL_ROOT, "SKILL.md"), "utf8");
 	const pack = readFileSync(

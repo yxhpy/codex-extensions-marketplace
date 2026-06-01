@@ -28,6 +28,10 @@ Use plugins proactively. Explicit plugin names are strong hints, not required.
   Non-mutating only; redact secrets and unnecessary repo context.
 - `agy-frontend`: frontend build, edit, redesign, styling, layout, interaction,
   browser UI work, or visual verification. Bound paths and verify the result.
+- `gsap-animation`: webpage animation, UI motion, GSAP, ScrollTrigger,
+  timeline choreography, parallax, React/Vue/Svelte animation, 动效,
+  滚动动画, or 视差. Pair with AGY for implementation and verify reduced
+  motion, cleanup, performance, and scroll positions.
 - `asset-slicer`: generated icon sheets, sprite sheets, multi-asset images,
   dirty cuts, crop drift, 切图, or 切分图标. Run deterministic slicing and gate on
   the JSON report before AGY or frontend code consumes the assets.
@@ -62,7 +66,8 @@ Thread roles:
 - `frontend`: UI implementation, redesign, styling, interaction, or browser
   visual verification. Use `agy-frontend` with explicit bounded paths. AGY may
   edit only inside the approved frontend scope and must not start blocking
-  dev/preview servers; the owner agent still verifies locally.
+  dev/preview servers; the owner agent still verifies locally. For webpage
+  animation, also use `gsap-animation` and pass a GSAP motion brief.
 - `assets`: generated icon/sprite sheet slicing, dirty-cut cleanup, crop drift,
   and expected-count checks. Use `asset-slicer`; treat failed reports as
   blockers instead of hand-waving visual acceptance.
@@ -99,6 +104,6 @@ Concurrency boundaries:
 
 ## Extending to More CLIs
 
-For each new CLI adapter, add trigger terms, strengths, mutation boundary,
-verification requirements, and secret-handling rules. Keep the plugin name
-`codex-augment-dispatcher`.
+For each new CLI adapter or instructional design skill, add trigger terms,
+strengths, mutation boundary, verification requirements, and secret-handling
+rules. Keep the plugin name `codex-augment-dispatcher`.

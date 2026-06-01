@@ -52,6 +52,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
 		"Research",
 		"Review",
 		"Frontend",
+		"Animation",
 		"Coordination",
 		"Assets",
 	]) {
@@ -61,13 +62,16 @@ test("merged plugin manifest uses a generic extensible name", () => {
 		);
 	}
 	assert.match(manifest.description, /dynamic workflow artifacts/);
+	assert.match(manifest.description, /GSAP motion guidance/);
 	assert.match(manifest.interface.longDescription, /dynamic-workflow/);
 	assert.match(manifest.interface.longDescription, /subagent fanout/);
+	assert.match(manifest.interface.longDescription, /GSAP\/ScrollTrigger/);
 	const defaultPrompt = manifest.interface.defaultPrompt.join("\n");
 	assert.match(defaultPrompt, /classify the route/);
 	assert.match(defaultPrompt, /Plugin evidence/);
 	assert.match(defaultPrompt, /dynamic-workflow/);
 	assert.match(defaultPrompt, /task-gate/);
+	assert.match(defaultPrompt, /GSAP/);
 	assert.match(defaultPrompt, /slicer/);
 	assert.match(defaultPrompt, /owner agent/);
 	assert.ok(manifest.interface.defaultPrompt.length <= 3);
@@ -100,6 +104,8 @@ test("main dispatch skill defines generic adapter routing without taking over Co
 		"Grok CLI",
 		"AGY CLI",
 		"asset-slicer",
+		"gsap-animation",
+		"GSAP motion design guidance",
 		"The owner agent owns local file edits, integration, verification, commits, and final claims.",
 		"Do not pass secrets, raw credentials, private tokens, or unnecessary full-repo context",
 		"No fallback provider is allowed.",
@@ -124,7 +130,7 @@ test("routing skill descriptions favor dispatcher before direct adapters", () =>
 	assert.match(dispatch, /description: Use before any non-trivial agent task/);
 	assert.match(
 		dispatch,
-		/classify whether `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, or `asset-slicer` should run/,
+		/classify whether `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`, or `asset-slicer` should run/,
 	);
 	assert.match(dispatch, /Use this skill before non-trivial agent work/);
 	assert.match(
@@ -170,10 +176,40 @@ test("merged plugin keeps existing capability skills under one plugin", () => {
 		"skills/thinking-gate/SKILL.md",
 		"skills/grok-augment/SKILL.md",
 		"skills/agy-frontend/SKILL.md",
+		"skills/gsap-animation/SKILL.md",
 		"skills/asset-slicer/SKILL.md",
 	]) {
 		assert.ok(existsSync(path.join(PLUGIN_ROOT, skill)), `missing ${skill}`);
 	}
+});
+
+test("GSAP animation skill is wired into AGY motion prompts", () => {
+	const skill = readFileSync(
+		path.join(PLUGIN_ROOT, "skills/gsap-animation/SKILL.md"),
+		"utf8",
+	);
+	const agy = readFileSync(
+		path.join(PLUGIN_ROOT, "skills/agy-frontend/SKILL.md"),
+		"utf8",
+	);
+	const reference = readFileSync(
+		path.join(PLUGIN_ROOT, "skills/agy-frontend/references/gsap-motion.md"),
+		"utf8",
+	);
+
+	for (const phrase of [
+		"greensock/gsap-skills",
+		"ScrollTrigger",
+		"prefers-reduced-motion",
+		"gsap.matchMedia()",
+		"@gsap/react",
+	]) {
+		assert.match(skill, new RegExp(escapeRegExp(phrase)));
+	}
+	assert.match(agy, /gsap-animation/);
+	assert.match(agy, /references\/gsap-motion\.md/);
+	assert.match(reference, /Motion \/ GSAP/);
+	assert.match(reference, /private GreenSock registries/);
 });
 
 test("plugin-owned executable scripts are TypeScript only", () => {

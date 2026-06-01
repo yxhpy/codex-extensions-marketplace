@@ -6,7 +6,7 @@ Public catalog for optional Codex plugins and MCP-oriented tools.
 
 | Type | Name | Path | Purpose |
 | --- | --- | --- | --- |
-| Plugin + Scripts + Skills | `codex-augment-dispatcher` | `plugins/codex-augment-dispatcher` | Extensible agent dynamic-workflow, external CLI adapter, deterministic generated-asset workflow, and owner-agent coordination hub; adapters cover platform-neutral workflow artifacts, Claude task gating, Grok augmentation, AGY frontend implementation, and asset slicing. |
+| Plugin + Scripts + Skills | `codex-augment-dispatcher` | `plugins/codex-augment-dispatcher` | Extensible agent dynamic-workflow, external CLI adapter, GSAP motion guidance, deterministic generated-asset workflow, and owner-agent coordination hub; adapters cover platform-neutral workflow artifacts, Claude task gating, Grok augmentation, AGY frontend implementation, GSAP animation briefs, and asset slicing. |
 | Pi Extension | `codex_generate_image` | `extensions/codex-image-gen` | Generate bitmap images from Pi through the OpenAI Codex Responses backend using the existing `openai-codex` login; backend image model is gpt-image-2. |
 | Pi Extension | `xai_grok_x_search`, `xai_grok_video_generate` | `extensions/xai-grok` | Search X and generate Grok Imagine videos from Pi using xAI API keys or Pi-owned xAI OAuth, without depending on Hermes. |
 
@@ -30,8 +30,8 @@ Recommended project instructions:
 - Merge [`AGENTS.md`](AGENTS.md) into the target project's existing
   `AGENTS.md`; keep project-specific rules first.
 - These rules help the owner agent proactively choose `dynamic-workflow`,
-  `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, or
-  `asset-slicer` without waiting for explicit mentions.
+  `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`,
+  `gsap-animation`, or `asset-slicer` without waiting for explicit mentions.
 - Mandatory gated execution does not require editing project `AGENTS.md`; use
   `scripts/codex_gate.ts` when the raw prompt must be classified before Codex
   receives execution tasks.
@@ -135,22 +135,23 @@ Initial adapters:
 - Claude CLI task gating: `scripts/task_gate.ts` generates divergent ideas and numbered task plans, while `scripts/codex_gate.ts` can pass only the generated task plan into `codex exec` for Codex-specific gated execution rounds.
 - Grok CLI augmentation: `scripts/grok_augment.ts` uses Grok for non-mutating research, critique, creative direction, divergence, Grok-video-only briefs, and real MP4 generation through a configured Grok-compatible `/v1/videos` endpoint.
 - AGY CLI frontend workflow: `skills/agy-frontend` routes frontend build, edit, redesign, styling, layout, interaction, and visual implementation through Antigravity CLI, while explicitly forbidding AGY from starting blocking frontend dev/preview servers.
+- GSAP animation guidance: `skills/gsap-animation` distills `greensock/gsap-skills` into motion briefs for webpage animation, ScrollTrigger, framework lifecycle cleanup, accessibility, and performance; AGY still owns frontend implementation and the owner agent verifies locally.
 - Asset slicing workflow: `skills/asset-slicer` and `scripts/asset_slice.ts` split generated icon/sprite sheets into deterministic PNG slices, remove background pixels, and fail on dirty borders, clipped assets, insufficient gutters, count mismatches, or expected-box drift.
 
 ## Mandatory gated execution
 
 `scripts/codex_gate.ts --execute "<raw prompt>"` now classifies the route before
 Codex receives an execution prompt. The route can require `dynamic-workflow`,
-`task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, or `asset-slicer`
-for workflow orchestration, planning, stuck, research/review, frontend work, or
-generated asset slicing.
+`task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`,
+`gsap-animation`, or `asset-slicer` for workflow orchestration, planning,
+stuck, research/review, frontend work, GSAP motion, or generated asset slicing.
 
 When a route requires helper plugins, Codex's Detailed completion summary must
 include a `Plugin evidence:` line naming every required plugin and the command,
 tool, or transcript evidence. The follow-up gate rejects completion when that
 Plugin evidence is missing, even if Codex reports the work as complete.
 
-Future adapters should be added as focused skills and scripts with fake-binary tests, explicit dispatch rules, and the same no-secret/no-fallback boundaries.
+Future adapters should be added as focused skills and scripts with fake-binary tests, explicit dispatch rules, and the same no-secret/no-fallback boundaries. Instructional skills without a CLI, such as `gsap-animation`, should still include static routing and verification tests.
 
 The owner agent owns local file edits, integration, verification, commits, and final claims. AGY can edit frontend files only inside the bounded AGY workflow and must not start or keep alive dev/preview servers; the owner agent still gathers context, supervises scope, runs checks, and reports evidence.
 
@@ -198,6 +199,7 @@ python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/thinking-gate
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/grok-augment
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/agy-frontend
+python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/gsap-animation
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/asset-slicer
 node --experimental-strip-types --test tests/*.ts plugins/codex-augment-dispatcher/tests/*.ts
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts e2e --json "Plan a subagent workflow with approval gates and end-to-end verification"

@@ -18,6 +18,7 @@ import {
 	RouteDecision,
 	RoutePlanner,
 	buildCodexExecutionPrompt,
+	buildRoutePrompt,
 } from "../scripts/codex_gate.ts";
 
 class FakeThinker {
@@ -302,6 +303,37 @@ test("route planner classifies plugin-demanding prompts", () => {
 	assert.match(thinker.prompts[0], /Classify the raw user prompt/);
 	assert.match(thinker.prompts[0], /agy-frontend/);
 	assert.match(thinker.prompts[0], /asset-slicer/);
+});
+
+test("route planner advertises GSAP animation for webpage motion", () => {
+	const routePrompt = buildRoutePrompt(
+		"给 React 页面加入 ScrollTrigger 视差动效",
+	);
+	assert.match(routePrompt, /gsap-animation/);
+	assert.match(routePrompt, /ScrollTrigger/);
+	assert.match(routePrompt, /agy-frontend/);
+
+	const thinker = new FakeThinker(
+		JSON.stringify({
+			route: "frontend+gsap-animation",
+			reason: "Webpage motion should use AGY with GSAP guidance.",
+			required_plugins: ["agy-frontend", "gsap-animation"],
+			plugin_evidence_required: true,
+		}),
+	);
+
+	const decision = new RoutePlanner({ thinker }).classify(
+		"给 React 页面加入 ScrollTrigger 视差动效",
+	);
+
+	assert.equal(decision.route, "frontend+gsap-animation");
+	assert.deepEqual(decision.requiredPlugins, [
+		"agy-frontend",
+		"gsap-animation",
+	]);
+	assert.equal(decision.pluginEvidenceRequired, true);
+	assert.match(thinker.prompts[0], /gsap-animation/);
+	assert.match(thinker.prompts[0], /parallax/);
 });
 
 test("route planner advertises asset slicer for generated sheets", () => {

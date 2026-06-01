@@ -4,6 +4,7 @@ __pycache__/
 .tmp/
 .venv/
 .pi-lens/
+.agent-workflows/
 node_modules/
 dist/
 build/

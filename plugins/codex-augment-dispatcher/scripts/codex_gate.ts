@@ -497,6 +497,7 @@ export function buildRoutePrompt(prompt: string): string {
 		"Available routes and mandatory plugins:\n" +
 		"- dynamic-workflow: use dynamic-workflow for complex, multi-track, approval-gated, subagent/packet, artifact, or end-to-end verified work.\n" +
 		"- frontend: use agy-frontend for frontend build, edit, redesign, styling, layout, interaction, browser UI work, or visual verification; AGY must not start dev/preview servers.\n" +
+		"- gsap-animation: use gsap-animation with agy-frontend for webpage animation, UI motion, GSAP, ScrollTrigger, parallax, timeline choreography, or React/Vue/Svelte animation; GSAP guidance is non-mutating and the owner agent still verifies locally.\n" +
 		"- assets: use asset-slicer for generated icon sheets, sprite sheets, multi-asset bitmap slicing, crop drift checks, dirty-cut checks, or 切图/切分图标 requests.\n" +
 		"- research: use grok-augment for current research, outside critique, risk review, product/frontend direction, creative paths, or Grok video briefs/generation.\n" +
 		"- planning: use task-gate for broad, multi-step, ambiguous, risky, or decomposition-first work.\n" +

@@ -37,6 +37,7 @@ function validateManifest(): void {
 		"Research",
 		"Review",
 		"Frontend",
+		"Animation",
 		"Coordination",
 		"Assets",
 	]) {
@@ -82,6 +83,7 @@ function validateSkills(): void {
 	assert.match(dispatch, /AGY CLI/);
 	assert.match(dispatch, /dynamic-workflow/);
 	assert.match(dispatch, /asset-slicer/);
+	assert.match(dispatch, /gsap-animation/);
 	assert.match(dispatch, /owner agent owns local file edits/i);
 	assert.match(dispatch, /No fallback provider is allowed/);
 	assert.match(dispatch, /Agent Thread And Subagent Fanout/);
@@ -98,6 +100,16 @@ function validateSkills(): void {
 	assert.match(agy, /Images MUST be generated with image_gen/);
 	assert.match(agy, /Videos MUST be generated with Grok Video/);
 	assert.match(agy, /asset-slicer/);
+	assert.match(agy, /gsap-animation/);
+	assert.match(agy, /references\/gsap-motion\.md/);
+
+	const gsapAnimation = readFileSync(
+		path.join(PLUGIN_ROOT, "skills/gsap-animation/SKILL.md"),
+		"utf8",
+	);
+	assert.match(gsapAnimation, /greensock\/gsap-skills/);
+	assert.match(gsapAnimation, /ScrollTrigger/);
+	assert.match(gsapAnimation, /prefers-reduced-motion/);
 
 	const dynamicWorkflow = readFileSync(
 		path.join(PLUGIN_ROOT, "skills/dynamic-workflow/SKILL.md"),
