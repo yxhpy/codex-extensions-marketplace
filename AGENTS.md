@@ -16,9 +16,11 @@ verification after AGY exits.
 Use plugins proactively. Explicit plugin names are strong hints, not required.
 
 - `dynamic-workflow`: broad multi-track work, subagents/parallel agents,
-  workflow artifacts, packet/result orchestration, approval gates, reusable
-  recipes, or end-to-end verification. Use real subagents when available and
-  simulated packets otherwise; keep artifacts under `.agent-workflows/`.
+  background threads, agent threads, worker agents, fanout, delegation,
+  parallel review/research/QA, workflow artifacts, packet/result orchestration,
+  approval gates, reusable recipes, or end-to-end verification. Use real
+  subagents when available and simulated packets otherwise; keep artifacts
+  under `.agent-workflows/`.
 - `thinking-gate`: stuck, uncertain, repeated failures, competing approaches,
   or needs brainstorming. Compare candidates before choosing.
 - `task-gate`: broad, multi-step, ambiguous, risky, or user asks to decompose.
@@ -27,18 +29,23 @@ Use plugins proactively. Explicit plugin names are strong hints, not required.
   product/frontend direction, creative paths, or Grok video briefs/generation.
   Non-mutating only; redact secrets and unnecessary repo context.
 - `agy-frontend`: frontend build, edit, redesign, styling, layout, interaction,
-  browser UI work, or visual verification. Bound paths and verify the result.
+  browser UI work, visual verification, or visual asset integration. Bound
+  paths and verify the result. SVG and emoji are prohibited as default visual
+  assets; use high-quality image_gen/Grok Video media instead.
 - `gsap-animation`: webpage animation, UI motion, GSAP, ScrollTrigger,
   timeline choreography, parallax, React/Vue/Svelte animation, 动效,
   滚动动画, or 视差. Pair with AGY for implementation and verify reduced
   motion, cleanup, performance, and scroll positions.
 - `asset-slicer`: generated icon sheets, sprite sheets, multi-asset images,
-  dirty cuts, crop drift, 切图, or 切分图标. Run deterministic slicing and gate on
-  the JSON report before AGY or frontend code consumes the assets.
+  generated icons, generate-then-slice pipelines, dirty cuts, crop drift, 切图,
+  or 切分图标. Custom icons default to image_gen sheet generation, then
+  deterministic slicing; gate on the JSON report before AGY or frontend code
+  consumes the assets.
 
-When multiple apply, create a Dynamic Workflow artifact first, use Grok for
-outside input, then Task Gate for the execution plan. The owner agent owns
-edits, integration, tests, commits, and final claims.
+When multiple apply, create a Dynamic Workflow artifact first, fan out real
+subagents for independent read-only research/review/validation when available,
+use Grok for outside input, then Task Gate for the execution plan. The owner
+agent owns edits, integration, tests, commits, and final claims.
 
 ## Agent Thread And Subagent Fanout
 
@@ -50,7 +57,9 @@ Thread roles:
 
 - `workflow`: create or update `.agent-workflows/<id>/` artifacts, approval
   records, packets, results, structured evidence, and final reports for complex
-  work. Use `dynamic-workflow` before other helpers when orchestration is needed.
+  work. Use `dynamic-workflow` before other helpers when orchestration,
+  subagents, background threads, worker agents, fanout, or approval gates are
+  mentioned.
 - `research`: read-only context gathering, current-source checks, option
   comparison, or ecosystem notes. Prefer a fast/default model with low or
   medium thinking. Use `grok-augment` first when outside critique, creative
@@ -70,7 +79,8 @@ Thread roles:
   animation, also use `gsap-animation` and pass a GSAP motion brief.
 - `assets`: generated icon/sprite sheet slicing, dirty-cut cleanup, crop drift,
   and expected-count checks. Use `asset-slicer`; treat failed reports as
-  blockers instead of hand-waving visual acceptance.
+  blockers instead of hand-waving visual acceptance. Do not use SVG or emoji as
+  default icon assets; generate an icon sheet and slice it.
 - `subagent`: execute one bounded packet with explicit dependencies, allowed
   paths/sources, do/do-not rules, expected evidence, and stop conditions. Treat
   output as advisory until the owner agent re-checks final files and commands.

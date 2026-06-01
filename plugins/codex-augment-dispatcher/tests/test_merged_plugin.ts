@@ -43,7 +43,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
 	);
 
 	assert.equal(manifest.name, "codex-augment-dispatcher");
-	assert.equal(manifest.version, "0.1.14");
+	assert.equal(manifest.version, "0.1.15");
 	assert.equal(manifest.skills, "./skills/");
 	assert.equal(manifest.interface.displayName, "Codex Augment Dispatcher");
 	assert.deepEqual(manifest.author, { name: "yxhpy" });
@@ -63,17 +63,24 @@ test("merged plugin manifest uses a generic extensible name", () => {
 	}
 	assert.match(manifest.description, /dynamic workflow artifacts/);
 	assert.match(manifest.description, /GSAP motion guidance/);
+	assert.match(manifest.description, /high-quality media guidance/);
 	assert.match(manifest.interface.longDescription, /dynamic-workflow/);
 	assert.match(manifest.interface.longDescription, /subagent fanout/);
+	assert.match(manifest.interface.longDescription, /worker-agent fanout/);
 	assert.match(manifest.interface.longDescription, /GSAP\/ScrollTrigger/);
+	assert.match(
+		manifest.interface.longDescription,
+		/SVG and emoji are prohibited/,
+	);
 	const defaultPrompt = manifest.interface.defaultPrompt.join("\n");
 	assert.match(defaultPrompt, /classify the route/);
 	assert.match(defaultPrompt, /Plugin evidence/);
 	assert.match(defaultPrompt, /dynamic-workflow/);
 	assert.match(defaultPrompt, /task-gate/);
 	assert.match(defaultPrompt, /GSAP/);
+	assert.match(defaultPrompt, /image_gen/);
 	assert.match(defaultPrompt, /slicer/);
-	assert.match(defaultPrompt, /owner agent/);
+	assert.match(defaultPrompt, /subagents/);
 	assert.ok(manifest.interface.defaultPrompt.length <= 3);
 	for (const prompt of manifest.interface.defaultPrompt) {
 		assert.ok(
@@ -106,6 +113,9 @@ test("main dispatch skill defines generic adapter routing without taking over Co
 		"asset-slicer",
 		"gsap-animation",
 		"GSAP motion design guidance",
+		"background threads",
+		"worker agents",
+		"SVG/emoji defaults",
 		"The owner agent owns local file edits, integration, verification, commits, and final claims.",
 		"Do not pass secrets, raw credentials, private tokens, or unnecessary full-repo context",
 		"No fallback provider is allowed.",

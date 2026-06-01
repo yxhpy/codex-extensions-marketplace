@@ -1,6 +1,6 @@
 ---
 name: dynamic-workflow
-description: Platform-neutral AI-agent dynamic workflow orchestration for broad, risky, approval-gated, subagent/packet, reusable, or end-to-end verified work. Trigger on dynamic workflow, workflow artifact, subagent, parallel agents, swarm, approval gate, packet/result, goal mode, 端到端, 编排, 多代理, 审批门禁.
+description: Platform-neutral AI-agent dynamic workflow orchestration for broad, risky, approval-gated, subagent/packet, reusable, or end-to-end verified work. Trigger on dynamic workflow, workflow artifact, subagent, background thread, agent thread, worker agent, fanout, parallel agents, swarm, approval gate, packet/result, goal mode, 端到端, 编排, 多代理, 子代理, 后台线程, 审批门禁.
 metadata:
   short-description: Orchestrate auditable agent workflows
 ---
@@ -23,8 +23,10 @@ Use dynamic workflow orchestration when at least two are true:
   production data, billing, user accounts, or repo-wide changes.
 - Verification benefits from a separate pass from implementation.
 - The workflow could become a reusable recipe for future tasks.
-- The user explicitly asks for a workflow, swarm, subagents, parallel agents,
-  goal mode, approval gates, packet/result flow, or end-to-end verification.
+- The user explicitly asks for a workflow, swarm, subagents, background
+  threads, agent threads, worker agents, fanout, delegation, parallel review,
+  parallel agents, goal mode, approval gates, packet/result flow, or
+  end-to-end verification.
 
 If the task is small, do it directly and state that full workflow orchestration
 was unnecessary.
@@ -80,7 +82,9 @@ node --experimental-strip-types ../../scripts/dynamic_workflow.ts approve --scop
 ```
 
 5. Execute packets with real subagents when the current platform supports them.
-   Otherwise simulate packet ownership serially, preserving packet/result notes.
+   Prefer subagent/thread fanout for independent read-only research, review,
+   validation, assets, or frontend checks; otherwise simulate packet ownership
+   serially, preserving packet/result notes.
 6. Integrate packet results explicitly; accept, reject, or mark stale outputs.
 7. Verify the final state:
 

@@ -336,6 +336,17 @@ test("route planner advertises GSAP animation for webpage motion", () => {
 	assert.match(thinker.prompts[0], /parallax/);
 });
 
+test("route prompt advertises background thread and worker fanout triggers", () => {
+	const routePrompt = buildRoutePrompt("Classify this");
+	const routeGuide = routePrompt.split("Raw user prompt:")[0] || routePrompt;
+
+	assert.match(routeGuide, /background threads?/i);
+	assert.match(routeGuide, /fan\s*out|fanout/i);
+	assert.match(routeGuide, /worker agents?|agent threads?/i);
+	assert.match(routeGuide, /parallel review\/research\/QA/i);
+	assert.match(routeGuide, /subagents?|subagent\/packet/i);
+});
+
 test("route planner advertises asset slicer for generated sheets", () => {
 	const thinker = new FakeThinker(
 		JSON.stringify({
@@ -354,6 +365,8 @@ test("route planner advertises asset slicer for generated sheets", () => {
 	assert.deepEqual(decision.requiredPlugins, ["asset-slicer"]);
 	assert.equal(decision.pluginEvidenceRequired, true);
 	assert.match(thinker.prompts[0], /sprite sheets/);
+	assert.match(thinker.prompts[0], /generated icons/);
+	assert.match(thinker.prompts[0], /image_gen sheet generation/);
 	assert.match(thinker.prompts[0], /切图/);
 });
 

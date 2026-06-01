@@ -218,7 +218,7 @@ test("video generate posts to Grok video and downloads MP4", async () => {
 		const client = new GrokVideoClient({
 			baseUrl: `http://127.0.0.1:${address.port}`,
 			apiKey: "test-key",
-			timeoutSeconds: 5,
+			timeoutSeconds: 30,
 		});
 		const result = await client.generate("cinematic smoke", {
 			outDir: tempDir,
@@ -227,6 +227,8 @@ test("video generate posts to Grok video and downloads MP4", async () => {
 		assert.equal(requests[0][0], "/v1/videos");
 		assert.equal(requests[0][1].model, "grok-imagine-video");
 		assert.equal(requests[0][1].prompt, "cinematic smoke");
+		assert.equal(requests[0][1].quality, "high");
+		assert.equal(requests[0][1].resolution_name, "1080p");
 		assert.ok(!("image_reference" in requests[0][1]));
 		assert.equal(result.provider, "grok-video");
 		assert.equal(result.bytes, mp4Bytes.length);

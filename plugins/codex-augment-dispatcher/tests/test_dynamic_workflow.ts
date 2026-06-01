@@ -45,6 +45,50 @@ test("detector recognizes platform-neutral subagent workflow prompts", () => {
 	assert.ok(detection.recommendedPackets.includes("verification"));
 });
 
+test("detector catches subagent and background-thread fanout wording", () => {
+	const prompts = [
+		"Use background threads for read-only research and review fanout before implementation.",
+		"Fan out worker agents for research, implementation, and QA with owner-agent integration.",
+		"Use agent threads for plan, research, review, and frontend tracks; owner keeps final claims.",
+		"Create parallel worker packets for assets and frontend QA, with approval before execution.",
+	];
+
+	for (const prompt of prompts) {
+		const detection = detectDynamicWorkflow(prompt);
+		assert.equal(detection.dynamic, true, prompt);
+		assert.ok(detection.signals.includes("explicit-workflow"), prompt);
+		assert.ok(
+			detection.requiredPlugins.includes(DYNAMIC_WORKFLOW_PLUGIN),
+			prompt,
+		);
+		assert.ok(detection.requiredPlugins.includes("task-gate"), prompt);
+		assert.ok(detection.recommendedPackets.includes("verification"), prompt);
+	}
+});
+
+test("detector does not over-trigger on networking packet wording", () => {
+	const detection = detectDynamicWorkflow(
+		"Fix packet loss handling in the UDP client",
+	);
+
+	assert.equal(detection.dynamic, false);
+	assert.ok(!detection.requiredPlugins.includes(DYNAMIC_WORKFLOW_PLUGIN));
+});
+
+test("detector elevates generated icon slicing plus e2e into dynamic workflow", () => {
+	const detection = detectDynamicWorkflow(
+		"生成一组图标并默认生成后切图，最后 e2e 验证。",
+	);
+
+	assert.equal(detection.dynamic, true);
+	assert.ok(detection.signals.includes("assets"));
+	assert.ok(detection.signals.includes("verification"));
+	assert.ok(detection.requiredPlugins.includes(DYNAMIC_WORKFLOW_PLUGIN));
+	assert.ok(detection.requiredPlugins.includes("asset-slicer"));
+	assert.ok(detection.recommendedPackets.includes("assets"));
+	assert.ok(detection.recommendedPackets.includes("verification"));
+});
+
 test("workflow artifact creation is durable and platform-neutral", () => {
 	const root = tempRoot();
 	try {

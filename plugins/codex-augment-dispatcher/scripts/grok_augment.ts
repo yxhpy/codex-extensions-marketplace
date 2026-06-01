@@ -34,7 +34,7 @@ export const DEFAULT_GROK_VIDEO_BASE_URL = "http://127.0.0.1:20080";
 export const DEFAULT_GROK_VIDEO_MODEL = "grok-imagine-video";
 export const DEFAULT_GROK_VIDEO_SIZE = "1024x1024";
 export const DEFAULT_GROK_VIDEO_SECONDS = 6;
-export const DEFAULT_GROK_VIDEO_QUALITY = "standard";
+export const DEFAULT_GROK_VIDEO_QUALITY = "high";
 export const MIN_VIDEO_BYTES = 10_000;
 
 export class GrokAugmentError extends Error {
@@ -203,7 +203,7 @@ export class GrokVideoClient {
 			seconds: String(seconds),
 			size,
 			quality,
-			resolution_name: quality === "high" ? "720p" : "480p",
+			resolution_name: quality === "high" ? "1080p" : "720p",
 			preset: "normal",
 		});
 		let job = await this.postForm("/v1/videos", payload);

@@ -16,7 +16,7 @@ test("repo catalog and marketplace install only the merged plugin", () => {
 		path.join(REPO_ROOT, ".agents/plugins/marketplace.json"),
 	);
 
-	assert.equal(pkg.version, "0.1.14");
+	assert.equal(pkg.version, "0.1.15");
 	assert.ok(pkg.keywords.includes("pi-package"));
 	assert.ok(
 		pkg.dependencies["@types/node"],
@@ -65,11 +65,16 @@ test("install docs include recommended AGENTS.md proactive trigger rules", () =>
 	assert.match(readme, /dynamic_workflow\.ts/);
 	assert.match(readme, /asset-slicer/);
 	assert.match(readme, /asset_slice\.ts/);
+	assert.match(readme, /SVG and emoji are prohibited/);
+	assert.match(readme, /high-quality image_gen\/Grok Video/);
+	assert.match(readme, /subagent fanout/);
 	assert.match(readme, /AGENTS\.md/);
 	assert.match(readme, /proactively choose/);
 	assert.match(agents, /Plugin Trigger Rules/);
 	assert.match(agents, /Use plugins proactively/);
 	assert.match(agents, /`dynamic-workflow`: broad multi-track/);
+	assert.match(agents, /background threads/);
+	assert.match(agents, /SVG and emoji are prohibited/);
 	assert.match(agents, /`task-gate`: broad/);
 	assert.match(agents, /`grok-augment`: current research/);
 	assert.match(agents, /`agy-frontend`: frontend build/);
@@ -92,7 +97,7 @@ test("install docs describe background thread owner and verification boundaries"
 	assert.match(readme, /Agent Threads And Subagents/);
 	assert.match(
 		readme,
-		/one owner\s+thread keeps responsibility for edits, tests, release gates,\s+integration, and final claims/,
+		/one owner\s+thread keeps responsibility for edits, tests,\s+release gates,\s+integration, and final claims/,
 	);
 	assert.match(readme, /Research thread: read-only context gathering/);
 	assert.match(
@@ -103,6 +108,9 @@ test("install docs describe background thread owner and verification boundaries"
 		readme,
 		/Never run parallel writers against the same working tree/,
 	);
+	assert.match(changelog, /0\.1\.15 - 2026-06-01/);
+	assert.match(changelog, /SVG\/emoji prohibition/);
+	assert.match(changelog, /subagent trigger/);
 	assert.match(changelog, /0\.1\.14 - 2026-06-01/);
 	assert.match(changelog, /dynamic-workflow/);
 	assert.match(changelog, /Codex and Pi E2E/);

@@ -14,7 +14,7 @@ Use that read to choose the task mode and visual intensity.
 
 - The first viewport must show the brand/product/place/person clearly. It cannot rely on nav text alone.
 - The primary visual asset must be real media or generated raster imagery when realism, material, lifestyle, product quality, or atmosphere matters; cinematic or immersive pages should include video or another visible motion source unless blocked.
-- CSS/SVG is fine for icons, masks, canvas effects, abstract geometry, diagrams, and decorative overlays, but not as the only hero product/scene when premium realism is expected.
+- SVG and emoji are prohibited as default visual assets. Do not use emoji, inline SVG art, or SVG icon packs as substitutes for generated media; for custom icons/badges/stickers, generate an image_gen sheet and slice it with `asset-slicer` before AGY consumes the files. CSS/SVG is acceptable only for structural masks, canvas effects, diagrams, simple controls, or explicitly requested vector work.
 - Hero content, CTAs, and the key visual must fit common viewports, including `390x844`, `877x778`, and `1440x900`.
 - Text must not overlap, clip, wrap awkwardly inside buttons, or sit on low-contrast imagery.
 - Navigation must stay one line on desktop; mobile must collapse intentionally.
@@ -23,7 +23,7 @@ Use that read to choose the task mode and visual intensity.
 - Prefer sections with one job and one dominant visual idea. Avoid repeating the same split layout or card grid across the page.
 - Rich pages must feel complete at the requested scope: no empty sections, no placeholder prose, no missing hero media, and no sections that only exist to imply future work.
 - Avoid generic AI tells: purple/blue gradient default, beige/brass luxury default, centered dark mesh hero, three equal feature cards, pill soup, fake dashboard screenshots, decorative status dots, and filler copy.
-- If using generated images, avoid baked-in UI text unless decorative, and require alt text plus responsive crop guidance.
+- If using generated images, avoid baked-in UI text unless decorative, and require alt text plus responsive crop guidance. Prefer high-quality generated image/video assets over placeholder shapes, SVG decoration, or emoji-like visual shortcuts.
 
 ## App/Dashboard Counter-Rule
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.15 - 2026-06-01
+
+- Add SVG/emoji prohibition for visual-led frontend defaults and require high-quality image_gen/Grok Video assets instead of placeholder vector or emoji shortcuts.
+- Make custom icons default to the image_gen sheet → asset-slicer pipeline before AGY/frontend integration.
+- Improve subagent trigger hit rate for background threads, agent threads, worker agents, fanout, delegation, packets, and parallel review/research/QA prompts.
+- Raise default generated media quality: Codex image generation defaults to high quality, xAI Grok Video defaults to 1080p, and Grok augmentation video helper defaults to high quality.
+- Add static and deterministic tests plus real release e2e coverage for the new media and subagent routing defaults.
+
 ## 0.1.14 - 2026-06-01
 
 - Add platform-neutral `dynamic-workflow` orchestration for all subagent-capable agents, with durable `.agent-workflows/<id>/` artifacts, approval gates, packet/result lifecycle, structured plugin evidence, simulated-packet fallback, and final verification.

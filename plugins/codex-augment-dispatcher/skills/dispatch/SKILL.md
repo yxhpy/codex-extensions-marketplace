@@ -15,13 +15,13 @@ It is the front door for deciding whether `dynamic-workflow`, `task-gate`,
 
 Initial adapters and trigger language:
 
-- `dynamic-workflow`: complex multi-track work, workflow artifacts, approval gates, subagent/packet orchestration, end-to-end verification, 工作流, 编排, 多代理, 审批门禁, 端到端.
+- `dynamic-workflow`: complex multi-track work, workflow artifacts, approval gates, subagent/packet orchestration, background threads, agent threads, worker agents, fanout, delegation, parallel review/research/QA, end-to-end verification, 工作流, 编排, 多代理, 子代理, 后台线程, 审批门禁, 端到端.
 - `task-gate`: plan, decompose, break down, multi-step, ambiguous, risky, 规划, 拆解, 分解任务, 复杂任务.
 - `thinking-gate`: stuck, looping, brainstorm, no idea, divergent thinking, 卡住, 没思路, 头脑风暴, 换个思路.
 - `grok-augment`: current research, external critique, risk review, creative/product/frontend direction, Grok video, 最新, 调研, 外部评审, 创意方向.
 - `agy-frontend`: frontend, UI, landing page, redesign, CSS, animation, responsive, browser visual verification, 前端, 落地页, 动效, 视觉检查.
 - `gsap-animation`: webpage animation, UI motion, GSAP, ScrollTrigger, timeline choreography, parallax, React/Vue/Svelte animation, 动效, 滚动动画, 视差.
-- `asset-slicer`: generated icon sheets, sprite sheets, multi-asset images, crop drift, dirty cuts, 切图, 切分图标, 多素材切分.
+- `asset-slicer`: generated icon sheets, sprite sheets, multi-asset images, generated icons, generate-then-slice icon pipelines, crop drift, dirty cuts, 切图, 切分图标, 多素材切分, 生成图标.
 
 Adapter backends:
 
@@ -56,14 +56,14 @@ plugin-demanding routes without requiring project `AGENTS.md` changes.
 
 ## Routing Order
 
-1. If the task is complex, multi-track, approval-gated, subagent-oriented, reusable, or requires end-to-end proof, create an agent dynamic workflow first:
+1. If the task is complex, multi-track, approval-gated, subagent-oriented, background-thread/fanout-oriented, reusable, or requires end-to-end proof, create an agent dynamic workflow first:
 
 ```bash
 node --experimental-strip-types ../../scripts/dynamic_workflow.ts detect --json "<raw task>"
 node --experimental-strip-types ../../scripts/dynamic_workflow.ts new --json "<raw task>"
 ```
 
-Use real subagents when the platform supports them; otherwise use simulated packets and preserve `packets/`, `results/`, `workflow.json`, and `final-report.md` as audit evidence.
+Use real subagents when the platform supports them, especially for independent read-only research, review, validation, frontend, or asset tracks; otherwise use simulated packets and preserve `packets/`, `results/`, `workflow.json`, and `final-report.md` as audit evidence.
 
 2. If the task needs current research, an outside critique, creative product/frontend direction, divergent candidate paths, or Grok-video-only briefs, run Grok CLI first:
 
@@ -86,7 +86,7 @@ Execute the returned numbered tasks in order. For stuck/uncertain work, use:
 node --experimental-strip-types ../../scripts/task_gate.ts --think --json "<stuck point>"
 ```
 
-4. If the task involves generated icon sheets, sprite sheets, multi-asset bitmap slicing, dirty cuts, crop drift, or 切图/切分图标, use the `asset-slicer` skill. Run `scripts/asset_slice.ts` with expected count, padding, gutter, and optional expected-box manifest; treat a failed report as a blocker before passing assets to AGY.
+4. If the task involves generated icon sheets, sprite sheets, multi-asset bitmap slicing, generated icons, generate-then-slice asset pipelines, dirty cuts, crop drift, or 切图/切分图标, use the `asset-slicer` skill. Custom icons default to image_gen sheet generation followed by `scripts/asset_slice.ts`; treat a failed report as a blocker before passing assets to AGY.
 
 5. If the task involves webpage animation, UI motion, GSAP, ScrollTrigger, parallax, timeline choreography, or framework animation, use the `gsap-animation` skill. When implementation is also required, pair it with `agy-frontend` and pass a Motion / GSAP brief; verify reduced-motion, cleanup, performance, and scroll positions locally.
 
@@ -116,9 +116,13 @@ Recommended thread roles:
 - `frontend`: route frontend implementation through `agy-frontend` with explicit
   bounded paths, forbid AGY from starting dev/preview servers, then have the
   owner agent verify locally with tests and browser evidence. For webpage
-  animation, pair with `gsap-animation` and include a GSAP motion brief.
+  animation, pair with `gsap-animation` and include a GSAP motion brief. For
+  visual-led assets, prohibit SVG/emoji defaults and use high-quality
+  image_gen/Grok Video assets; custom icons default to image_gen sheets sliced
+  with `asset-slicer`.
 - `assets`: run deterministic `asset-slicer` checks for generated icon/sprite
-  sheets before AGY or frontend code consumes the sliced files.
+  sheets before AGY or frontend code consumes the sliced files. Treat icon
+  generation requests as image_gen → `asset-slicer` by default, not SVG or emoji.
 - `stuck`: use `thinking-gate` for divergent ideas when Codex is looping or
   lacks a good next move, then convert the chosen idea into concrete tasks.
 

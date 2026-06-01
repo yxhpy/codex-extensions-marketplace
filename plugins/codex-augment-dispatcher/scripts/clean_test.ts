@@ -82,6 +82,8 @@ function validateSkills(): void {
 	assert.match(dispatch, /Grok CLI/);
 	assert.match(dispatch, /AGY CLI/);
 	assert.match(dispatch, /dynamic-workflow/);
+	assert.match(dispatch, /background threads/);
+	assert.match(dispatch, /worker agents/);
 	assert.match(dispatch, /asset-slicer/);
 	assert.match(dispatch, /gsap-animation/);
 	assert.match(dispatch, /owner agent owns local file edits/i);
@@ -99,6 +101,8 @@ function validateSkills(): void {
 	);
 	assert.match(agy, /Images MUST be generated with image_gen/);
 	assert.match(agy, /Videos MUST be generated with Grok Video/);
+	assert.match(agy, /SVG and emoji are prohibited as default visual assets/);
+	assert.match(agy, /default to generating an image_gen sheet/);
 	assert.match(agy, /asset-slicer/);
 	assert.match(agy, /gsap-animation/);
 	assert.match(agy, /references\/gsap-motion\.md/);
@@ -116,6 +120,7 @@ function validateSkills(): void {
 		"utf8",
 	);
 	assert.match(dynamicWorkflow, /platform-neutral/i);
+	assert.match(dynamicWorkflow, /background\s+threads/);
 	assert.match(dynamicWorkflow, /dynamic_workflow\.ts/);
 	assert.match(dynamicWorkflow, /\.agent-workflows/);
 

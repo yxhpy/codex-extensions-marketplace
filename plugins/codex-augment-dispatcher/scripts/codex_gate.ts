@@ -495,10 +495,10 @@ export function buildRoutePrompt(prompt: string): string {
 		"Return only JSON matching this shape: " +
 		'{"route":"simple","reason":"short reason","required_plugins":["plugin-name"],"plugin_evidence_required":true}.\n' +
 		"Available routes and mandatory plugins:\n" +
-		"- dynamic-workflow: use dynamic-workflow for complex, multi-track, approval-gated, subagent/packet, artifact, or end-to-end verified work.\n" +
-		"- frontend: use agy-frontend for frontend build, edit, redesign, styling, layout, interaction, browser UI work, or visual verification; AGY must not start dev/preview servers.\n" +
+		"- dynamic-workflow: use dynamic-workflow for complex, multi-track, approval-gated, subagent/packet, background thread, agent thread, worker agent, fanout, delegation, parallel review/research/QA, artifact, or end-to-end verified work.\n" +
+		"- frontend: use agy-frontend for frontend build, edit, redesign, styling, layout, interaction, browser UI work, visual verification, or high-quality image/video asset integration; AGY must not start dev/preview servers and SVG/emoji are prohibited as default visual assets.\n" +
 		"- gsap-animation: use gsap-animation with agy-frontend for webpage animation, UI motion, GSAP, ScrollTrigger, parallax, timeline choreography, or React/Vue/Svelte animation; GSAP guidance is non-mutating and the owner agent still verifies locally.\n" +
-		"- assets: use asset-slicer for generated icon sheets, sprite sheets, multi-asset bitmap slicing, crop drift checks, dirty-cut checks, or 切图/切分图标 requests.\n" +
+		"- assets: use asset-slicer for generated icon sheets, sprite sheets, generated icons, generate-then-slice asset pipelines, multi-asset bitmap slicing, crop drift checks, dirty-cut checks, or 切图/切分图标 requests; custom icons default to image_gen sheet generation then slicing.\n" +
 		"- research: use grok-augment for current research, outside critique, risk review, product/frontend direction, creative paths, or Grok video briefs/generation.\n" +
 		"- planning: use task-gate for broad, multi-step, ambiguous, risky, or decomposition-first work.\n" +
 		"- stuck: use thinking-gate when Codex is stuck, uncertain, looping, or needs divergent thinking.\n" +

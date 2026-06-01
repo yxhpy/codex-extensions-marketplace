@@ -8,6 +8,7 @@ import codexImageGen, {
 	buildRequestBody,
 	CODEX_RESPONSES_URL,
 	DEFAULT_MODEL,
+	DEFAULT_QUALITY,
 	extractChatGptAccountId,
 	mimeForFormat,
 	parseCodexSseText,
@@ -81,6 +82,17 @@ test("buildRequestBody enables Codex image_generation with output controls", () 
 		type: "input_text",
 		text: "draw a blue circle",
 	});
+});
+
+test("buildRequestBody defaults to high-quality image generation", () => {
+	const body = buildRequestBody(
+		{ prompt: "draw a premium app icon" },
+		DEFAULT_MODEL,
+		"png",
+		"session-1",
+	);
+
+	assert.equal(body.tools[0].quality, DEFAULT_QUALITY);
 });
 
 test("parseCodexSseText extracts image generation call and usage", () => {

@@ -6,7 +6,7 @@ Public catalog for optional Codex plugins and MCP-oriented tools.
 
 | Type | Name | Path | Purpose |
 | --- | --- | --- | --- |
-| Plugin + Scripts + Skills | `codex-augment-dispatcher` | `plugins/codex-augment-dispatcher` | Extensible agent dynamic-workflow, external CLI adapter, GSAP motion guidance, deterministic generated-asset workflow, and owner-agent coordination hub; adapters cover platform-neutral workflow artifacts, Claude task gating, Grok augmentation, AGY frontend implementation, GSAP animation briefs, and asset slicing. |
+| Plugin + Scripts + Skills | `codex-augment-dispatcher` | `plugins/codex-augment-dispatcher` | Extensible agent dynamic-workflow, subagent fanout, external CLI adapter, high-quality media guidance, GSAP motion guidance, deterministic generated-asset workflow, and owner-agent coordination hub; adapters cover platform-neutral workflow artifacts, Claude task gating, Grok augmentation, AGY frontend implementation, generated icon slicing, GSAP animation briefs, and asset slicing. |
 | Pi Extension | `codex_generate_image` | `extensions/codex-image-gen` | Generate bitmap images from Pi through the OpenAI Codex Responses backend using the existing `openai-codex` login; backend image model is gpt-image-2. |
 | Pi Extension | `xai_grok_x_search`, `xai_grok_video_generate` | `extensions/xai-grok` | Search X and generate Grok Imagine videos from Pi using xAI API keys or Pi-owned xAI OAuth, without depending on Hermes. |
 
@@ -35,10 +35,10 @@ Recommended project instructions:
 - Mandatory gated execution does not require editing project `AGENTS.md`; use
   `scripts/codex_gate.ts` when the raw prompt must be classified before Codex
   receives execution tasks.
-- The included thread/subagent fanout rules let the owner agent use read-only
-  background workers for research, planning, frontend checks, and release review
-  while one owner thread keeps responsibility for edits, tests, release gates,
-  integration, and final claims.
+- The included thread/subagent fanout rules make background workers easier to
+  trigger for independent research, planning, frontend checks, validation, and
+  release review while one owner thread keeps responsibility for edits, tests,
+  release gates, integration, and final claims.
 
 Update later:
 
@@ -91,7 +91,7 @@ Example:
 {
   "save": "project",
   "model": "gpt-5.5",
-  "quality": "low",
+  "quality": "high",
   "size": "1024x1024"
 }
 ```
@@ -107,7 +107,8 @@ Available tools:
 
 - `xai_grok_x_search`: calls xAI `/v1/responses` with the native `x_search` tool.
 - `xai_grok_video_generate`: starts `/v1/videos/generations`, polls the request,
-  and downloads the completed MP4 into the workspace by default.
+  defaults to 1080p output, and downloads the completed MP4 into the workspace
+  by default.
 
 Optional config file paths:
 
@@ -125,18 +126,20 @@ Example:
 }
 ```
 
+Grok video generation defaults to high-quality `1080p` when the request does not specify a resolution.
+
 ## Capabilities
 
-This plugin keeps its install identity stable while adding platform-neutral agent workflow orchestration, more external CLI adapters, and thread/subagent coordination rules.
+This plugin keeps its install identity stable while adding platform-neutral agent workflow orchestration, stronger subagent/thread fanout routing, high-quality media defaults, more external CLI adapters, and thread/subagent coordination rules.
 
 Initial adapters:
 
-- Agent dynamic workflow orchestration: `skills/dynamic-workflow` and `scripts/dynamic_workflow.ts` create durable `.agent-workflows/<id>/` artifacts with approval gates, packet/result lifecycle, structured evidence, simulated-packet fallback, and final verification.
+- Agent dynamic workflow orchestration: `skills/dynamic-workflow` and `scripts/dynamic_workflow.ts` create durable `.agent-workflows/<id>/` artifacts with approval gates, packet/result lifecycle, structured evidence, simulated-packet fallback, and final verification. Prompts mentioning subagents, background threads, agent threads, worker agents, fanout, delegation, packets, or parallel review/research/QA trigger this path more reliably.
 - Claude CLI task gating: `scripts/task_gate.ts` generates divergent ideas and numbered task plans, while `scripts/codex_gate.ts` can pass only the generated task plan into `codex exec` for Codex-specific gated execution rounds.
 - Grok CLI augmentation: `scripts/grok_augment.ts` uses Grok for non-mutating research, critique, creative direction, divergence, Grok-video-only briefs, and real MP4 generation through a configured Grok-compatible `/v1/videos` endpoint.
-- AGY CLI frontend workflow: `skills/agy-frontend` routes frontend build, edit, redesign, styling, layout, interaction, and visual implementation through Antigravity CLI, while explicitly forbidding AGY from starting blocking frontend dev/preview servers.
+- AGY CLI frontend workflow: `skills/agy-frontend` routes frontend build, edit, redesign, styling, layout, interaction, and visual implementation through Antigravity CLI, while explicitly forbidding AGY from starting blocking frontend dev/preview servers. SVG and emoji are prohibited as default visual assets; visual-led work defaults to high-quality image_gen/Grok Video assets.
 - GSAP animation guidance: `skills/gsap-animation` distills `greensock/gsap-skills` into motion briefs for webpage animation, ScrollTrigger, framework lifecycle cleanup, accessibility, and performance; AGY still owns frontend implementation and the owner agent verifies locally.
-- Asset slicing workflow: `skills/asset-slicer` and `scripts/asset_slice.ts` split generated icon/sprite sheets into deterministic PNG slices, remove background pixels, and fail on dirty borders, clipped assets, insufficient gutters, count mismatches, or expected-box drift.
+- Asset slicing workflow: `skills/asset-slicer` and `scripts/asset_slice.ts` split generated icon/sprite sheets into deterministic PNG slices, remove background pixels, and fail on dirty borders, clipped assets, insufficient gutters, count mismatches, or expected-box drift. Custom icons default to image_gen sheet generation followed by `asset-slicer` rather than SVG or emoji.
 
 ## Mandatory gated execution
 
@@ -155,11 +158,11 @@ Future adapters should be added as focused skills and scripts with fake-binary t
 
 The owner agent owns local file edits, integration, verification, commits, and final claims. AGY can edit frontend files only inside the bounded AGY workflow and must not start or keep alive dev/preview servers; the owner agent still gathers context, supervises scope, runs checks, and reports evidence.
 
-No secrets, raw credentials, private tokens, or unnecessary full-repo context should be passed to Claude, Grok, or AGY. No fallback provider is allowed for Grok, Grok Video, or image generation paths. Generated icon/sprite sheets must pass `asset-slicer` before their individual assets are treated as frontend-ready.
+No secrets, raw credentials, private tokens, or unnecessary full-repo context should be passed to Claude, Grok, or AGY. No fallback provider is allowed for Grok, Grok Video, or image generation paths. Generated icon/sprite sheets must pass `asset-slicer` before their individual assets are treated as frontend-ready. SVG and emoji are not default visual assets for frontend polish; generate high-quality image/video assets instead.
 
 ## Agent Threads And Subagents
 
-Use background threads or subagents as bounded assistants, not as release authority:
+Use background threads or subagents as bounded assistants by default for independent work, not as release authority:
 
 - Research thread: read-only context gathering or option comparison; use
   low/medium thinking and `grok-augment` for outside input when useful.
@@ -170,6 +173,9 @@ Use background threads or subagents as bounded assistants, not as release author
 - Frontend thread: pair with `agy-frontend` only inside explicit paths; forbid
   AGY from starting dev/preview servers. The owner agent still owns browser
   checks and evidence.
+- Asset/media thread: for visual-led work, generate high-quality image/video
+  assets first; custom icons default to an image_gen sheet sliced with
+  `asset-slicer`, not SVG or emoji.
 
 Never run parallel writers against the same working tree. Prefer read-only
 threads, or isolated worktrees for independent implementation experiments.
@@ -184,7 +190,7 @@ settings and continue without treating the failed thread as evidence.
 - AGY frontend work expects the `agy` CLI on `PATH`, or set `AGY_BIN=/path/to/agy`.
 - Dynamic workflow orchestration uses repository-owned TypeScript only: `node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts e2e --json "Plan a subagent workflow with approval gates"`.
 - Asset slicing uses repository-owned TypeScript only: `node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/asset_slice.ts <sheet.png> --out-dir <dir> --expect-count <n>`.
-- Grok augmentation reads an API key from `GROK_VIDEO_API_KEY` by default when the local video endpoint requires one.
+- Grok augmentation reads an API key from `GROK_VIDEO_API_KEY` by default when the local video endpoint requires one and defaults Grok Video helper generation to high quality.
 - The standalone Pi xAI/Grok extension reads `XAI_API_KEY` / `PI_XAI_API_KEY`, optional Pi config, or its own `/xai-grok-login` OAuth credentials; it does not require Hermes.
 
 ## Verification

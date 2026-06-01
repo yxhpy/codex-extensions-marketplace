@@ -1,6 +1,6 @@
 ---
 name: asset-slicer
-description: Standard workflow for splitting generated multi-icon/sprite sheets into clean individual PNG assets. Trigger on icon sheet, sprite sheet, asset sheet, cut icons, slice assets, crop sprites, 切图, 切分图标, 多素材切分, 图标切分不干净, 边界偏差.
+description: Standard workflow for splitting generated multi-icon/sprite sheets into clean individual PNG assets. Trigger on icon sheet, sprite sheet, asset sheet, generated icons, generate-then-slice icons, cut icons, slice assets, crop sprites, 切图, 切分图标, 多素材切分, 生成图标, 图标切分不干净, 边界偏差.
 metadata:
   short-description: Deterministic generated-asset slicing
 ---
@@ -9,8 +9,10 @@ metadata:
 
 Use this skill when one generated bitmap contains multiple icons, sprites, UI
 stickers, product cutouts, game items, or other separable visual assets that
-must be split into individual files. The goal is to avoid dirty cuts, shifted
-boxes, clipped silhouettes, and manual crop drift.
+must be split into individual files. Custom icon requests default to the
+image_gen sheet → asset-slicer pipeline instead of inline SVG or emoji. The goal
+is to avoid dirty cuts, shifted boxes, clipped silhouettes, and manual crop
+drift.
 
 ## Script Path Resolution
 

@@ -14,6 +14,7 @@ import { basename, extname, isAbsolute, join, resolve } from "node:path";
 
 export const PROVIDER = "openai-codex";
 export const DEFAULT_MODEL = "gpt-5.5";
+export const DEFAULT_QUALITY = "high";
 export const DEFAULT_SAVE_MODE = "global";
 export const CODEX_RESPONSES_URL =
 	"https://chatgpt.com/backend-api/codex/responses";
@@ -150,7 +151,7 @@ const TOOL_PARAMETERS = {
 		quality: {
 			type: "string",
 			enum: QUALITIES,
-			description: "gpt-image-2 quality. Defaults to auto unless configured.",
+			description: `gpt-image-2 quality. Defaults to ${DEFAULT_QUALITY} unless configured.`,
 		},
 		size: {
 			type: "string",
@@ -363,7 +364,7 @@ export function buildRequestBody(
 		type: "image_generation",
 		output_format: outputFormat,
 	};
-	const quality = params.quality || config.quality;
+	const quality = params.quality || config.quality || DEFAULT_QUALITY;
 	const size = params.size || config.size;
 	const action = params.action;
 	if (quality) imageTool.quality = quality;
@@ -610,6 +611,7 @@ export default function codexImageGen(pi: PiExtensionAPI) {
 			"Generate bitmap images via OpenAI Codex's gpt-image-2 image_generation backend.",
 		promptGuidelines: [
 			"Use codex_generate_image when the user asks to generate a raster image, illustration, photo, sprite, icon draft, banner, or other bitmap asset with OpenAI/Codex image generation.",
+			"Default to high-quality bitmap assets. Do not use SVG or emoji as substitutes for generated visual assets unless the user explicitly asks for that medium.",
 			"Do not use codex_generate_image without a clear image-generation request, because it consumes the user's Codex image quota.",
 			"For transparent backgrounds, codex_generate_image should generate a flat chroma-key background first; use local post-processing for alpha instead of claiming native gpt-image-2 transparency.",
 		],

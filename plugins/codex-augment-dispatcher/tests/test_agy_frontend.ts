@@ -67,6 +67,26 @@ test("AGY frontend skill routes GSAP motion through the animation brief", () => 
 	assert.match(motion, /private GreenSock registries/);
 });
 
+test("AGY frontend skill prohibits SVG and emoji visual defaults", () => {
+	const skill = readFileSync(path.join(SKILL_ROOT, "SKILL.md"), "utf8");
+	const pack = readFileSync(
+		path.join(SKILL_ROOT, "references/asset-pack.md"),
+		"utf8",
+	);
+	const taste = readFileSync(
+		path.join(SKILL_ROOT, "references/taste-lite.md"),
+		"utf8",
+	);
+
+	for (const text of [skill, pack, taste]) {
+		assert.match(text, /SVG and emoji are prohibited as default visual assets/);
+		assert.match(text, /image_gen/);
+	}
+	assert.match(skill, /high-quality generated image\/video media/);
+	assert.match(pack, /High-quality images MUST be generated with image_gen/);
+	assert.match(taste, /Do not use emoji, inline SVG art, or SVG icon packs/);
+});
+
 test("AGY frontend skill routes generated sheets through asset slicer", () => {
 	const skill = readFileSync(path.join(SKILL_ROOT, "SKILL.md"), "utf8");
 	const pack = readFileSync(
@@ -77,8 +97,15 @@ test("AGY frontend skill routes generated sheets through asset slicer", () => {
 	assert.match(skill, /asset-slicer/);
 	assert.match(skill, /asset_slice\.ts/);
 	assert.match(skill, /asset-slices\.json/);
+	assert.match(skill, /default to generating an image_gen sheet/);
+	assert.match(
+		skill,
+		/AGY receives only the sliced files plus `asset-slices\.json` evidence/,
+	);
 	assert.match(pack, /icon-sheet/);
 	assert.match(pack, /sprite-sheet/);
+	assert.match(pack, /the default workflow for custom icons/);
+	assert.match(pack, /default to the image_gen → `asset-slicer` pipeline/);
 	assert.match(pack, /clear gutters/);
 });
 
