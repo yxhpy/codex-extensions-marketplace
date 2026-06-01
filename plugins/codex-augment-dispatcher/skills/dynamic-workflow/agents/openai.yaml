@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Dynamic Workflow"
+  short_description: "Plan and verify auditable subagent workflows"
+  default_prompt: "Use $dynamic-workflow to plan and verify a platform-neutral subagent workflow for this task."

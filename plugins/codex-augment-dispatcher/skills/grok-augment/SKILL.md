@@ -1,11 +1,11 @@
 ---
 name: grok-augment
-description: "Grok CLI augmentation for current research, external critique, risk review, creative/product/frontend direction, divergent paths, Grok video briefs/generation, 最新信息, 调研, 外部评审 before Codex implements."
+description: "Grok CLI augmentation for current research, external critique, risk review, creative/product/frontend direction, divergent paths, Grok video briefs/generation, 最新信息, 调研, 外部评审 before the owner agent implements."
 ---
 
 # Grok Augment
 
-Use this skill when Grok should enhance Codex without taking over local execution.
+Use this skill when Grok should enhance the owner agent without taking over local execution.
 Strong triggers include: current research, latest info, web/current-source check,
 independent critique, outside opinion, risk review, product direction, frontend
 creative direction, divergent candidate paths, Grok video, video brief, 最新信息,
@@ -38,7 +38,7 @@ GROK_VIDEO_API_KEY="$LOCAL_GROK2API_KEY" node --experimental-strip-types ../../s
 node --experimental-strip-types ../../scripts/grok_augment.ts diverge --json "<stuck point or decision>"
 ```
 
-3. Codex must verify or implement the result locally. Grok output is advisory unless a local check proves it.
+3. The owner agent must verify or implement the result locally. Grok output is advisory unless a local check proves it.
 
 Use `--effort` only after the selected Grok model is known to support it. The default path omits effort so `grok-build` can run without a reasoning-effort error.
 

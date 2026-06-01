@@ -4,6 +4,10 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import {
+	DYNAMIC_WORKFLOW_PLUGIN,
+	detectDynamicWorkflow,
+} from "./dynamic_workflow.ts";
+import {
 	PLAN_SCHEMA,
 	PlanError,
 	Task,
@@ -85,9 +89,9 @@ export class RouteDecision {
 	}) {
 		this.route = route.trim() || "simple";
 		this.reason = reason.trim();
-		this.requiredPlugins = requiredPlugins
-			.map((plugin) => plugin.trim())
-			.filter(Boolean);
+		this.requiredPlugins = Array.from(
+			new Set(requiredPlugins.map((plugin) => plugin.trim()).filter(Boolean)),
+		);
 		this.pluginEvidenceRequired =
 			pluginEvidenceRequired ?? this.requiredPlugins.length > 0;
 	}
@@ -219,10 +223,55 @@ export class RoutePlanner {
 
 	classify(prompt: string): RouteDecision {
 		if (!prompt.trim()) throw new PlanError("prompt must not be blank");
-		return parseRouteOutput(this.thinker.think(buildRoutePrompt(prompt)), {
-			sourcePrompt: prompt,
-		});
+		const detection = detectDynamicWorkflow(prompt);
+		try {
+			return mergeDynamicWorkflowDecision(
+				parseRouteOutput(this.thinker.think(buildRoutePrompt(prompt)), {
+					sourcePrompt: prompt,
+				}),
+				detection,
+			);
+		} catch (error) {
+			if (error instanceof PlanError && detection.dynamic) {
+				return routeDecisionFromDynamicDetection(detection, error.message);
+			}
+			throw error;
+		}
 	}
+}
+
+export function mergeDynamicWorkflowDecision(
+	decision: RouteDecision,
+	detection: ReturnType<typeof detectDynamicWorkflow>,
+): RouteDecision {
+	if (!detection.dynamic) return decision;
+	const requiredPlugins = Array.from(
+		new Set([...decision.requiredPlugins, ...detection.requiredPlugins]),
+	);
+	const route = decision.route.includes(DYNAMIC_WORKFLOW_PLUGIN)
+		? decision.route
+		: decision.route === "simple"
+			? DYNAMIC_WORKFLOW_PLUGIN
+			: `${decision.route}+${DYNAMIC_WORKFLOW_PLUGIN}`;
+	const reason = [decision.reason, detection.reason].filter(Boolean).join("; ");
+	return new RouteDecision({
+		route,
+		reason,
+		requiredPlugins,
+		pluginEvidenceRequired: true,
+	});
+}
+
+export function routeDecisionFromDynamicDetection(
+	detection: ReturnType<typeof detectDynamicWorkflow>,
+	classifierError = "route classifier unavailable",
+): RouteDecision {
+	return new RouteDecision({
+		route: DYNAMIC_WORKFLOW_PLUGIN,
+		reason: `${detection.reason}; deterministic fallback after ${classifierError}`,
+		requiredPlugins: detection.requiredPlugins,
+		pluginEvidenceRequired: detection.requiredPlugins.length > 0,
+	});
 }
 
 export class CodexGate {
@@ -446,6 +495,7 @@ export function buildRoutePrompt(prompt: string): string {
 		"Return only JSON matching this shape: " +
 		'{"route":"simple","reason":"short reason","required_plugins":["plugin-name"],"plugin_evidence_required":true}.\n' +
 		"Available routes and mandatory plugins:\n" +
+		"- dynamic-workflow: use dynamic-workflow for complex, multi-track, approval-gated, subagent/packet, artifact, or end-to-end verified work.\n" +
 		"- frontend: use agy-frontend for frontend build, edit, redesign, styling, layout, interaction, browser UI work, or visual verification; AGY must not start dev/preview servers.\n" +
 		"- assets: use asset-slicer for generated icon sheets, sprite sheets, multi-asset bitmap slicing, crop drift checks, dirty-cut checks, or 切图/切分图标 requests.\n" +
 		"- research: use grok-augment for current research, outside critique, risk review, product/frontend direction, creative paths, or Grok video briefs/generation.\n" +

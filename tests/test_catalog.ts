@@ -16,7 +16,7 @@ test("repo catalog and marketplace install only the merged plugin", () => {
 		path.join(REPO_ROOT, ".agents/plugins/marketplace.json"),
 	);
 
-	assert.equal(pkg.version, "0.1.13");
+	assert.equal(pkg.version, "0.1.14");
 	assert.ok(pkg.keywords.includes("pi-package"));
 	assert.ok(
 		pkg.dependencies["@types/node"],
@@ -61,17 +61,21 @@ test("install docs include recommended AGENTS.md proactive trigger rules", () =>
 	assert.match(readme, /Codex image generation in Pi/);
 	assert.match(readme, /xai_grok_x_search/);
 	assert.match(readme, /xAI\/Grok X Search and video in Pi/);
+	assert.match(readme, /dynamic-workflow/);
+	assert.match(readme, /dynamic_workflow\.ts/);
 	assert.match(readme, /asset-slicer/);
 	assert.match(readme, /asset_slice\.ts/);
 	assert.match(readme, /AGENTS\.md/);
 	assert.match(readme, /proactively choose/);
 	assert.match(agents, /Plugin Trigger Rules/);
 	assert.match(agents, /Use plugins proactively/);
+	assert.match(agents, /`dynamic-workflow`: broad multi-track/);
 	assert.match(agents, /`task-gate`: broad/);
 	assert.match(agents, /`grok-augment`: current research/);
 	assert.match(agents, /`agy-frontend`: frontend build/);
 	assert.match(agents, /`asset-slicer`: generated icon sheets/);
-	assert.match(agents, /Codex Thread Fanout/);
+	assert.match(agents, /Agent Thread And Subagent Fanout/);
+	assert.match(agents, /`workflow`: create or update/);
 	assert.match(agents, /`research`: read-only context gathering/);
 	assert.match(agents, /`review`: independent risk review/);
 	assert.match(
@@ -85,10 +89,10 @@ test("install docs describe background thread owner and verification boundaries"
 	const readme = readFileSync(path.join(REPO_ROOT, "README.md"), "utf8");
 	const changelog = readFileSync(path.join(REPO_ROOT, "CHANGELOG.md"), "utf8");
 
-	assert.match(readme, /Codex Background Threads/);
+	assert.match(readme, /Agent Threads And Subagents/);
 	assert.match(
 		readme,
-		/one owner\s+thread keeps responsibility for edits, tests, release gates, and final claims/,
+		/one owner\s+thread keeps responsibility for edits, tests, release gates,\s+integration, and final claims/,
 	);
 	assert.match(readme, /Research thread: read-only context gathering/);
 	assert.match(
@@ -99,6 +103,9 @@ test("install docs describe background thread owner and verification boundaries"
 		readme,
 		/Never run parallel writers against the same working tree/,
 	);
+	assert.match(changelog, /0\.1\.14 - 2026-06-01/);
+	assert.match(changelog, /dynamic-workflow/);
+	assert.match(changelog, /Codex and Pi E2E/);
 	assert.match(changelog, /0\.1\.11 - 2026-06-01/);
 	assert.match(changelog, /xai_grok_video_generate/);
 	assert.match(changelog, /0\.1\.10 - 2026-06-01/);

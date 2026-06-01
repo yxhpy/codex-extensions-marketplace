@@ -1,21 +1,21 @@
 ---
 name: dispatch
-description: Use before any non-trivial Codex task to classify whether `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, or `asset-slicer` should run; route helper CLIs/tools while Codex owns execution and verification.
+description: Use before any non-trivial agent task to classify whether `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, or `asset-slicer` should run; route helper CLIs/tools while the owner agent keeps execution and verification authority.
 ---
 
 # Codex Augment Dispatcher
 
-Use this skill before non-trivial Codex work when external CLI adapters or
-helper CLI routing might apply. Also use it when the user says to use plugins,
-augment Codex, improve routing, dispatch work, fan out threads, or require
-Plugin evidence.
+Use this skill before non-trivial agent work when dynamic workflows, external CLI adapters, or helper CLI routing might apply. Also use it when the user says
+to use plugins, augment the owner agent, improve routing, dispatch work, fan out
+threads, use subagents, or require Plugin evidence.
 
-It is the front door for deciding whether `task-gate`, `thinking-gate`,
-`grok-augment`, `agy-frontend`, or `asset-slicer` should run before
-implementation or final claims.
+It is the front door for deciding whether `dynamic-workflow`, `task-gate`,
+`thinking-gate`, `grok-augment`, `agy-frontend`, or `asset-slicer` should run
+before implementation or final claims.
 
 Initial adapters and trigger language:
 
+- `dynamic-workflow`: complex multi-track work, workflow artifacts, approval gates, subagent/packet orchestration, end-to-end verification, 工作流, 编排, 多代理, 审批门禁, 端到端.
 - `task-gate`: plan, decompose, break down, multi-step, ambiguous, risky, 规划, 拆解, 分解任务, 复杂任务.
 - `thinking-gate`: stuck, looping, brainstorm, no idea, divergent thinking, 卡住, 没思路, 头脑风暴, 换个思路.
 - `grok-augment`: current research, external critique, risk review, creative/product/frontend direction, Grok video, 最新, 调研, 外部评审, 创意方向.
@@ -24,6 +24,7 @@ Initial adapters and trigger language:
 
 Adapter backends:
 
+- Deterministic agent dynamic workflow artifacts, approval gates, packet/result lifecycle, and simulation through `scripts/dynamic_workflow.ts`.
 - Claude CLI for numbered task planning, divergent thinking, and follow-up review through `scripts/task_gate.ts` and `scripts/codex_gate.ts`.
 - Grok CLI for non-mutating research, critique, creative direction, divergence, Grok-video-only briefs, and Grok video generation through `scripts/grok_augment.ts`.
 - AGY CLI for frontend build, edit, redesign, styling, interaction, and browser-rendered UI implementation through the `agy-frontend` skill. AGY must not start or keep alive frontend dev/preview servers; Codex handles bounded server-based verification after AGY exits.
@@ -36,14 +37,14 @@ installs, resolve the active skill directory first; the plugin root is `../..`
 from every bundled `SKILL.md`, so helper scripts can be called with
 `../../scripts/<name>.ts` when resolved relative to the skill directory.
 
-Codex owns local file edits, verification, commits, and final claims. AGY CLI may edit frontend files only when the AGY frontend workflow is explicitly selected; it must not launch blocking dev/preview servers. Codex still gathers context, supervises scope, runs verification, and reports evidence.
+The owner agent owns local file edits, integration, verification, commits, and final claims. AGY CLI may edit frontend files only when the AGY frontend workflow is explicitly selected; it must not launch blocking dev/preview servers. The owner agent still gathers context, supervises scope, runs verification, and reports evidence.
 
 ## Mandatory Gate
 
 For gated execution through `scripts/codex_gate.ts`, the raw prompt is first
 classified with a route classification step before Codex receives any execution
-prompt. The route decision lists required helper plugins for planning, stuck,
-research, review, or frontend work. If the route requires plugins, Codex's
+prompt. The route decision lists required helper plugins for dynamic workflows,
+planning, stuck, research, review, frontend work, or assets. If the route requires plugins, Codex's
 Detailed completion summary must include a `Plugin evidence:` line that names
 each required plugin and the exact command, tool, or transcript evidence.
 
@@ -53,16 +54,25 @@ plugin-demanding routes without requiring project `AGENTS.md` changes.
 
 ## Routing Order
 
-1. If the task needs current research, an outside critique, creative product/frontend direction, divergent candidate paths, or Grok-video-only briefs, run Grok CLI first:
+1. If the task is complex, multi-track, approval-gated, subagent-oriented, reusable, or requires end-to-end proof, create an agent dynamic workflow first:
+
+```bash
+node --experimental-strip-types ../../scripts/dynamic_workflow.ts detect --json "<raw task>"
+node --experimental-strip-types ../../scripts/dynamic_workflow.ts new --json "<raw task>"
+```
+
+Use real subagents when the platform supports them; otherwise use simulated packets and preserve `packets/`, `results/`, `workflow.json`, and `final-report.md` as audit evidence.
+
+2. If the task needs current research, an outside critique, creative product/frontend direction, divergent candidate paths, or Grok-video-only briefs, run Grok CLI first:
 
 ```bash
 node --experimental-strip-types ../../scripts/grok_augment.ts inspect --json
 node --experimental-strip-types ../../scripts/grok_augment.ts critic --json "<redacted summary>"
 ```
 
-Treat Grok output as advisory until Codex verifies it locally. Do not pass secrets, raw credentials, private tokens, or unnecessary full-repo context to Grok CLI.
+Treat Grok output as advisory until the owner agent verifies it locally. Do not pass secrets, raw credentials, private tokens, or unnecessary full-repo context to Grok CLI.
 
-2. If the task is broad, ambiguous, multi-step, risky, or should be decomposed before execution, run Claude CLI task gating:
+3. If the task is broad, ambiguous, multi-step, risky, or should be decomposed before execution, run Claude CLI task gating:
 
 ```bash
 node --experimental-strip-types ../../scripts/task_gate.ts --json "<raw task>"
@@ -74,18 +84,18 @@ Execute the returned numbered tasks in order. For stuck/uncertain work, use:
 node --experimental-strip-types ../../scripts/task_gate.ts --think --json "<stuck point>"
 ```
 
-3. If the task involves generated icon sheets, sprite sheets, multi-asset bitmap slicing, dirty cuts, crop drift, or 切图/切分图标, use the `asset-slicer` skill. Run `scripts/asset_slice.ts` with expected count, padding, gutter, and optional expected-box manifest; treat a failed report as a blocker before passing assets to AGY.
+4. If the task involves generated icon sheets, sprite sheets, multi-asset bitmap slicing, dirty cuts, crop drift, or 切图/切分图标, use the `asset-slicer` skill. Run `scripts/asset_slice.ts` with expected count, padding, gutter, and optional expected-box manifest; treat a failed report as a blocker before passing assets to AGY.
 
-4. If the task is frontend build/edit/style/debug/review/visual verification, use the `agy-frontend` skill. Build a bounded prompt, set explicit workspace scope with `--add-dir`, tell AGY not to start any frontend dev/preview server, and verify locally after AGY returns.
+5. If the task is frontend build/edit/style/debug/review/visual verification, use the `agy-frontend` skill. Build a bounded prompt, set explicit workspace scope with `--add-dir`, tell AGY not to start any frontend dev/preview server, and verify locally after AGY returns.
 
-5. If both Grok and Claude are relevant, use Grok CLI for outside critique/research first, then Claude CLI to convert the chosen direction into numbered tasks.
+6. If multiple helpers are relevant, create the dynamic workflow first, use Grok CLI for outside critique/research, then Claude CLI to convert the chosen direction into numbered tasks.
 
-6. If Superpowers skills apply in the active Codex session, follow them as workflow gates. This dispatcher does not replace Superpowers; it selects helper CLIs while preserving Superpowers planning, TDD, review, and verification discipline.
+7. If platform-native workflow skills apply in the active agent session, including Superpowers-style gates when present, follow them as workflow gates. This dispatcher does not replace them; it selects helper CLIs while preserving planning, TDD, review, and verification discipline.
 
-## Codex Thread Fanout
+## Agent Thread And Subagent Fanout
 
-Use Codex background threads when independent read-only work can shorten the
-critical path. Keep one owner Codex thread responsible for file edits, test
+Use background threads or subagents when independent read-only work can shorten
+the critical path. Keep one owner agent thread responsible for file edits, test
 commands, commits, release gates, and final claims.
 
 Recommended thread roles:
@@ -100,8 +110,8 @@ Recommended thread roles:
   cross-file risk review. The owner thread must re-check every actionable claim
   against final files and fresh command output.
 - `frontend`: route frontend implementation through `agy-frontend` with explicit
-  bounded paths, forbid AGY from starting dev/preview servers, then have Codex
-  verify locally with tests and browser evidence.
+  bounded paths, forbid AGY from starting dev/preview servers, then have the
+  owner agent verify locally with tests and browser evidence.
 - `assets`: run deterministic `asset-slicer` checks for generated icon/sprite
   sheets before AGY or frontend code consumes the sliced files.
 - `stuck`: use `thinking-gate` for divergent ideas when Codex is looping or
@@ -109,15 +119,15 @@ Recommended thread roles:
 
 Do not run parallel writers against the same working tree. Use read-only thread
 prompts by default, or isolated worktrees for independent implementation
-experiments. If a model override or background thread fails, retry once with the
-default thread settings and continue without treating that failed thread as
+experiments. If a model override, subagent, or background thread fails, retry
+once with default settings and continue without treating that failed thread as
 evidence.
 
 ## Adding Future CLI Adapters
 
 Add future CLI adapters without renaming this plugin:
 
-1. Add a focused skill under `skills/<adapter-name>/SKILL.md` that defines when to use that CLI/tool, what it may and may not do, and what Codex must verify.
+1. Add a focused skill under `skills/<adapter-name>/SKILL.md` that defines when to use that CLI/tool, what it may and may not do, and what the owner agent must verify.
 2. Add a script under `scripts/` only when deterministic CLI wrapping, output parsing, fake-binary testing, or repeated command construction is needed.
 3. Add tests under `tests/` that use fake binaries or local mock servers by default.
 4. Update this dispatch skill with the adapter's trigger conditions, boundaries, and verification commands.
@@ -138,7 +148,9 @@ Before claiming completion, run the relevant checks:
 ```bash
 python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py plugins/codex-augment-dispatcher
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/dispatch
+python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/dynamic-workflow
 node --experimental-strip-types --test tests/*.ts plugins/codex-augment-dispatcher/tests/*.ts
+node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts e2e --json "Plan a risky subagent migration with approval gates and end-to-end verification"
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/clean_test.ts
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/docker_clean_test.ts
 ```

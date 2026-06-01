@@ -80,10 +80,10 @@ test("empty grok response is rejected", () => {
 	);
 });
 
-test("research prompt preserves Codex as local executor", () => {
+test("research prompt preserves owner agent as local executor", () => {
 	const prompt = buildPrompt("research", "Should we use Grok CLI?");
 
-	assert.match(prompt, /Codex owns local file edits/);
+	assert.match(prompt, /owner agent owns local file edits/i);
 	assert.match(prompt, /source URLs/);
 	assert.match(prompt, /Should we use Grok CLI/);
 });

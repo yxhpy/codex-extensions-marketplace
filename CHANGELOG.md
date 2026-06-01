@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.14 - 2026-06-01
+
+- Add platform-neutral `dynamic-workflow` orchestration for all subagent-capable agents, with durable `.agent-workflows/<id>/` artifacts, approval gates, packet/result lifecycle, structured plugin evidence, simulated-packet fallback, and final verification.
+- Route dynamic workflow scenarios through the dispatcher and Codex gate while keeping the workflow itself agent-neutral rather than Codex-branded.
+- Add Codex and Pi E2E coverage that installs the package/plugin and exercises the dynamic workflow script from installed and skill-relative paths.
+
 ## 0.1.13 - 2026-06-01
 
 - Add the `asset-slicer` workflow and deterministic `asset_slice.ts` PNG slicer for generated icon/sprite sheets, including dirty-border, clipped-edge, gutter, count, and expected-box drift checks.

@@ -18,7 +18,7 @@ import test from "node:test";
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const PLUGIN_NAME = "codex-augment-dispatcher";
 const MARKETPLACE_NAME = "yxhpy-codex-extensions";
-const VERSION = "0.1.13";
+const VERSION = "0.1.14";
 
 function readJson(filePath: string) {
 	return JSON.parse(readFileSync(filePath, "utf8"));
@@ -133,6 +133,24 @@ test("Codex CLI installs the local marketplace in an isolated HOME and installed
 	assert.match(list.output, /installed, enabled/);
 
 	const fakeClaude = writeFakeClaude(home);
+	const workflow = run(
+		process.execPath,
+		[
+			"--experimental-strip-types",
+			path.join(installedRoot, "scripts/dynamic_workflow.ts"),
+			"e2e",
+			"--root",
+			path.join(home, "agent-workflows"),
+			"--id",
+			"codex-cli-e2e",
+			"--json",
+			"Plan a platform-neutral subagent workflow with approval gates and end-to-end verification",
+		],
+		{ cwd: installedRoot, env },
+	);
+	assert.equal(workflow.status, 0, workflow.output);
+	assert.match(workflow.stdout || "", /"complete": true/);
+
 	const planner = run(
 		process.execPath,
 		[
@@ -210,6 +228,36 @@ test("Pi CLI installs the local package in an isolated config and skill-relative
 		existsSync(path.join(REPO_ROOT, "node_modules/@types/node")),
 		"local production dependency install should include @types/node",
 	);
+
+	const workflowSkillRoot = path.join(
+		REPO_ROOT,
+		"plugins/codex-augment-dispatcher/skills/dynamic-workflow",
+	);
+	const workflowScript = path.resolve(
+		workflowSkillRoot,
+		"../../scripts/dynamic_workflow.ts",
+	);
+	assert.ok(
+		existsSync(workflowScript),
+		`missing skill-relative workflow script at ${workflowScript}`,
+	);
+	const workflow = run(
+		process.execPath,
+		[
+			"--experimental-strip-types",
+			workflowScript,
+			"e2e",
+			"--root",
+			path.join(home, "agent-workflows"),
+			"--id",
+			"pi-cli-e2e",
+			"--json",
+			"Plan a platform-neutral subagent workflow with approval gates and end-to-end verification",
+		],
+		{ cwd: workflowSkillRoot, env },
+	);
+	assert.equal(workflow.status, 0, workflow.output);
+	assert.match(workflow.stdout || "", /"complete": true/);
 
 	const skillRoot = path.join(
 		REPO_ROOT,

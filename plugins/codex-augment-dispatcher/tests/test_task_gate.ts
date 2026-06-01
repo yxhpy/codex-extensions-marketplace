@@ -325,6 +325,40 @@ test("route planner advertises asset slicer for generated sheets", () => {
 	assert.match(thinker.prompts[0], /切图/);
 });
 
+test("route planner merges deterministic dynamic workflow detection", () => {
+	const thinker = new FakeThinker(
+		JSON.stringify({
+			route: "planning",
+			reason: "Planner sees a broad request.",
+			required_plugins: ["task-gate"],
+			plugin_evidence_required: true,
+		}),
+	);
+
+	const decision = new RoutePlanner({ thinker }).classify(
+		"把迁移拆成支持 subagent 的动态工作流，包含 workflow artifacts、approval gates 和端到端验证",
+	);
+
+	assert.equal(decision.route, "planning+dynamic-workflow");
+	assert.deepEqual(decision.requiredPlugins, ["task-gate", "dynamic-workflow"]);
+	assert.equal(decision.pluginEvidenceRequired, true);
+	assert.match(thinker.prompts[0], /dynamic-workflow/);
+	assert.match(thinker.prompts[0], /approval-gated/);
+});
+
+test("route planner falls back to deterministic workflow detection when classifier fails", () => {
+	const thinker = new FakeThinker("not json");
+
+	const decision = new RoutePlanner({ thinker }).classify(
+		"Use subagents and packet/result workflow artifacts for an end-to-end verified migration",
+	);
+
+	assert.equal(decision.route, "dynamic-workflow");
+	assert.ok(decision.requiredPlugins.includes("dynamic-workflow"));
+	assert.ok(decision.requiredPlugins.includes("task-gate"));
+	assert.match(decision.reason, /deterministic fallback/);
+});
+
 test("codex gate dry run plans without executing codex", () => {
 	const codexCalls: string[][] = [];
 	const gate = new CodexGate({

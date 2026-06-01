@@ -32,7 +32,14 @@ function validateManifest(): void {
 	assert.equal(manifest.name, "codex-augment-dispatcher");
 	assert.equal(manifest.skills, "./skills/");
 	assert.equal(manifest.interface.displayName, "Codex Augment Dispatcher");
-	for (const capability of ["Planning", "Research", "Review", "Frontend", "Assets"]) {
+	for (const capability of [
+		"Planning",
+		"Research",
+		"Review",
+		"Frontend",
+		"Coordination",
+		"Assets",
+	]) {
 		assert.ok(
 			manifest.interface.capabilities.includes(capability),
 			`missing ${capability}`,
@@ -73,11 +80,12 @@ function validateSkills(): void {
 	assert.match(dispatch, /Claude CLI/);
 	assert.match(dispatch, /Grok CLI/);
 	assert.match(dispatch, /AGY CLI/);
+	assert.match(dispatch, /dynamic-workflow/);
 	assert.match(dispatch, /asset-slicer/);
-	assert.match(dispatch, /Codex owns local file edits/);
+	assert.match(dispatch, /owner agent owns local file edits/i);
 	assert.match(dispatch, /No fallback provider is allowed/);
-	assert.match(dispatch, /Codex Thread Fanout/);
-	assert.match(dispatch, /owner Codex thread responsible for file edits/);
+	assert.match(dispatch, /Agent Thread And Subagent Fanout/);
+	assert.match(dispatch, /owner agent thread responsible for file edits/);
 	assert.match(
 		dispatch,
 		/Do not run parallel writers against the same working tree/,
@@ -90,6 +98,14 @@ function validateSkills(): void {
 	assert.match(agy, /Images MUST be generated with image_gen/);
 	assert.match(agy, /Videos MUST be generated with Grok Video/);
 	assert.match(agy, /asset-slicer/);
+
+	const dynamicWorkflow = readFileSync(
+		path.join(PLUGIN_ROOT, "skills/dynamic-workflow/SKILL.md"),
+		"utf8",
+	);
+	assert.match(dynamicWorkflow, /platform-neutral/i);
+	assert.match(dynamicWorkflow, /dynamic_workflow\.ts/);
+	assert.match(dynamicWorkflow, /\.agent-workflows/);
 
 	const assetSlicer = readFileSync(
 		path.join(PLUGIN_ROOT, "skills/asset-slicer/SKILL.md"),
@@ -107,6 +123,7 @@ function main(): number {
 	for (const script of [
 		"task_gate.ts",
 		"codex_gate.ts",
+		"dynamic_workflow.ts",
 		"grok_augment.ts",
 		"verify-static-frontend.ts",
 		"asset_slice.ts",

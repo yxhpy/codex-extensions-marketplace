@@ -43,7 +43,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
 	);
 
 	assert.equal(manifest.name, "codex-augment-dispatcher");
-	assert.equal(manifest.version, "0.1.13");
+	assert.equal(manifest.version, "0.1.14");
 	assert.equal(manifest.skills, "./skills/");
 	assert.equal(manifest.interface.displayName, "Codex Augment Dispatcher");
 	assert.deepEqual(manifest.author, { name: "yxhpy" });
@@ -60,15 +60,16 @@ test("merged plugin manifest uses a generic extensible name", () => {
 			`missing ${capability}`,
 		);
 	}
-	assert.match(manifest.description, /external CLI adapters/);
-	assert.match(manifest.interface.longDescription, /initial adapters/);
-	assert.match(manifest.interface.longDescription, /background thread fanout/);
+	assert.match(manifest.description, /dynamic workflow artifacts/);
+	assert.match(manifest.interface.longDescription, /dynamic-workflow/);
+	assert.match(manifest.interface.longDescription, /subagent fanout/);
 	const defaultPrompt = manifest.interface.defaultPrompt.join("\n");
 	assert.match(defaultPrompt, /classify the route/);
 	assert.match(defaultPrompt, /Plugin evidence/);
+	assert.match(defaultPrompt, /dynamic-workflow/);
 	assert.match(defaultPrompt, /task-gate/);
-	assert.match(defaultPrompt, /asset-slicer/);
-	assert.match(defaultPrompt, /read-only Codex background threads/);
+	assert.match(defaultPrompt, /slicer/);
+	assert.match(defaultPrompt, /owner agent/);
 	assert.ok(manifest.interface.defaultPrompt.length <= 3);
 	for (const prompt of manifest.interface.defaultPrompt) {
 		assert.ok(
@@ -87,22 +88,23 @@ test("main dispatch skill defines generic adapter routing without taking over Co
 	);
 
 	for (const phrase of [
+		"dynamic-workflow",
 		"external CLI adapters",
 		"Mandatory Gate",
 		"route classification",
 		"Plugin evidence",
 		"Initial adapters",
 		"Add future CLI adapters",
+		"Agent Thread And Subagent Fanout",
 		"Claude CLI",
 		"Grok CLI",
 		"AGY CLI",
 		"asset-slicer",
-		"Codex owns local file edits, verification, commits, and final claims.",
+		"The owner agent owns local file edits, integration, verification, commits, and final claims.",
 		"Do not pass secrets, raw credentials, private tokens, or unnecessary full-repo context",
 		"No fallback provider is allowed.",
 		"Superpowers",
-		"Codex Thread Fanout",
-		"owner Codex thread responsible for file edits",
+		"owner agent thread responsible for file edits",
 		"Do not run parallel writers against the same working tree.",
 	]) {
 		assert.match(text, new RegExp(escapeRegExp(phrase)));
@@ -119,12 +121,12 @@ test("routing skill descriptions favor dispatcher before direct adapters", () =>
 		"utf8",
 	);
 
-	assert.match(dispatch, /description: Use before any non-trivial Codex task/);
+	assert.match(dispatch, /description: Use before any non-trivial agent task/);
 	assert.match(
 		dispatch,
-		/classify whether `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, or `asset-slicer` should run/,
+		/classify whether `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, or `asset-slicer` should run/,
 	);
-	assert.match(dispatch, /Use this skill before non-trivial Codex work/);
+	assert.match(dispatch, /Use this skill before non-trivial agent work/);
 	assert.match(
 		taskGate,
 		/description: Use for broad, multi-step, ambiguous, risky, or decomposition-first work/,
@@ -135,6 +137,7 @@ test("routing skill descriptions favor dispatcher before direct adapters", () =>
 
 test("skills document Pi-compatible helper script paths", () => {
 	for (const skill of [
+		"dynamic-workflow",
 		"task-gate",
 		"thinking-gate",
 		"grok-augment",
@@ -162,6 +165,7 @@ test("skills document Pi-compatible helper script paths", () => {
 
 test("merged plugin keeps existing capability skills under one plugin", () => {
 	for (const skill of [
+		"skills/dynamic-workflow/SKILL.md",
 		"skills/task-gate/SKILL.md",
 		"skills/thinking-gate/SKILL.md",
 		"skills/grok-augment/SKILL.md",
@@ -241,6 +245,22 @@ esac
 		GROK_AUGMENT_GROK_BIN: fakeGrok,
 		AGY_BIN: fakeAgy,
 	};
+
+	const workflow = runNodeScript(
+		"scripts/dynamic_workflow.ts",
+		[
+			"e2e",
+			"--root",
+			path.join(tempDir, "workflows"),
+			"--id",
+			"merged-plugin-smoke",
+			"--json",
+			"Plan a subagent workflow with approval gates and end-to-end verification",
+		],
+		env,
+	);
+	assert.equal(workflow.status, 0, workflow.stderr);
+	assert.match(workflow.stdout, /"complete": true/);
 
 	const claudePlan = runNodeScript(
 		"scripts/task_gate.ts",
