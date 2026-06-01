@@ -7,6 +7,8 @@ Public catalog for optional Codex plugins and MCP-oriented tools.
 | Type | Name | Path | Purpose |
 | --- | --- | --- | --- |
 | Plugin + Scripts + Skills | `codex-augment-dispatcher` | `plugins/codex-augment-dispatcher` | Extensible external CLI adapter and Codex background-thread coordination hub; initial adapters cover Claude task gating, Grok augmentation, and AGY frontend implementation. |
+| Pi Extension | `codex_generate_image` | `extensions/codex-image-gen` | Generate bitmap images from Pi through the OpenAI Codex Responses backend using the existing `openai-codex` login; backend image model is gpt-image-2. |
+| Pi Extension | `xai_grok_x_search`, `xai_grok_video_generate` | `extensions/xai-grok` | Search X and generate Grok Imagine videos from Pi using xAI API keys or Pi-owned xAI OAuth, without depending on Hermes. |
 
 ## Install Plugin
 
@@ -61,10 +63,65 @@ For local development, install the checkout path instead:
 pi install /path/to/codex-extensions-marketplace
 ```
 
-Pi loads the skills from `plugins/codex-augment-dispatcher/skills`. The helper
-scripts remain repository-owned TypeScript scripts; when a Pi-loaded skill needs
-to invoke one, resolve the active `SKILL.md` directory and use the documented
-skill-relative path such as `../../scripts/task_gate.ts`.
+Pi loads the skills from `plugins/codex-augment-dispatcher/skills`, the
+Codex image generation extension from `extensions/codex-image-gen/index.ts`,
+and the standalone xAI/Grok extension from `extensions/xai-grok/index.ts`.
+The helper scripts remain repository-owned TypeScript scripts; when a Pi-loaded
+skill needs to invoke one, resolve the active `SKILL.md` directory and use the
+documented skill-relative path such as `../../scripts/task_gate.ts`.
+
+### Codex image generation in Pi
+
+After installing the Pi package, run `/login` and select **ChatGPT Plus/Pro
+(Codex)**. Then ask for a bitmap asset, or explicitly ask the agent to use
+`codex_generate_image`. The tool reuses Pi's `openai-codex` credential, calls
+Codex's Responses backend with `image_generation`, and saves the generated file
+according to its save mode.
+
+Optional config file paths:
+
+- Global: `~/.pi/agent/extensions/codex-image-gen.json`
+- Project: `<project>/.pi/extensions/codex-image-gen.json`
+
+Example:
+
+```json
+{
+  "save": "project",
+  "model": "gpt-5.5",
+  "quality": "low",
+  "size": "1024x1024"
+}
+```
+
+### xAI/Grok X Search and video in Pi
+
+The `extensions/xai-grok` Pi extension is independent of Hermes. It never shells
+out to Hermes and never reads `~/.hermes/auth.json`. It resolves xAI credentials
+from `XAI_API_KEY` / `PI_XAI_API_KEY`, from optional Pi config, or from Pi-owned
+OAuth credentials created with `/xai-grok-login`.
+
+Available tools:
+
+- `xai_grok_x_search`: calls xAI `/v1/responses` with the native `x_search` tool.
+- `xai_grok_video_generate`: starts `/v1/videos/generations`, polls the request,
+  and downloads the completed MP4 into the workspace by default.
+
+Optional config file paths:
+
+- Global: `~/.pi/agent/extensions/xai-grok.json`
+- Project: `<project>/.pi/extensions/xai-grok.json`
+
+Example:
+
+```json
+{
+  "baseUrl": "https://api.x.ai/v1",
+  "searchModel": "grok-4.3",
+  "videoModel": "grok-imagine-video",
+  "videoOutputDir": "assets/generated/videos"
+}
+```
 
 ## Capabilities
 
@@ -118,7 +175,8 @@ settings and continue without treating the failed thread as evidence.
 - Claude task gating expects the `claude` CLI on `PATH`, or set `TASK_GATE_CLAUDE_BIN=/path/to/claude`.
 - Grok augmentation expects the `grok` CLI on `PATH`, or set `GROK_AUGMENT_GROK_BIN=/path/to/grok`.
 - AGY frontend work expects the `agy` CLI on `PATH`, or set `AGY_BIN=/path/to/agy`.
-- Grok video generation reads an API key from `GROK_VIDEO_API_KEY` by default when the local video endpoint requires one.
+- Grok augmentation reads an API key from `GROK_VIDEO_API_KEY` by default when the local video endpoint requires one.
+- The standalone Pi xAI/Grok extension reads `XAI_API_KEY` / `PI_XAI_API_KEY`, optional Pi config, or its own `/xai-grok-login` OAuth credentials; it does not require Hermes.
 
 ## Verification
 

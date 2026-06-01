@@ -16,7 +16,7 @@ test("repo catalog and marketplace install only the merged plugin", () => {
 		path.join(REPO_ROOT, ".agents/plugins/marketplace.json"),
 	);
 
-	assert.equal(pkg.version, "0.1.9");
+	assert.equal(pkg.version, "0.1.11");
 	assert.ok(pkg.keywords.includes("pi-package"));
 	assert.ok(
 		pkg.dependencies["@types/node"],
@@ -24,6 +24,10 @@ test("repo catalog and marketplace install only the merged plugin", () => {
 	);
 	assert.deepEqual(pkg.pi.skills, [
 		"./plugins/codex-augment-dispatcher/skills",
+	]);
+	assert.deepEqual(pkg.pi.extensions, [
+		"./extensions/codex-image-gen/index.ts",
+		"./extensions/xai-grok/index.ts",
 	]);
 
 	assert.deepEqual(
@@ -53,6 +57,10 @@ test("install docs include recommended AGENTS.md proactive trigger rules", () =>
 	);
 	assert.match(readme, /Mandatory gated execution/);
 	assert.match(readme, /Plugin evidence/);
+	assert.match(readme, /codex_generate_image/);
+	assert.match(readme, /Codex image generation in Pi/);
+	assert.match(readme, /xai_grok_x_search/);
+	assert.match(readme, /xAI\/Grok X Search and video in Pi/);
 	assert.match(readme, /AGENTS\.md/);
 	assert.match(readme, /proactively choose/);
 	assert.match(agents, /Plugin Trigger Rules/);
@@ -88,6 +96,10 @@ test("install docs describe background thread owner and verification boundaries"
 		readme,
 		/Never run parallel writers against the same working tree/,
 	);
+	assert.match(changelog, /0\.1\.11 - 2026-06-01/);
+	assert.match(changelog, /xai_grok_video_generate/);
+	assert.match(changelog, /0\.1\.10 - 2026-06-01/);
+	assert.match(changelog, /codex_generate_image/);
 	assert.match(changelog, /0\.1\.9 - 2026-06-01/);
 	assert.match(changelog, /production dependencies/);
 	assert.match(changelog, /0\.1\.8 - 2026-06-01/);

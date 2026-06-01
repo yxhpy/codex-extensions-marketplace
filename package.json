@@ -1,6 +1,6 @@
 {
   "name": "yxhpy-codex-extensions",
-  "version": "0.1.9",
+  "version": "0.1.11",
   "private": true,
   "type": "module",
   "keywords": [
@@ -18,6 +18,10 @@
   "pi": {
     "skills": [
       "./plugins/codex-augment-dispatcher/skills"
+    ],
+    "extensions": [
+      "./extensions/codex-image-gen/index.ts",
+      "./extensions/xai-grok/index.ts"
     ]
   },
   "dependencies": {

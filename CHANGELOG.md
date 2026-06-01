@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.11 - 2026-06-01
+
+- Add the standalone `xai_grok_x_search` and `xai_grok_video_generate` Pi extension tools for xAI/Grok X Search and Grok Imagine Video without depending on Hermes.
+- Add Pi-owned xAI OAuth PKCE login commands, API-key fallback, request builders, polling/download logic, docs, and offline unit coverage.
+
+## 0.1.10 - 2026-06-01
+
+- Add the `codex_generate_image` Pi extension tool for Codex-backed gpt-image-2 image generation using existing `openai-codex` login credentials.
+- Add Codex image generation docs, save-mode configuration, and mocked unit coverage for request building, SSE parsing, and image saving.
+
 ## 0.1.9 - 2026-06-01
 
 - Move `@types/node` into production dependencies so Pi git/package installs include Node built-in type declarations for bundled TypeScript test files.

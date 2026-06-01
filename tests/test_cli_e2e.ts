@@ -18,7 +18,7 @@ import test from "node:test";
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const PLUGIN_NAME = "codex-augment-dispatcher";
 const MARKETPLACE_NAME = "yxhpy-codex-extensions";
-const VERSION = "0.1.9";
+const VERSION = "0.1.11";
 
 function readJson(filePath: string) {
 	return JSON.parse(readFileSync(filePath, "utf8"));
@@ -197,6 +197,10 @@ test("Pi CLI installs the local package in an isolated config and skill-relative
 	assert.equal(pkg.version, VERSION);
 	assert.deepEqual(pkg.pi.skills, [
 		"./plugins/codex-augment-dispatcher/skills",
+	]);
+	assert.deepEqual(pkg.pi.extensions, [
+		"./extensions/codex-image-gen/index.ts",
+		"./extensions/xai-grok/index.ts",
 	]);
 	assert.ok(
 		pkg.dependencies["@types/node"],
