@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.17 - 2026-06-02
+
+- Vendor the latest `yxhpy/reliable-agent-workflow-skill` (`0.3.1`, commit `c97c36207abc8769b5cb22a909c39776423c951c`) as `skills/reliable-agent-workflow`.
+- Route deep analysis, optimization plans, complex engineering delivery, Best-of-N, check-work, zero-open-issue repair loops, and e2e verification through `reliable-agent-workflow` across Pi, Codex, Claude Code, Grok, and similar CLI tools.
+- Add `scripts/sync_reliable_agent_workflow.ts` so release gates can check or sync the bundled skill against upstream GitHub HEAD.
+- Add `npm run release:check` to run dependency restore, upstream freshness, full tests, dynamic-workflow e2e, clean tests, and Docker clean tests.
+
 ## 0.1.16 - 2026-06-01
 
 - Correct live xAI/Grok Video defaults after real provider testing showed `1080p` is not available for this team.

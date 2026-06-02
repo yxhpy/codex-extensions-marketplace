@@ -15,6 +15,7 @@ export const WORKFLOW_SCHEMA_VERSION = 1;
 
 const PLUGIN_ORDER = [
 	DYNAMIC_WORKFLOW_PLUGIN,
+	"reliable-agent-workflow",
 	"task-gate",
 	"grok-augment",
 	"thinking-gate",
@@ -28,6 +29,24 @@ const SIGNALS: Array<{
 	plugins?: string[];
 	patterns: RegExp[];
 }> = [
+	{
+		name: "reliable-delivery",
+		weight: 3,
+		plugins: [
+			DYNAMIC_WORKFLOW_PLUGIN,
+			"reliable-agent-workflow",
+			"task-gate",
+		],
+		patterns: [
+			/reliable-agent-workflow/i,
+			/reliable (?:agent )?(?:workflow|delivery|engineering)/i,
+			/design[- ]review[- ]implement|implementation review/i,
+			/zero[- ]open[- ]issues?|zero issues?/i,
+			/best[- ]of[- ]n|check[- ]work|repair[- ]until/i,
+			/deep analysis|optimization plan|architecture analysis|code audit/i,
+			/深度分析|优化方案|架构分析|代码审计|质量门禁|发布准备|交付闭环|零开放问题/i,
+		],
+	},
 	{
 		name: "explicit-workflow",
 		weight: 3,
@@ -63,7 +82,7 @@ const SIGNALS: Array<{
 		patterns: [
 			/\bplan\b|decompose|break down|multi[- ]step|broad|complex/i,
 			/migration|repo[- ]wide|large refactor|release gate/i,
-			/规划|拆解|分解|多步骤|复杂|大范围|迁移|重构/i,
+			/规划|拆解|分解|多步骤|复杂|大范围|迁移|重构|优化方案|深度分析/i,
 		],
 	},
 	{
@@ -634,9 +653,9 @@ function buildPackets(detection: DynamicWorkflowDetection): Packet[] {
 		mode: "owner",
 		expectedEvidence: ["plan.md", "orchestration.md", "workflow.json"],
 	});
-	if (detection.requiredPlugins.includes("grok-augment")) {
-		push({
-			id: "02-research",
+		if (detection.requiredPlugins.includes("grok-augment")) {
+			push({
+				id: "02-research",
 			role: "research",
 			objective:
 				"Collect current or outside critique without mutating local files.",
@@ -648,10 +667,28 @@ function buildPackets(detection: DynamicWorkflowDetection): Packet[] {
 			expectedEvidence: [
 				"redacted prompt",
 				"Grok transcript or timeout blocker",
-			],
-		});
-	}
-	if (detection.requiredPlugins.includes("thinking-gate")) {
+				],
+			});
+		}
+		if (detection.requiredPlugins.includes("reliable-agent-workflow")) {
+			push({
+				id: nextPacketId(packets, "reliable-workflow"),
+				role: "reliable-agent-workflow",
+				objective:
+					"Run the cross-harness reliable delivery workflow with design, review, repair, and independent verification artifacts.",
+				status: "pending",
+				dependencies: ["01-orchestration"],
+				requiredPlugins: ["reliable-agent-workflow"],
+				approvalRequired: false,
+				mode: "owner",
+				expectedEvidence: [
+					".agent-runs/reliable-agent-workflow/<run-id>/design.md",
+					"zero-open-issue review summary",
+					"independent verification record",
+				],
+			});
+		}
+		if (detection.requiredPlugins.includes("thinking-gate")) {
 		push({
 			id: nextPacketId(packets, "thinking"),
 			role: "stuck-divergence",
@@ -758,6 +795,8 @@ function recommendedPacketIds(
 	signals: Set<string>,
 ): string[] {
 	const packets = ["01-orchestration"];
+	if (plugins.includes("reliable-agent-workflow"))
+		packets.push("reliable-workflow");
 	if (plugins.includes("grok-augment")) packets.push("research");
 	if (plugins.includes("thinking-gate")) packets.push("thinking");
 	if (plugins.includes("asset-slicer")) packets.push("assets");

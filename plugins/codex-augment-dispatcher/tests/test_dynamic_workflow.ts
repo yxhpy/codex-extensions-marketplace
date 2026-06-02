@@ -89,6 +89,21 @@ test("detector elevates generated icon slicing plus e2e into dynamic workflow", 
 	assert.ok(detection.recommendedPackets.includes("verification"));
 });
 
+test("detector routes deep analysis and optimization plans through reliable workflow", () => {
+	const detection = detectDynamicWorkflow(
+		"深度分析给出优化方案，并完成 e2e 验证，适用于 Pi Codex Claude Grok 等 CLI 工具。",
+	);
+
+	assert.equal(detection.dynamic, true);
+	assert.ok(detection.signals.includes("reliable-delivery"));
+	assert.ok(detection.signals.includes("broad-planning"));
+	assert.ok(detection.requiredPlugins.includes("reliable-agent-workflow"));
+	assert.ok(detection.requiredPlugins.includes(DYNAMIC_WORKFLOW_PLUGIN));
+	assert.ok(detection.requiredPlugins.includes("task-gate"));
+	assert.ok(detection.recommendedPackets.includes("reliable-workflow"));
+	assert.ok(detection.recommendedPackets.includes("verification"));
+});
+
 test("workflow artifact creation is durable and platform-neutral", () => {
 	const root = tempRoot();
 	try {

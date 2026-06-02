@@ -21,6 +21,12 @@ Use plugins proactively. Explicit plugin names are strong hints, not required.
   approval gates, reusable recipes, or end-to-end verification. Use real
   subagents when available and simulated packets otherwise; keep artifacts
   under `.agent-workflows/`.
+- `reliable-agent-workflow`: complex coding, refactors, migrations, debugging,
+  architecture work, deep analysis, optimization plans, high-risk changes,
+  design-review-implement, Best-of-N, check-work, zero-open-issue repair loops,
+  independent verification, or e2e verification. It is cross-harness and
+  applies to Pi, Codex, Claude Code, Grok, and similar CLI tools; use its
+  single-agent fallback when no real subagent mechanism is available.
 - `thinking-gate`: stuck, uncertain, repeated failures, competing approaches,
   or needs brainstorming. Compare candidates before choosing.
 - `task-gate`: broad, multi-step, ambiguous, risky, or user asks to decompose.
@@ -44,8 +50,9 @@ Use plugins proactively. Explicit plugin names are strong hints, not required.
 
 When multiple apply, create a Dynamic Workflow artifact first, fan out real
 subagents for independent read-only research/review/validation when available,
-use Grok for outside input, then Task Gate for the execution plan. The owner
-agent owns edits, integration, tests, commits, and final claims.
+use `reliable-agent-workflow` for the delivery contract when applicable, use
+Grok for outside input, then Task Gate for the execution plan. The owner agent
+owns edits, integration, tests, commits, and final claims.
 
 ## Agent Thread And Subagent Fanout
 
@@ -60,6 +67,10 @@ Thread roles:
   work. Use `dynamic-workflow` before other helpers when orchestration,
   subagents, background threads, worker agents, fanout, or approval gates are
   mentioned.
+- `reliable`: run `reliable-agent-workflow` for cross-harness reliable delivery
+  with design, review, repair-until-zero-open-issues, independent verification,
+  artifact tracking, and memory capture. Keep it generic for Pi, Codex, Claude
+  Code, Grok, and similar CLI tools.
 - `research`: read-only context gathering, current-source checks, option
   comparison, or ecosystem notes. Prefer a fast/default model with low or
   medium thinking. Use `grok-augment` first when outside critique, creative

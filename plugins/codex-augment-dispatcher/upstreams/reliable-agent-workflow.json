@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "name": "reliable-agent-workflow",
+  "repository": "https://github.com/yxhpy/reliable-agent-workflow-skill.git",
+  "ref": "main",
+  "commit": "c97c36207abc8769b5cb22a909c39776423c951c",
+  "version": "0.3.1",
+  "checkedAt": "2026-06-02T14:41:59Z",
+  "files": [
+    {
+      "path": "SKILL.md",
+      "sha256": "79f6dc441714fc914b61fbcdc6a7cda3c06b4d07dc5e4d810a27ef0f46460b00",
+      "bytes": 25326
+    },
+    {
+      "path": "agents/openai.yaml",
+      "sha256": "eb88849e92e9cae0a0c7df381da994e8b3a48ba2e99dc1be92ef86b2d4fc877b",
+      "bytes": 305
+    }
+  ]
+}

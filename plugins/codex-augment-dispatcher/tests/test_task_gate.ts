@@ -347,6 +347,38 @@ test("route prompt advertises background thread and worker fanout triggers", () 
 	assert.match(routeGuide, /subagents?|subagent\/packet/i);
 });
 
+test("route prompt advertises reliable workflow for cross CLI delivery", () => {
+	const routePrompt = buildRoutePrompt(
+		"深度分析给出优化方案，通用于 Pi Codex Claude Grok 等 CLI 工具，并完成 e2e 验证",
+	);
+
+	assert.match(routePrompt, /reliable-agent-workflow/);
+	assert.match(routePrompt, /Codex, Claude Code, Grok, Pi/);
+	assert.match(routePrompt, /optimization plans/);
+	assert.match(routePrompt, /zero-open-issue/);
+
+	const thinker = new FakeThinker(
+		JSON.stringify({
+			route: "reliable-agent-workflow",
+			reason: "Reliable cross-harness delivery is required.",
+			required_plugins: ["reliable-agent-workflow"],
+			plugin_evidence_required: true,
+		}),
+	);
+
+	const decision = new RoutePlanner({ thinker }).classify(
+		"深度分析给出优化方案，通用于 Pi Codex Claude Grok 等 CLI 工具，并完成 e2e 验证",
+	);
+
+	assert.equal(decision.route, "reliable-agent-workflow+dynamic-workflow");
+	assert.deepEqual(decision.requiredPlugins, [
+		"reliable-agent-workflow",
+		"dynamic-workflow",
+		"task-gate",
+	]);
+	assert.equal(decision.pluginEvidenceRequired, true);
+});
+
 test("route planner advertises asset slicer for generated sheets", () => {
 	const thinker = new FakeThinker(
 		JSON.stringify({

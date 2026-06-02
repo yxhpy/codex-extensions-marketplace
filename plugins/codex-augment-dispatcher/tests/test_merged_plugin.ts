@@ -43,7 +43,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
 	);
 
 	assert.equal(manifest.name, "codex-augment-dispatcher");
-	assert.equal(manifest.version, "0.1.16");
+	assert.equal(manifest.version, "0.1.17");
 	assert.equal(manifest.skills, "./skills/");
 	assert.equal(manifest.interface.displayName, "Codex Augment Dispatcher");
 	assert.deepEqual(manifest.author, { name: "yxhpy" });
@@ -51,6 +51,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
 		"Planning",
 		"Research",
 		"Review",
+		"Reliability",
 		"Frontend",
 		"Animation",
 		"Coordination",
@@ -62,8 +63,10 @@ test("merged plugin manifest uses a generic extensible name", () => {
 		);
 	}
 	assert.match(manifest.description, /dynamic workflow artifacts/);
+	assert.match(manifest.description, /reliable cross-harness delivery/);
 	assert.match(manifest.description, /GSAP motion guidance/);
 	assert.match(manifest.description, /high-quality media guidance/);
+	assert.match(manifest.interface.longDescription, /reliable-agent-workflow/);
 	assert.match(manifest.interface.longDescription, /dynamic-workflow/);
 	assert.match(manifest.interface.longDescription, /subagent fanout/);
 	assert.match(manifest.interface.longDescription, /worker-agent fanout/);
@@ -75,6 +78,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
 	const defaultPrompt = manifest.interface.defaultPrompt.join("\n");
 	assert.match(defaultPrompt, /classify the route/);
 	assert.match(defaultPrompt, /Plugin evidence/);
+	assert.match(defaultPrompt, /reliable-agent-workflow/);
 	assert.match(defaultPrompt, /dynamic-workflow/);
 	assert.match(defaultPrompt, /task-gate/);
 	assert.match(defaultPrompt, /GSAP/);
@@ -99,6 +103,7 @@ test("main dispatch skill defines generic adapter routing without taking over Co
 	);
 
 	for (const phrase of [
+		"reliable-agent-workflow",
 		"dynamic-workflow",
 		"external CLI adapters",
 		"Mandatory Gate",
@@ -113,6 +118,7 @@ test("main dispatch skill defines generic adapter routing without taking over Co
 		"asset-slicer",
 		"gsap-animation",
 		"GSAP motion design guidance",
+		"cross-harness reliable delivery",
 		"background threads",
 		"worker agents",
 		"SVG/emoji defaults",
@@ -140,7 +146,7 @@ test("routing skill descriptions favor dispatcher before direct adapters", () =>
 	assert.match(dispatch, /description: Use before any non-trivial agent task/);
 	assert.match(
 		dispatch,
-		/classify whether `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`, or `asset-slicer` should run/,
+		/classify whether `reliable-agent-workflow`, `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`, or `asset-slicer` should run/,
 	);
 	assert.match(dispatch, /Use this skill before non-trivial agent work/);
 	assert.match(
@@ -181,6 +187,7 @@ test("skills document Pi-compatible helper script paths", () => {
 
 test("merged plugin keeps existing capability skills under one plugin", () => {
 	for (const skill of [
+		"skills/reliable-agent-workflow/SKILL.md",
 		"skills/dynamic-workflow/SKILL.md",
 		"skills/task-gate/SKILL.md",
 		"skills/thinking-gate/SKILL.md",
@@ -231,6 +238,7 @@ test("plugin-owned executable scripts are TypeScript only", () => {
 		.sort();
 
 	assert.ok(scriptFiles.length > 0);
+	assert.ok(scriptFiles.includes("sync_reliable_agent_workflow.ts"));
 	assert.deepEqual(
 		scriptFiles.filter((file) => !file.endsWith(".ts")),
 		[],

@@ -1,6 +1,6 @@
 ---
 name: dispatch
-description: Use before any non-trivial agent task to classify whether `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`, or `asset-slicer` should run; route helper CLIs/tools while the owner agent keeps execution and verification authority.
+description: Use before any non-trivial agent task to classify whether `reliable-agent-workflow`, `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`, or `asset-slicer` should run; route helper CLIs/tools while the owner agent keeps execution and verification authority.
 ---
 
 # Codex Augment Dispatcher
@@ -9,12 +9,14 @@ Use this skill before non-trivial agent work when dynamic workflows, external CL
 to use plugins, augment the owner agent, improve routing, dispatch work, fan out
 threads, use subagents, or require Plugin evidence.
 
-It is the front door for deciding whether `dynamic-workflow`, `task-gate`,
-`thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`, or
-`asset-slicer` should run before implementation or final claims.
+It is the front door for deciding whether `reliable-agent-workflow`,
+`dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`,
+`agy-frontend`, `gsap-animation`, or `asset-slicer` should run before
+implementation or final claims.
 
 Initial adapters and trigger language:
 
+- `reliable-agent-workflow`: cross-harness reliable engineering delivery for Codex, Claude Code, Grok, Pi, and similar CLI tools; trigger on complex coding, refactors, migrations, debugging, architecture work, deep analysis, optimization plans, high-risk changes, design-review-implement, Best-of-N, check-work, zero-open-issue repair loops, independent verification, e2e verification, 可靠交付, 深度分析, 优化方案, 质量门禁, 发布准备.
 - `dynamic-workflow`: complex multi-track work, workflow artifacts, approval gates, subagent/packet orchestration, background threads, agent threads, worker agents, fanout, delegation, parallel review/research/QA, end-to-end verification, 工作流, 编排, 多代理, 子代理, 后台线程, 审批门禁, 端到端.
 - `task-gate`: plan, decompose, break down, multi-step, ambiguous, risky, 规划, 拆解, 分解任务, 复杂任务.
 - `thinking-gate`: stuck, looping, brainstorm, no idea, divergent thinking, 卡住, 没思路, 头脑风暴, 换个思路.
@@ -25,6 +27,7 @@ Initial adapters and trigger language:
 
 Adapter backends:
 
+- cross-harness reliable delivery through the vendored latest `reliable-agent-workflow` skill from `https://github.com/yxhpy/reliable-agent-workflow-skill`, with sync/freshness checks through `scripts/sync_reliable_agent_workflow.ts`.
 - Deterministic agent dynamic workflow artifacts, approval gates, packet/result lifecycle, and simulation through `scripts/dynamic_workflow.ts`.
 - Claude CLI for numbered task planning, divergent thinking, and follow-up review through `scripts/task_gate.ts` and `scripts/codex_gate.ts`.
 - Grok CLI for non-mutating research, critique, creative direction, divergence, Grok-video-only briefs, and Grok video generation through `scripts/grok_augment.ts`.
@@ -65,7 +68,9 @@ node --experimental-strip-types ../../scripts/dynamic_workflow.ts new --json "<r
 
 Use real subagents when the platform supports them, especially for independent read-only research, review, validation, frontend, or asset tracks; otherwise use simulated packets and preserve `packets/`, `results/`, `workflow.json`, and `final-report.md` as audit evidence.
 
-2. If the task needs current research, an outside critique, creative product/frontend direction, divergent candidate paths, or Grok-video-only briefs, run Grok CLI first:
+2. If the task needs reliable engineering delivery, deep analysis, an optimization plan, design-review-implement loops, Best-of-N, check-work, zero-open-issue repair loops, or independent verification, use `reliable-agent-workflow`. It is cross-harness and applies to Codex, Claude Code, Grok, Pi, and similar CLI tools; if no platform subagent mechanism is available, use its single-agent fallback and write the same artifacts.
+
+3. If the task needs current research, an outside critique, creative product/frontend direction, divergent candidate paths, or Grok-video-only briefs, run Grok CLI first:
 
 ```bash
 node --experimental-strip-types ../../scripts/grok_augment.ts inspect --json
@@ -74,7 +79,7 @@ node --experimental-strip-types ../../scripts/grok_augment.ts critic --json "<re
 
 Treat Grok output as advisory until the owner agent verifies it locally. Do not pass secrets, raw credentials, private tokens, or unnecessary full-repo context to Grok CLI.
 
-3. If the task is broad, ambiguous, multi-step, risky, or should be decomposed before execution, run Claude CLI task gating:
+4. If the task is broad, ambiguous, multi-step, risky, or should be decomposed before execution, run Claude CLI task gating:
 
 ```bash
 node --experimental-strip-types ../../scripts/task_gate.ts --json "<raw task>"
@@ -86,15 +91,15 @@ Execute the returned numbered tasks in order. For stuck/uncertain work, use:
 node --experimental-strip-types ../../scripts/task_gate.ts --think --json "<stuck point>"
 ```
 
-4. If the task involves generated icon sheets, sprite sheets, multi-asset bitmap slicing, generated icons, generate-then-slice asset pipelines, dirty cuts, crop drift, or 切图/切分图标, use the `asset-slicer` skill. Custom icons default to image_gen sheet generation followed by `scripts/asset_slice.ts`; treat a failed report as a blocker before passing assets to AGY.
+5. If the task involves generated icon sheets, sprite sheets, multi-asset bitmap slicing, generated icons, generate-then-slice asset pipelines, dirty cuts, crop drift, or 切图/切分图标, use the `asset-slicer` skill. Custom icons default to image_gen sheet generation followed by `scripts/asset_slice.ts`; treat a failed report as a blocker before passing assets to AGY.
 
-5. If the task involves webpage animation, UI motion, GSAP, ScrollTrigger, parallax, timeline choreography, or framework animation, use the `gsap-animation` skill. When implementation is also required, pair it with `agy-frontend` and pass a Motion / GSAP brief; verify reduced-motion, cleanup, performance, and scroll positions locally.
+6. If the task involves webpage animation, UI motion, GSAP, ScrollTrigger, parallax, timeline choreography, or framework animation, use the `gsap-animation` skill. When implementation is also required, pair it with `agy-frontend` and pass a Motion / GSAP brief; verify reduced-motion, cleanup, performance, and scroll positions locally.
 
-6. If the task is frontend build/edit/style/debug/review/visual verification, use the `agy-frontend` skill. Build a bounded prompt, set explicit workspace scope with `--add-dir`, tell AGY not to start any frontend dev/preview server, and verify locally after AGY returns.
+7. If the task is frontend build/edit/style/debug/review/visual verification, use the `agy-frontend` skill. Build a bounded prompt, set explicit workspace scope with `--add-dir`, tell AGY not to start any frontend dev/preview server, and verify locally after AGY returns.
 
-7. If multiple helpers are relevant, create the dynamic workflow first, use Grok CLI for outside critique/research, then Claude CLI to convert the chosen direction into numbered tasks.
+8. If multiple helpers are relevant, create the dynamic workflow first, run `reliable-agent-workflow` for the delivery contract when applicable, use Grok CLI for outside critique/research, then Claude CLI to convert the chosen direction into numbered tasks.
 
-8. If platform-native workflow skills apply in the active agent session, including Superpowers-style gates when present, follow them as workflow gates. This dispatcher does not replace them; it selects helper CLIs while preserving planning, TDD, review, and verification discipline.
+9. If platform-native workflow skills apply in the active agent session, including Superpowers-style gates when present, follow them as workflow gates. This dispatcher does not replace them; it selects helper CLIs while preserving planning, TDD, review, and verification discipline.
 
 ## Agent Thread And Subagent Fanout
 
@@ -157,8 +162,10 @@ Before claiming completion, run the relevant checks:
 ```bash
 python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py plugins/codex-augment-dispatcher
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/dispatch
+python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/reliable-agent-workflow
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/dynamic-workflow
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/gsap-animation
+node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/sync_reliable_agent_workflow.ts check --remote
 node --experimental-strip-types --test tests/*.ts plugins/codex-augment-dispatcher/tests/*.ts
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts e2e --json "Plan a risky subagent migration with approval gates and end-to-end verification"
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/clean_test.ts

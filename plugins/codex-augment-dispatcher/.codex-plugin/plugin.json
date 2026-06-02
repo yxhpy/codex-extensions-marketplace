@@ -1,21 +1,22 @@
 {
   "name": "codex-augment-dispatcher",
-  "version": "0.1.16",
-  "description": "Route agent work through dynamic workflow artifacts, subagent fanout, extensible external CLI adapters, high-quality media guidance, GSAP motion guidance, deterministic asset workflows, and Plugin evidence.",
+  "version": "0.1.17",
+  "description": "Route agent work through reliable cross-harness delivery, dynamic workflow artifacts, subagent fanout, extensible external CLI adapters, high-quality media guidance, GSAP motion guidance, deterministic asset workflows, and Plugin evidence.",
   "author": {
     "name": "yxhpy"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "Codex Augment Dispatcher",
-    "shortDescription": "Auto-route workflows, subagents, media, frontend, GSAP motion, and assets.",
-    "longDescription": "Codex Augment Dispatcher is an extensible adapter hub for platform-neutral agent dynamic workflows, external CLIs, high-quality media guidance, GSAP motion guidance, deterministic generated-asset workflows, and background thread/subagent fanout while preserving the owner agent as the local executor and verifier. It should be considered for non-trivial tasks and explicitly triggered by workflow artifacts, approval gates, subagents/packets, background threads, agent threads, worker-agent fanout, planning/decomposition, stuck/brainstorming, current research/latest info, external critique/risk review, creative direction, frontend/UI/landing page/redesign/animation, GSAP/ScrollTrigger/parallax motion, browser visual verification, image/video asset generation, generated icon/sprite sheet slicing, and Grok video requests. SVG and emoji are prohibited as default visual assets; custom icons default to image_gen sheets sliced with asset-slicer. The initial adapters are dynamic-workflow, Claude task-gate/thinking-gate, Grok augment, AGY frontend, GSAP animation guidance, and asset-slicer. Future CLI adapters can be added as separate skills, scripts, tests, and dispatch rules without renaming the plugin.",
+    "shortDescription": "Auto-route reliable workflows, subagents, media, frontend, GSAP motion, and assets.",
+    "longDescription": "Codex Augment Dispatcher is an extensible adapter hub for reliable cross-harness engineering delivery, platform-neutral agent dynamic workflows, external CLIs, high-quality media guidance, GSAP motion guidance, deterministic generated-asset workflows, and background thread/subagent fanout while preserving the owner agent as the local executor and verifier. It should be considered for non-trivial tasks and explicitly triggered by reliable-agent-workflow, deep analysis, optimization plans, design-review-implement, Best-of-N, check-work, zero-open-issue repair loops, workflow artifacts, approval gates, subagents/packets, background threads, agent threads, worker-agent fanout, planning/decomposition, stuck/brainstorming, current research/latest info, external critique/risk review, creative direction, frontend/UI/landing page/redesign/animation, GSAP/ScrollTrigger/parallax motion, browser visual verification, image/video asset generation, generated icon/sprite sheet slicing, and Grok video requests. SVG and emoji are prohibited as default visual assets; custom icons default to image_gen sheets sliced with asset-slicer. The initial adapters are reliable-agent-workflow, dynamic-workflow, Claude task-gate/thinking-gate, Grok augment, AGY frontend, GSAP animation guidance, and asset-slicer. Future CLI adapters can be added as separate skills, scripts, tests, and dispatch rules without renaming the plugin.",
     "developerName": "yxhpy",
     "category": "Productivity",
     "capabilities": [
       "Planning",
       "Research",
       "Review",
+      "Reliability",
       "Frontend",
       "Animation",
       "Coordination",
@@ -23,7 +24,7 @@
     ],
     "defaultPrompt": [
       "Before non-trivial work, classify the route; required helper routes need Plugin evidence.",
-      "Route workflow/subagent/thread/fanout/plan/frontend/media/assets via dynamic-workflow, task-gate, AGY, GSAP, image_gen, slicer.",
+      "Route reliable/workflow/UI/media/assets via reliable-agent-workflow, dynamic-workflow, task-gate, AGY, GSAP, image_gen/slicer.",
       "Fan out read-only subagents by default for independent research/review/validation; owner keeps final claims."
     ]
   }

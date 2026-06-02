@@ -36,6 +36,7 @@ function validateManifest(): void {
 		"Planning",
 		"Research",
 		"Review",
+		"Reliability",
 		"Frontend",
 		"Animation",
 		"Coordination",
@@ -78,6 +79,8 @@ function validateSkills(): void {
 	assert.match(dispatch, /Plugin evidence/);
 	assert.match(dispatch, /Initial adapters/);
 	assert.match(dispatch, /Add future CLI adapters/);
+	assert.match(dispatch, /reliable-agent-workflow/);
+	assert.match(dispatch, /cross-harness reliable delivery/);
 	assert.match(dispatch, /Claude CLI/);
 	assert.match(dispatch, /Grok CLI/);
 	assert.match(dispatch, /AGY CLI/);
@@ -124,6 +127,16 @@ function validateSkills(): void {
 	assert.match(dynamicWorkflow, /dynamic_workflow\.ts/);
 	assert.match(dynamicWorkflow, /\.agent-workflows/);
 
+	const reliableWorkflow = readFileSync(
+		path.join(PLUGIN_ROOT, "skills/reliable-agent-workflow/SKILL.md"),
+		"utf8",
+	);
+	assert.match(reliableWorkflow, /Codex/);
+	assert.match(reliableWorkflow, /Claude Code/);
+	assert.match(reliableWorkflow, /Grok/);
+	assert.match(reliableWorkflow, /Pi/);
+	assert.match(reliableWorkflow, /zero open issues/i);
+
 	const assetSlicer = readFileSync(
 		path.join(PLUGIN_ROOT, "skills/asset-slicer/SKILL.md"),
 		"utf8",
@@ -144,6 +157,7 @@ function main(): number {
 		"grok_augment.ts",
 		"verify-static-frontend.ts",
 		"asset_slice.ts",
+		"sync_reliable_agent_workflow.ts",
 	]) {
 		run(
 			["node", "--experimental-strip-types", "--check", `scripts/${script}`],

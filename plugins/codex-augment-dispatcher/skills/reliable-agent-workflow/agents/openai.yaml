@@ -1,0 +1,6 @@
+interface:
+  display_name: "Reliable Agent Workflow"
+  short_description: "Zero-open-issue agent delivery workflow"
+  default_prompt: "Use $reliable-agent-workflow to deliver this engineering task with design, review, repair, and independent verification loops."
+policy:
+  allow_implicit_invocation: true

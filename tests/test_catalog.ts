@@ -16,7 +16,7 @@ test("repo catalog and marketplace install only the merged plugin", () => {
 		path.join(REPO_ROOT, ".agents/plugins/marketplace.json"),
 	);
 
-	assert.equal(pkg.version, "0.1.16");
+	assert.equal(pkg.version, "0.1.17");
 	assert.ok(pkg.keywords.includes("pi-package"));
 	assert.ok(
 		pkg.dependencies["@types/node"],
@@ -62,6 +62,10 @@ test("install docs include recommended AGENTS.md proactive trigger rules", () =>
 	assert.match(readme, /xai_grok_x_search/);
 	assert.match(readme, /xAI\/Grok X Search and video in Pi/);
 	assert.match(readme, /dynamic-workflow/);
+	assert.match(readme, /reliable-agent-workflow/);
+	assert.match(readme, /Pi, Codex, Claude Code, Grok/);
+	assert.match(readme, /sync_reliable_agent_workflow\.ts/);
+	assert.match(readme, /release:check/);
 	assert.match(readme, /dynamic_workflow\.ts/);
 	assert.match(readme, /asset-slicer/);
 	assert.match(readme, /asset_slice\.ts/);
@@ -72,6 +76,8 @@ test("install docs include recommended AGENTS.md proactive trigger rules", () =>
 	assert.match(readme, /proactively choose/);
 	assert.match(agents, /Plugin Trigger Rules/);
 	assert.match(agents, /Use plugins proactively/);
+	assert.match(agents, /`reliable-agent-workflow`: complex coding/);
+	assert.match(agents, /Pi, Codex, Claude Code, Grok/);
 	assert.match(agents, /`dynamic-workflow`: broad multi-track/);
 	assert.match(agents, /background threads/);
 	assert.match(agents, /SVG and emoji are prohibited/);
@@ -109,6 +115,9 @@ test("install docs describe background thread owner and verification boundaries"
 		/Never run parallel writers against the same working tree/,
 	);
 	assert.match(changelog, /0\.1\.16 - 2026-06-01/);
+	assert.match(changelog, /0\.1\.17 - 2026-06-02/);
+	assert.match(changelog, /reliable-agent-workflow-skill/);
+	assert.match(changelog, /0\.3\.1/);
 	assert.match(changelog, /1080p.*not available/);
 	assert.match(changelog, /0\.1\.15 - 2026-06-01/);
 	assert.match(changelog, /SVG\/emoji prohibition/);

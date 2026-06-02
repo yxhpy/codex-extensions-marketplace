@@ -6,7 +6,7 @@ Public catalog for optional Codex plugins and MCP-oriented tools.
 
 | Type | Name | Path | Purpose |
 | --- | --- | --- | --- |
-| Plugin + Scripts + Skills | `codex-augment-dispatcher` | `plugins/codex-augment-dispatcher` | Extensible agent dynamic-workflow, subagent fanout, external CLI adapter, high-quality media guidance, GSAP motion guidance, deterministic generated-asset workflow, and owner-agent coordination hub; adapters cover platform-neutral workflow artifacts, Claude task gating, Grok augmentation, AGY frontend implementation, generated icon slicing, GSAP animation briefs, and asset slicing. |
+| Plugin + Scripts + Skills | `codex-augment-dispatcher` | `plugins/codex-augment-dispatcher` | Extensible reliable-agent workflow, dynamic-workflow, subagent fanout, external CLI adapter, high-quality media guidance, GSAP motion guidance, deterministic generated-asset workflow, and owner-agent coordination hub; adapters cover cross-harness reliable delivery for Pi/Codex/Claude Code/Grok, platform-neutral workflow artifacts, Claude task gating, Grok augmentation, AGY frontend implementation, generated icon slicing, GSAP animation briefs, and asset slicing. |
 | Pi Extension | `codex_generate_image` | `extensions/codex-image-gen` | Generate bitmap images from Pi through the OpenAI Codex Responses backend using the existing `openai-codex` login; backend image model is gpt-image-2. |
 | Pi Extension | `xai_grok_x_search`, `xai_grok_video_generate` | `extensions/xai-grok` | Search X and generate Grok Imagine videos from Pi using xAI API keys or Pi-owned xAI OAuth, without depending on Hermes. |
 
@@ -30,8 +30,9 @@ Recommended project instructions:
 - Merge [`AGENTS.md`](AGENTS.md) into the target project's existing
   `AGENTS.md`; keep project-specific rules first.
 - These rules help the owner agent proactively choose `dynamic-workflow`,
-  `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`,
-  `gsap-animation`, or `asset-slicer` without waiting for explicit mentions.
+  `reliable-agent-workflow`, `dynamic-workflow`, `task-gate`,
+  `thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`, or
+  `asset-slicer` without waiting for explicit mentions.
 - Mandatory gated execution does not require editing project `AGENTS.md`; use
   `scripts/codex_gate.ts` when the raw prompt must be classified before Codex
   receives execution tasks.
@@ -130,10 +131,11 @@ Grok video generation defaults to `720p` because some xAI teams cannot access `1
 
 ## Capabilities
 
-This plugin keeps its install identity stable while adding platform-neutral agent workflow orchestration, stronger subagent/thread fanout routing, high-quality media defaults, more external CLI adapters, and thread/subagent coordination rules.
+This plugin keeps its install identity stable while adding cross-harness reliable engineering delivery, platform-neutral agent workflow orchestration, stronger subagent/thread fanout routing, high-quality media defaults, more external CLI adapters, and thread/subagent coordination rules.
 
 Initial adapters:
 
+- Reliable agent workflow: `skills/reliable-agent-workflow` vendors the latest `yxhpy/reliable-agent-workflow-skill` content and applies to Pi, Codex, Claude Code, Grok, and similar CLI tools. It triggers on complex coding, refactors, migrations, debugging, architecture work, deep analysis, optimization plans, high-risk changes, design-review-implement, Best-of-N, check-work, zero-open-issue loops, independent verification, and e2e verification. `scripts/sync_reliable_agent_workflow.ts` can sync or verify the bundled skill against the upstream GitHub HEAD.
 - Agent dynamic workflow orchestration: `skills/dynamic-workflow` and `scripts/dynamic_workflow.ts` create durable `.agent-workflows/<id>/` artifacts with approval gates, packet/result lifecycle, structured evidence, simulated-packet fallback, and final verification. Prompts mentioning subagents, background threads, agent threads, worker agents, fanout, delegation, packets, or parallel review/research/QA trigger this path more reliably.
 - Claude CLI task gating: `scripts/task_gate.ts` generates divergent ideas and numbered task plans, while `scripts/codex_gate.ts` can pass only the generated task plan into `codex exec` for Codex-specific gated execution rounds.
 - Grok CLI augmentation: `scripts/grok_augment.ts` uses Grok for non-mutating research, critique, creative direction, divergence, Grok-video-only briefs, and real MP4 generation through a configured Grok-compatible `/v1/videos` endpoint.
@@ -145,20 +147,21 @@ Initial adapters:
 
 `scripts/codex_gate.ts --execute "<raw prompt>"` now classifies the route before
 Codex receives an execution prompt. The route can require `dynamic-workflow`,
-`task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`,
-`gsap-animation`, or `asset-slicer` for workflow orchestration, planning,
-stuck, research/review, frontend work, GSAP motion, or generated asset slicing.
+`reliable-agent-workflow`, `dynamic-workflow`, `task-gate`, `thinking-gate`,
+`grok-augment`, `agy-frontend`, `gsap-animation`, or `asset-slicer` for
+reliable delivery, workflow orchestration, planning, stuck, research/review,
+frontend work, GSAP motion, or generated asset slicing.
 
 When a route requires helper plugins, Codex's Detailed completion summary must
 include a `Plugin evidence:` line naming every required plugin and the command,
 tool, or transcript evidence. The follow-up gate rejects completion when that
 Plugin evidence is missing, even if Codex reports the work as complete.
 
-Future adapters should be added as focused skills and scripts with fake-binary tests, explicit dispatch rules, and the same no-secret/no-fallback boundaries. Instructional skills without a CLI, such as `gsap-animation`, should still include static routing and verification tests.
+Future adapters should be added as focused skills and scripts with fake-binary tests, explicit dispatch rules, and the same no-secret/no-fallback boundaries. Instructional skills without a CLI, such as `gsap-animation` or `reliable-agent-workflow`, should still include static routing and verification tests.
 
 The owner agent owns local file edits, integration, verification, commits, and final claims. AGY can edit frontend files only inside the bounded AGY workflow and must not start or keep alive dev/preview servers; the owner agent still gathers context, supervises scope, runs checks, and reports evidence.
 
-No secrets, raw credentials, private tokens, or unnecessary full-repo context should be passed to Claude, Grok, or AGY. No fallback provider is allowed for Grok, Grok Video, or image generation paths. Generated icon/sprite sheets must pass `asset-slicer` before their individual assets are treated as frontend-ready. SVG and emoji are not default visual assets for frontend polish; generate high-quality image/video assets instead.
+No secrets, raw credentials, private tokens, or unnecessary full-repo context should be passed to Claude, Grok, or AGY. `reliable-agent-workflow` is cross-harness guidance and must preserve the invoking harness's permission, sandbox, and model constraints. No fallback provider is allowed for Grok, Grok Video, or image generation paths. Generated icon/sprite sheets must pass `asset-slicer` before their individual assets are treated as frontend-ready. SVG and emoji are not default visual assets for frontend polish; generate high-quality image/video assets instead.
 
 ## Agent Threads And Subagents
 
@@ -166,6 +169,10 @@ Use background threads or subagents as bounded assistants by default for indepen
 
 - Research thread: read-only context gathering or option comparison; use
   low/medium thinking and `grok-augment` for outside input when useful.
+- Reliable thread/workflow: use `reliable-agent-workflow` for cross-harness
+  design, implementation review, repair-until-zero-open-issues, independent
+  verification, artifact tracking, and memory capture. It is valid for Pi,
+  Codex, Claude Code, Grok, and similar CLI tools.
 - Plan thread: advisory decomposition only; use `task-gate` in the owner thread
   for the final numbered task order before implementation.
 - Review thread: release, regression, or security risk review; use high/xhigh
@@ -188,6 +195,7 @@ settings and continue without treating the failed thread as evidence.
 - Claude task gating expects the `claude` CLI on `PATH`, or set `TASK_GATE_CLAUDE_BIN=/path/to/claude`.
 - Grok augmentation expects the `grok` CLI on `PATH`, or set `GROK_AUGMENT_GROK_BIN=/path/to/grok`.
 - AGY frontend work expects the `agy` CLI on `PATH`, or set `AGY_BIN=/path/to/agy`.
+- Reliable agent workflow is vendored from `https://github.com/yxhpy/reliable-agent-workflow-skill`; check freshness with `node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/sync_reliable_agent_workflow.ts check --remote` and sync with `... sync --remote`.
 - Dynamic workflow orchestration uses repository-owned TypeScript only: `node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts e2e --json "Plan a subagent workflow with approval gates"`.
 - Asset slicing uses repository-owned TypeScript only: `node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/asset_slice.ts <sheet.png> --out-dir <dir> --expect-count <n>`.
 - Grok augmentation reads an API key from `GROK_VIDEO_API_KEY` by default when the local video endpoint requires one and defaults Grok Video helper generation to high quality.
@@ -200,6 +208,7 @@ Release checks used for this repository:
 ```bash
 python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py plugins/codex-augment-dispatcher
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/dispatch
+python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/reliable-agent-workflow
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/dynamic-workflow
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/task-gate
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/thinking-gate
@@ -207,10 +216,18 @@ python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/agy-frontend
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/gsap-animation
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/asset-slicer
+npm ci
+node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/sync_reliable_agent_workflow.ts check --remote
 node --experimental-strip-types --test tests/*.ts plugins/codex-augment-dispatcher/tests/*.ts
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts e2e --json "Plan a subagent workflow with approval gates and end-to-end verification"
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/clean_test.ts
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/docker_clean_test.ts
+```
+
+The shortcut release gate is:
+
+```bash
+npm run release:check
 ```
 
 For host-specific releases, run a real macOS Codex smoke test in an isolated temporary workspace before publishing.
