@@ -125,7 +125,7 @@ test("video generation builds request, polls, downloads MP4", async () => {
 			assert.equal(body.prompt, "neon arena loop");
 			assert.equal(body.duration, 6);
 			assert.equal(body.aspect_ratio, "16:9");
-			assert.equal(body.resolution, "1080p");
+			assert.equal(body.resolution, "720p");
 			return jsonResponse({ request_id: "vid_123" });
 		}
 		if (url.endsWith("/videos/vid_123")) {
@@ -170,7 +170,7 @@ test("video request validation locks official xAI parameter ranges", () => {
 		prompt: "test",
 		duration: 8,
 		aspect_ratio: "16:9",
-		resolution: "1080p",
+		resolution: "720p",
 	});
 	assert.throws(() => buildVideoGenerationRequest({ prompt: "test", duration: 16 }), /duration/);
 	assert.throws(() => buildVideoGenerationRequest({ prompt: "test", aspect_ratio: "21:9" }), /aspect_ratio/);

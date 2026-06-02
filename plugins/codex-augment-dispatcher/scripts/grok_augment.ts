@@ -203,7 +203,7 @@ export class GrokVideoClient {
 			seconds: String(seconds),
 			size,
 			quality,
-			resolution_name: quality === "high" ? "1080p" : "720p",
+			resolution_name: quality === "high" ? "720p" : "480p",
 			preset: "normal",
 		});
 		let job = await this.postForm("/v1/videos", payload);

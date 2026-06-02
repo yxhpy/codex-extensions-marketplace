@@ -44,7 +44,7 @@ Video format guidance:
 - Use Grok Video (`grok-imagine-video`) through the local Grok2API `/v1/videos` gateway, then save the resulting `.mp4` or `.webm` files inside the project.
 - Use `multipart/form-data` with `input_reference[]` when image-to-video needs a stable local reference frame; poll `/v1/videos/{id}` until `status=completed`, then download `/v1/videos/{id}/content`.
 - Use 16:9 or 21:9 for desktop hero loops, 9:16 for mobile hero variants, and 1:1 or 4:5 for compact section clips.
-- Keep loops short and compressed enough for local preview. Default to 1080p when the provider and budget allow it; use 720p only for speed, cost, or compatibility constraints. Keep clips 4-12 seconds, muted, looped, and poster-backed.
+- Keep loops short and compressed enough for local preview. Default xAI/Grok Video requests to 720p because some teams cannot access 1080p; request 1080p only when the user's xAI team explicitly supports it. Keep clips 4-12 seconds, muted, looped, and poster-backed.
 - Avoid baked-in UI text, fake subtitles, watermarks, logos, and unreadable label text. Do not accept local `ffmpeg` slideshow loops, CSS motion, stock clips, or locally animated stills as final generated-video proof.
 
 ## Manifest Format

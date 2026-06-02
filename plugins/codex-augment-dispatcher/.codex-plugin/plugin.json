@@ -1,6 +1,6 @@
 {
   "name": "codex-augment-dispatcher",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "Route agent work through dynamic workflow artifacts, subagent fanout, extensible external CLI adapters, high-quality media guidance, GSAP motion guidance, deterministic asset workflows, and Plugin evidence.",
   "author": {
     "name": "yxhpy"

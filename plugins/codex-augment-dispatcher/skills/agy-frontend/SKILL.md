@@ -76,7 +76,7 @@ When generating media:
 - Require accessible alt text, stable dimensions, mobile-safe crops, and no text baked into images unless the image is purely decorative.
 - For images, use the `image_gen` tool path from the image generation skill and move the selected output from `$CODEX_HOME/generated_images/` into the project before referencing it. Prefer high-quality generation settings for user-facing assets.
 - For icons, badges, stickers, sprites, and game items, generate an image_gen sheet first, then slice it with `asset-slicer`; AGY receives only the sliced files plus `asset-slices.json` evidence.
-- For video, use Grok Video output saved as muted loopable `mp4` or `webm`, usually 4-12 seconds, with an image_gen poster image when the first frame may be dark or ambiguous. Prefer high-quality/1080p generation when provider and budget allow.
+- For video, use Grok Video output saved as muted loopable `mp4` or `webm`, usually 4-12 seconds, with an image_gen poster image when the first frame may be dark or ambiguous. Default xAI/Grok Video to 720p because some teams cannot access 1080p; request 1080p only when explicitly supported.
 - Keep AGY responsible for layout, animation, integration, and responsive polish; Codex remains responsible for asset generation, supervision, and browser verification.
 
 ## Prompt Template

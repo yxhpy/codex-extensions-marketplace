@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.16 - 2026-06-01
+
+- Correct live xAI/Grok Video defaults after real provider testing showed `1080p` is not available for this team.
+- Restore `xai_grok_video_generate` to the broadly supported `720p` default and document that `1080p` should be requested only when the user's xAI team supports it.
+- Keep high-quality image generation defaults while mapping Grok augment video helper output to the supported 720p resolution.
+
 ## 0.1.15 - 2026-06-01
 
 - Add SVG/emoji prohibition for visual-led frontend defaults and require high-quality image_gen/Grok Video assets instead of placeholder vector or emoji shortcuts.

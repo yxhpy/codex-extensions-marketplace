@@ -19,7 +19,7 @@ export const DEFAULT_SEARCH_MODEL = "grok-4.3";
 export const DEFAULT_VIDEO_MODEL = "grok-imagine-video";
 export const DEFAULT_VIDEO_DURATION = 8;
 export const DEFAULT_VIDEO_ASPECT_RATIO = "16:9";
-export const DEFAULT_VIDEO_RESOLUTION = "1080p";
+export const DEFAULT_VIDEO_RESOLUTION = "720p";
 export const DEFAULT_AUTH_HOST = "127.0.0.1";
 export const DEFAULT_AUTH_PORT = 56121;
 export const DEFAULT_AUTH_PATH = "/callback";
@@ -239,7 +239,7 @@ const XAI_VIDEO_PARAMETERS = {
 		resolution: {
 			type: "string",
 			enum: VIDEO_RESOLUTIONS,
-			description: "Output resolution. Defaults to 1080p.",
+			description: "Output resolution. Defaults to 720p. Request 1080p only when your xAI team supports it.",
 		},
 		outputDir: {
 			type: "string",
@@ -993,7 +993,7 @@ export default function xaiGrokExtension(pi: ExtensionAPI) {
 		promptSnippet: "Generate Grok Imagine Video MP4 assets through xAI.",
 		promptGuidelines: [
 			"Use xai_grok_video_generate when the user requests Grok video generation or project video assets.",
-			"Default to high-quality 1080p video assets when the user does not specify resolution.",
+			"Default to the highest broadly supported xAI team resolution: 720p. Request 1080p only when the user's xAI team explicitly supports it.",
 			"xai_grok_video_generate returns temporary xAI video URLs and, by default, downloads the MP4 into the workspace.",
 		],
 		parameters: XAI_VIDEO_PARAMETERS,

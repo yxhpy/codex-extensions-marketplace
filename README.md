@@ -107,8 +107,8 @@ Available tools:
 
 - `xai_grok_x_search`: calls xAI `/v1/responses` with the native `x_search` tool.
 - `xai_grok_video_generate`: starts `/v1/videos/generations`, polls the request,
-  defaults to 1080p output, and downloads the completed MP4 into the workspace
-  by default.
+  defaults to broadly supported 720p output, and downloads the completed MP4
+  into the workspace by default.
 
 Optional config file paths:
 
@@ -126,7 +126,7 @@ Example:
 }
 ```
 
-Grok video generation defaults to high-quality `1080p` when the request does not specify a resolution.
+Grok video generation defaults to `720p` because some xAI teams cannot access `1080p`. Request `1080p` only when the user's xAI team explicitly supports it.
 
 ## Capabilities
 
