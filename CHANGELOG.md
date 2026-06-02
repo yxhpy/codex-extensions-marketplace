@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Add Claude Code Dynamic Workflows / `ultracode` / workflow-script / `.claude/workflows` / `.atomic` interop detection while preserving `.agent-workflows/` as the canonical audit trail.
+- Add a script-only dispatcher MCP stdio surface for classification, workflow create/approve/verify, and reliable-stage contracts.
+- Add `mcp-generator` guidance for small dispatcher-compatible skill/MCP scaffolds.
+- Tighten Codex gate Plugin evidence parsing so required plugin names must appear on usable `Plugin evidence:` lines.
+- Add optimization-focused tests for detector coverage, release approval reporting, MCP stdio behavior, native interop metadata, and evidence enforcement.
+
 ## 0.1.17 - 2026-06-02
 
 - Vendor the latest `yxhpy/reliable-agent-workflow-skill` (`0.3.1`, commit `c97c36207abc8769b5cb22a909c39776423c951c`) as `skills/reliable-agent-workflow`.

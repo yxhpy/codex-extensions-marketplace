@@ -11,7 +11,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const DYNAMIC_WORKFLOW_PLUGIN = "dynamic-workflow";
-export const WORKFLOW_SCHEMA_VERSION = 1;
+export const WORKFLOW_SCHEMA_VERSION = 2;
 
 const PLUGIN_ORDER = [
 	DYNAMIC_WORKFLOW_PLUGIN,
@@ -43,8 +43,23 @@ const SIGNALS: Array<{
 			/design[- ]review[- ]implement|implementation review/i,
 			/zero[- ]open[- ]issues?|zero issues?/i,
 			/best[- ]of[- ]n|check[- ]work|repair[- ]until/i,
-			/deep analysis|optimization plan|architecture analysis|code audit/i,
-			/深度分析|优化方案|架构分析|代码审计|质量门禁|发布准备|交付闭环|零开放问题/i,
+			/deep analysis|deep optimization|optimization plan|architecture analysis|code audit/i,
+			/深度分析|深度优化|优化方案|架构分析|代码审计|质量门禁|发布准备|交付闭环|零开放问题/i,
+		],
+	},
+	{
+		name: "native-workflow-interop",
+		weight: 4,
+		plugins: [DYNAMIC_WORKFLOW_PLUGIN, "task-gate"],
+		patterns: [
+			/ultracode/i,
+			/claude code dynamic workflows?/i,
+			/native (?:dynamic )?workflow/i,
+			/workflow scripts?/i,
+			/\.claude\/workflows?/i,
+			/\.atomic\b/i,
+			/native dw|dw bridge|dynamic workflow bridge/i,
+			/原生\s*DW|原生动态工作流|工作流脚本|桥接\s*(?:native|原生|Claude|DW)|Claude\s*动态工作流/i,
 		],
 	},
 	{
@@ -72,6 +87,7 @@ const SIGNALS: Array<{
 			/\bparallel (?:review|research|validation|qa)\b/i,
 			/\bswarm\b/i,
 			/goal mode/i,
+			/\bcreate a workflow\b/i,
 			/工作流|编排|多代理|子代理|后台线程|代理线程|并行代理|分派|审批门禁/i,
 		],
 	},
@@ -81,8 +97,8 @@ const SIGNALS: Array<{
 		plugins: ["task-gate"],
 		patterns: [
 			/\bplan\b|decompose|break down|multi[- ]step|broad|complex/i,
-			/migration|repo[- ]wide|large refactor|release gate/i,
-			/规划|拆解|分解|多步骤|复杂|大范围|迁移|重构|优化方案|深度分析/i,
+			/migration|repo[- ]wide|large refactor|release gate|deep optimization/i,
+			/规划|拆解|分解|多步骤|复杂|大范围|迁移|重构|优化方案|深度分析|深度优化/i,
 		],
 	},
 	{
@@ -228,6 +244,13 @@ type VerificationRecord = {
 	createdAt: string;
 };
 
+type WorkflowInterop = {
+	canonicalArtifactRoot: ".agent-workflows";
+	optionalNativeLayouts: string[];
+	workflowScriptInterop: boolean;
+	notes: string[];
+};
+
 export type WorkflowArtifact = {
 	schemaVersion: number;
 	id: string;
@@ -243,6 +266,7 @@ export type WorkflowArtifact = {
 	results: PacketResult[];
 	evidence: EvidenceRecord[];
 	verification: VerificationRecord[];
+	interop: WorkflowInterop;
 	finalVerdict: "pending" | "complete" | "incomplete" | "blocked";
 	artifacts: {
 		workflowJson: string;
@@ -341,6 +365,7 @@ export function createWorkflow({
 	const createdAt = isoNow();
 	const packets = buildPackets(detection);
 	const approvals = buildApprovals(detection);
+	const interop = buildInterop(cleanPrompt, detection);
 	const workflow: WorkflowArtifact = {
 		schemaVersion: WORKFLOW_SCHEMA_VERSION,
 		id: workflowId,
@@ -358,6 +383,7 @@ export function createWorkflow({
 		results: [],
 		evidence: [],
 		verification: [],
+		interop,
 		finalVerdict: "pending",
 		artifacts: {
 			workflowJson: "workflow.json",
@@ -387,7 +413,9 @@ export function createWorkflow({
 
 export function loadWorkflow(workflowDir: string): WorkflowArtifact {
 	const workflowPath = path.join(workflowDir, "workflow.json");
-	return JSON.parse(readFileSync(workflowPath, "utf8")) as WorkflowArtifact;
+	return normalizeWorkflow(
+		JSON.parse(readFileSync(workflowPath, "utf8")) as WorkflowArtifact,
+	);
 }
 
 export function saveWorkflow(
@@ -456,6 +484,7 @@ export function simulateWorkflow({
 	workflow.state = "dispatched";
 	workflow.results = [];
 	workflow.evidence = [];
+	workflow.verification = [];
 	const completedAt = isoNow();
 	for (const packet of workflow.packets) {
 		packet.status = "completed";
@@ -499,8 +528,53 @@ export function simulateWorkflow({
 			"Every required plugin has structured evidence with success status.",
 		createdAt: isoNow(),
 	});
-	workflow.state = "complete";
-	workflow.finalVerdict = "complete";
+	const releaseApproval = workflow.approvals.find(
+		(item) => item.scope === "release",
+	);
+	if (releaseApproval && releaseApproval.status !== "granted") {
+		workflow.state = "results_collected";
+		workflow.finalVerdict = "pending";
+		workflow.verification.push({
+			check: "release approval gate",
+			status: "blocked",
+			summary:
+				"Simulation collected packet results but refused to mark final PASS before release approval was granted.",
+			createdAt: isoNow(),
+		});
+	} else {
+		workflow.state = "complete";
+		workflow.finalVerdict = "complete";
+	}
+	saveWorkflow(workflowDir, workflow);
+	return workflow;
+}
+
+export function denyWorkflow({
+	workflowDir,
+	scope,
+	by = "dynamic_workflow.ts",
+	reason = "Explicit approval denial recorded.",
+}: {
+	workflowDir: string;
+	scope: "plan" | "execute" | "release";
+	by?: string;
+	reason?: string;
+}): WorkflowArtifact {
+	const workflow = loadWorkflow(workflowDir);
+	const approval = workflow.approvals.find((item) => item.scope === scope);
+	if (!approval) throw new Error(`unknown approval scope: ${scope}`);
+	approval.status = "denied";
+	approval.grantedBy = by;
+	approval.grantedAt = isoNow();
+	approval.reason = reason;
+	workflow.state = "blocked";
+	workflow.finalVerdict = "blocked";
+	workflow.verification.push({
+		check: `${scope} approval gate`,
+		status: "blocked",
+		summary: `Approval scope ${scope} was denied: ${reason}`,
+		createdAt: isoNow(),
+	});
 	saveWorkflow(workflowDir, workflow);
 	return workflow;
 }
@@ -539,6 +613,9 @@ export function validateWorkflow(
 		}
 		if (!workflow.id) failures.push("workflow.id is required");
 		if (!workflow.promptHash) failures.push("workflow.promptHash is required");
+		if (!workflow.interop?.canonicalArtifactRoot) {
+			failures.push("workflow.interop.canonicalArtifactRoot is required");
+		}
 		if (!Array.isArray(workflow.packets) || workflow.packets.length === 0) {
 			failures.push("workflow.packets must contain at least one packet");
 		}
@@ -653,9 +730,9 @@ function buildPackets(detection: DynamicWorkflowDetection): Packet[] {
 		mode: "owner",
 		expectedEvidence: ["plan.md", "orchestration.md", "workflow.json"],
 	});
-		if (detection.requiredPlugins.includes("grok-augment")) {
-			push({
-				id: "02-research",
+	if (detection.requiredPlugins.includes("grok-augment")) {
+		push({
+			id: "02-research",
 			role: "research",
 			objective:
 				"Collect current or outside critique without mutating local files.",
@@ -667,28 +744,45 @@ function buildPackets(detection: DynamicWorkflowDetection): Packet[] {
 			expectedEvidence: [
 				"redacted prompt",
 				"Grok transcript or timeout blocker",
-				],
-			});
-		}
-		if (detection.requiredPlugins.includes("reliable-agent-workflow")) {
-			push({
-				id: nextPacketId(packets, "reliable-workflow"),
-				role: "reliable-agent-workflow",
-				objective:
-					"Run the cross-harness reliable delivery workflow with design, review, repair, and independent verification artifacts.",
-				status: "pending",
-				dependencies: ["01-orchestration"],
-				requiredPlugins: ["reliable-agent-workflow"],
-				approvalRequired: false,
-				mode: "owner",
-				expectedEvidence: [
-					".agent-runs/reliable-agent-workflow/<run-id>/design.md",
-					"zero-open-issue review summary",
-					"independent verification record",
-				],
-			});
-		}
-		if (detection.requiredPlugins.includes("thinking-gate")) {
+			],
+		});
+	}
+	if (detection.requiredPlugins.includes("reliable-agent-workflow")) {
+		push({
+			id: nextPacketId(packets, "reliable-workflow"),
+			role: "reliable-agent-workflow",
+			objective:
+				"Run the cross-harness reliable delivery workflow with design, review, repair, and independent verification artifacts.",
+			status: "pending",
+			dependencies: ["01-orchestration"],
+			requiredPlugins: ["reliable-agent-workflow"],
+			approvalRequired: false,
+			mode: "owner",
+			expectedEvidence: [
+				".agent-runs/reliable-agent-workflow/<run-id>/design.md",
+				"zero-open-issue review summary",
+				"independent verification record",
+			],
+		});
+	}
+	if (detection.signals.includes("native-workflow-interop")) {
+		push({
+			id: nextPacketId(packets, "interop"),
+			role: "workflow-interop",
+			objective:
+				"Record optional native workflow bridge details while keeping .agent-workflows as the portable audit trail.",
+			status: "pending",
+			dependencies: ["01-orchestration"],
+			requiredPlugins: [DYNAMIC_WORKFLOW_PLUGIN],
+			approvalRequired: false,
+			mode: "owner",
+			expectedEvidence: [
+				"interop bridge note",
+				".agent-workflows canonical artifact path",
+			],
+		});
+	}
+	if (detection.requiredPlugins.includes("thinking-gate")) {
 		push({
 			id: nextPacketId(packets, "thinking"),
 			role: "stuck-divergence",
@@ -770,6 +864,60 @@ function buildPackets(detection: DynamicWorkflowDetection): Packet[] {
 	return packets;
 }
 
+function buildInterop(
+	prompt: string,
+	detection: DynamicWorkflowDetection,
+): WorkflowInterop {
+	const lower = prompt.toLowerCase();
+	const optionalNativeLayouts = new Set<string>();
+	const notes = [...defaultInterop().notes];
+	if (
+		detection.signals.includes("native-workflow-interop") ||
+		lower.includes("claude")
+	) {
+		optionalNativeLayouts.add(".claude/workflows/");
+		notes.push(
+			"Claude Code native Dynamic Workflows can be bridged by recording script paths and run evidence here; do not replace the portable artifact.",
+		);
+	}
+	if (lower.includes(".atomic") || lower.includes("atomic")) {
+		optionalNativeLayouts.add(".atomic/");
+		notes.push(
+			"Atomic-style artifacts may be cross-linked, but workflow.json remains the source of truth.",
+		);
+	}
+	if (lower.includes("workflow script") || lower.includes("ultracode")) {
+		notes.push(
+			"Workflow-script interop should capture script path, approvals, packet results, and verification evidence without embedding secrets.",
+		);
+	}
+	return {
+		...defaultInterop(),
+		optionalNativeLayouts: Array.from(optionalNativeLayouts).sort(),
+		workflowScriptInterop: detection.signals.includes(
+			"native-workflow-interop",
+		),
+		notes,
+	};
+}
+
+function normalizeWorkflow(workflow: WorkflowArtifact): WorkflowArtifact {
+	if (!workflow.interop) workflow.interop = defaultInterop();
+	if (workflow.schemaVersion < WORKFLOW_SCHEMA_VERSION) {
+		workflow.schemaVersion = WORKFLOW_SCHEMA_VERSION;
+	}
+	return workflow;
+}
+
+function defaultInterop(): WorkflowInterop {
+	return {
+		canonicalArtifactRoot: ".agent-workflows",
+		optionalNativeLayouts: [],
+		workflowScriptInterop: false,
+		notes: [".agent-workflows/ remains the canonical cross-harness audit trail."],
+	};
+}
+
 function isComplete(workflow: WorkflowArtifact): boolean {
 	const resultIds = new Set(workflow.results.map((result) => result.packetId));
 	const evidencePlugins = new Set(
@@ -798,6 +946,7 @@ function recommendedPacketIds(
 	if (plugins.includes("reliable-agent-workflow"))
 		packets.push("reliable-workflow");
 	if (plugins.includes("grok-augment")) packets.push("research");
+	if (signals.has("native-workflow-interop")) packets.push("interop");
 	if (plugins.includes("thinking-gate")) packets.push("thinking");
 	if (plugins.includes("asset-slicer")) packets.push("assets");
 	if (plugins.includes("agy-frontend")) packets.push("frontend");
@@ -839,6 +988,8 @@ ${workflow.promptSummary}
 - Risk: ${workflow.detection.riskLevel}
 - Signals: ${workflow.detection.signals.join(", ") || "none"}
 - Required plugins: ${workflow.detection.requiredPlugins.join(", ") || "none"}
+- Canonical artifact root: ${workflow.interop.canonicalArtifactRoot}
+- Optional native layouts: ${workflow.interop.optionalNativeLayouts.join(", ") || "none"}
 
 ## Work Packets
 
@@ -860,6 +1011,8 @@ function renderOrchestration(workflow: WorkflowArtifact): string {
 - If a real subagent runner is unavailable, execute packets serially in simulated-packet mode.
 - Stop at pending approval gates; continue only with safe read-only planning.
 - Integrate packet results explicitly before final verification.
+- Preserve .agent-workflows/ as the canonical cross-harness audit trail.
+- Keep optional native layouts such as .claude/workflows/ or .atomic/ as bridge metadata; do not replace workflow.json as the source of truth.
 
 ## Packet Order
 
@@ -904,11 +1057,17 @@ ${result.evidence.map((item) => `- ${item}`).join("\n")}
 }
 
 function renderFinalReport(workflow: WorkflowArtifact): string {
+	const verdict =
+		workflow.finalVerdict === "complete"
+			? "VERDICT: PASS"
+			: workflow.finalVerdict === "blocked"
+				? "VERDICT: BLOCKED"
+				: "VERDICT: PENDING";
 	return `# Final Report: ${workflow.title}
 
 ## Verdict
 
-${workflow.finalVerdict}
+${verdict}
 
 ## Accepted Results
 
@@ -922,9 +1081,16 @@ ${workflow.evidence.map((item) => `- ${item.plugin}: ${item.status} via ${item.c
 
 ${workflow.verification.map((item) => `- ${item.check}: ${item.status} — ${item.summary}`).join("\n") || "Pending."}
 
+## Interop
+
+- Canonical artifact root: ${workflow.interop.canonicalArtifactRoot}
+- Optional native layouts: ${workflow.interop.optionalNativeLayouts.join(", ") || "none"}
+- Workflow script interop: ${workflow.interop.workflowScriptInterop ? "yes" : "no"}
+${workflow.interop.notes.map((item) => `- ${item}`).join("\n")}
+
 ## Remaining Risks
 
-${workflow.finalVerdict === "complete" ? "None known after recorded verification." : "Workflow is not complete yet."}
+${workflow.finalVerdict === "complete" ? "None known after recorded verification." : "Workflow is not complete yet or final approval is still pending."}
 `;
 }
 
@@ -1010,6 +1176,7 @@ Commands:
   new [--root DIR] [--id ID] <prompt>
                                     Create a durable workflow artifact directory.
   approve --scope execute <dir>     Record an approval gate as granted.
+  deny --scope execute <dir>        Record an approval gate as denied.
   simulate <dir>                    Run deterministic simulated packet/result completion.
   verify [--complete] <dir>         Validate structure, or full completion with --complete.
   e2e [--root DIR] [--json] <prompt>
@@ -1060,6 +1227,19 @@ export function main(argv = process.argv.slice(2)): number {
 			});
 			if (args.json) console.log(JSON.stringify(workflow, null, 2));
 			else console.log(`approved ${args.scope || "execute"}: ${workflowDir}`);
+			return 0;
+		}
+		if (args.command === "deny") {
+			const workflowDir = args.prompt[0];
+			if (!workflowDir) throw new Error("deny requires workflow directory");
+			const workflow = denyWorkflow({
+				workflowDir,
+				scope: args.scope || "execute",
+				by: args.by,
+				reason: args.reason || "Denied by CLI.",
+			});
+			if (args.json) console.log(JSON.stringify(workflow, null, 2));
+			else console.log(`denied ${args.scope || "execute"}: ${workflowDir}`);
 			return 0;
 		}
 		if (args.command === "simulate") {

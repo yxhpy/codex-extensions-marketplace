@@ -41,6 +41,7 @@ function validateManifest(): void {
 		"Animation",
 		"Coordination",
 		"Assets",
+		"MCP",
 	]) {
 		assert.ok(
 			manifest.interface.capabilities.includes(capability),
@@ -89,6 +90,8 @@ function validateSkills(): void {
 	assert.match(dispatch, /worker agents/);
 	assert.match(dispatch, /asset-slicer/);
 	assert.match(dispatch, /gsap-animation/);
+	assert.match(dispatch, /mcp-generator/);
+	assert.match(dispatch, /dispatcher_mcp\.ts/);
 	assert.match(dispatch, /owner agent owns local file edits/i);
 	assert.match(dispatch, /No fallback provider is allowed/);
 	assert.match(dispatch, /Agent Thread And Subagent Fanout/);
@@ -144,6 +147,13 @@ function validateSkills(): void {
 	assert.match(assetSlicer, /deterministic/i);
 	assert.match(assetSlicer, /asset_slice\.ts/);
 	assert.match(assetSlicer, /expected_count/);
+
+	const mcpGenerator = readFileSync(
+		path.join(PLUGIN_ROOT, "skills/mcp-generator/SKILL.md"),
+		"utf8",
+	);
+	assert.match(mcpGenerator, /stdio JSON-RPC/);
+	assert.match(mcpGenerator, /owner agent/i);
 }
 
 function main(): number {
@@ -158,6 +168,7 @@ function main(): number {
 		"verify-static-frontend.ts",
 		"asset_slice.ts",
 		"sync_reliable_agent_workflow.ts",
+		"dispatcher_mcp.ts",
 	]) {
 		run(
 			["node", "--experimental-strip-types", "--check", `scripts/${script}`],

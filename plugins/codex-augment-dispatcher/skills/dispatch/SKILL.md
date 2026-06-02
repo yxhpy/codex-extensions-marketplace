@@ -1,6 +1,6 @@
 ---
 name: dispatch
-description: Use before any non-trivial agent task to classify whether `reliable-agent-workflow`, `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`, or `asset-slicer` should run; route helper CLIs/tools while the owner agent keeps execution and verification authority.
+description: Use before any non-trivial agent task to classify whether `reliable-agent-workflow`, `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`, `asset-slicer`, or `mcp-generator` should run; route helper CLIs/tools/MCP surfaces while the owner agent keeps execution and verification authority.
 ---
 
 # Codex Augment Dispatcher
@@ -11,19 +11,20 @@ threads, use subagents, or require Plugin evidence.
 
 It is the front door for deciding whether `reliable-agent-workflow`,
 `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`,
-`agy-frontend`, `gsap-animation`, or `asset-slicer` should run before
+`agy-frontend`, `gsap-animation`, `asset-slicer`, or `mcp-generator` should run before
 implementation or final claims.
 
 Initial adapters and trigger language:
 
 - `reliable-agent-workflow`: cross-harness reliable engineering delivery for Codex, Claude Code, Grok, Pi, and similar CLI tools; trigger on complex coding, refactors, migrations, debugging, architecture work, deep analysis, optimization plans, high-risk changes, design-review-implement, Best-of-N, check-work, zero-open-issue repair loops, independent verification, e2e verification, 可靠交付, 深度分析, 优化方案, 质量门禁, 发布准备.
-- `dynamic-workflow`: complex multi-track work, workflow artifacts, approval gates, subagent/packet orchestration, background threads, agent threads, worker agents, fanout, delegation, parallel review/research/QA, end-to-end verification, 工作流, 编排, 多代理, 子代理, 后台线程, 审批门禁, 端到端.
+- `dynamic-workflow`: complex multi-track work, workflow artifacts, workflow scripts, Claude Code dynamic workflows, ultracode, `.claude/workflows`, `.atomic`, native workflow bridges, approval gates, subagent/packet orchestration, background threads, agent threads, worker agents, fanout, delegation, parallel review/research/QA, end-to-end verification, 工作流, 工作流脚本, 原生动态工作流, 桥接, 编排, 多代理, 子代理, 后台线程, 审批门禁, 端到端.
 - `task-gate`: plan, decompose, break down, multi-step, ambiguous, risky, 规划, 拆解, 分解任务, 复杂任务.
 - `thinking-gate`: stuck, looping, brainstorm, no idea, divergent thinking, 卡住, 没思路, 头脑风暴, 换个思路.
 - `grok-augment`: current research, external critique, risk review, creative/product/frontend direction, Grok video, 最新, 调研, 外部评审, 创意方向.
 - `agy-frontend`: frontend, UI, landing page, redesign, CSS, animation, responsive, browser visual verification, 前端, 落地页, 动效, 视觉检查.
 - `gsap-animation`: webpage animation, UI motion, GSAP, ScrollTrigger, timeline choreography, parallax, React/Vue/Svelte animation, 动效, 滚动动画, 视差.
 - `asset-slicer`: generated icon sheets, sprite sheets, multi-asset images, generated icons, generate-then-slice icon pipelines, crop drift, dirty cuts, 切图, 切分图标, 多素材切分, 生成图标.
+- `mcp-generator`: MCP helper scaffolds, skill/MCP pairs, dispatcher-compatible tool surfaces, stdio JSON-RPC tools, route adapters, MCP 生成, MCP 骨架.
 
 Adapter backends:
 
@@ -34,6 +35,8 @@ Adapter backends:
 - AGY CLI for frontend build, edit, redesign, styling, interaction, and browser-rendered UI implementation through the `agy-frontend` skill. AGY must not start or keep alive frontend dev/preview servers; Codex handles bounded server-based verification after AGY exits.
 - GSAP motion design guidance through the `gsap-animation` skill. It distills `greensock/gsap-skills` into owner-agent/AGY prompt constraints for webpage animation, ScrollTrigger, framework cleanup, accessibility, and performance; it is advisory and non-mutating.
 - Deterministic asset slicing for generated icon/sprite sheets through the `asset-slicer` skill and `scripts/asset_slice.ts`.
+- Minimal stdio MCP exposure through `scripts/dispatcher_mcp.ts`, with tools for dispatch classification, workflow create/approve/verify, and reliable-stage contracts. It is script-only by default and does not add manifest `mcpServers` wiring.
+- MCP/skill scaffold guidance through the `mcp-generator` skill.
 
 ## Script Path Resolution
 
@@ -90,6 +93,11 @@ Execute the returned numbered tasks in order. For stuck/uncertain work, use:
 ```bash
 node --experimental-strip-types ../../scripts/task_gate.ts --think --json "<stuck point>"
 ```
+
+4a. If the task asks for an MCP helper, dispatcher-compatible tool surface,
+skill/MCP pair, or adapter scaffold, use `mcp-generator`. Prefer a small
+repository-owned TypeScript script and fake stdio tests before adding manifest
+registration.
 
 5. If the task involves generated icon sheets, sprite sheets, multi-asset bitmap slicing, generated icons, generate-then-slice asset pipelines, dirty cuts, crop drift, or 切图/切分图标, use the `asset-slicer` skill. Custom icons default to image_gen sheet generation followed by `scripts/asset_slice.ts`; treat a failed report as a blocker before passing assets to AGY.
 
@@ -164,7 +172,9 @@ python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py plugin
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/dispatch
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/reliable-agent-workflow
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/dynamic-workflow
+python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/mcp-generator
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/gsap-animation
+node --experimental-strip-types --check plugins/codex-augment-dispatcher/scripts/dispatcher_mcp.ts
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/sync_reliable_agent_workflow.ts check --remote
 node --experimental-strip-types --test tests/*.ts plugins/codex-augment-dispatcher/tests/*.ts
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts e2e --json "Plan a risky subagent migration with approval gates and end-to-end verification"

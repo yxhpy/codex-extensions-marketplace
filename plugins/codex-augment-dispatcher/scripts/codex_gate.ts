@@ -419,7 +419,7 @@ export function buildCodexExecutionPrompt(
 		? "Routing evidence requirements:\n" +
 			`- Required plugins: ${routeDecision.requiredPlugins.join(", ")}.\n` +
 			"- Invoke or report each required plugin before claiming completion.\n" +
-			"- The Detailed completion summary must include a `Plugin evidence:` line naming each required plugin and the command, tool, or transcript evidence for it.\n" +
+			"- The Detailed completion summary must include one or more `Plugin evidence:` lines naming each required plugin and the command, tool, transcript, or artifact evidence for it.\n" +
 			"- If a required plugin is unavailable or intentionally skipped, mark the completion verdict incomplete and list the blocker.\n\n"
 		: "";
 	return (
@@ -466,7 +466,7 @@ export function buildFollowupPrompt({
 		? "Mandatory route classification:\n" +
 			`${formatRouteDecision(routeDecision)}\n` +
 			(routeDecision.pluginEvidenceRequired
-				? "Do not mark complete unless the Codex output contains a Plugin evidence line naming every required plugin.\n\n"
+				? "Do not mark complete unless the Codex output contains Plugin evidence lines naming every required plugin with command, tool, transcript, or artifact evidence.\n\n"
 				: "\n")
 		: "";
 	return (
@@ -496,10 +496,11 @@ export function buildRoutePrompt(prompt: string): string {
 		'{"route":"simple","reason":"short reason","required_plugins":["plugin-name"],"plugin_evidence_required":true}.\n' +
 			"Available routes and mandatory plugins:\n" +
 			"- reliable-agent-workflow: use reliable-agent-workflow for complex coding, refactors, migrations, debugging, architecture work, high-risk changes, deep analysis, optimization plans, design-review-implement loops, Best-of-N, check-work, zero-open-issue delivery, or e2e verification across Codex, Claude Code, Grok, Pi, or another supported CLI harness.\n" +
-			"- dynamic-workflow: use dynamic-workflow for complex, multi-track, approval-gated, subagent/packet, background thread, agent thread, worker agent, fanout, delegation, parallel review/research/QA, artifact, or end-to-end verified work.\n" +
+			"- dynamic-workflow: use dynamic-workflow for complex, multi-track, approval-gated, subagent/packet, workflow script, Claude Code Dynamic Workflows, ultracode, .claude/workflows, .atomic, native workflow bridge, background thread, agent thread, worker agent, fanout, delegation, parallel review/research/QA, artifact, or end-to-end verified work.\n" +
 		"- frontend: use agy-frontend for frontend build, edit, redesign, styling, layout, interaction, browser UI work, visual verification, or high-quality image/video asset integration; AGY must not start dev/preview servers and SVG/emoji are prohibited as default visual assets.\n" +
 		"- gsap-animation: use gsap-animation with agy-frontend for webpage animation, UI motion, GSAP, ScrollTrigger, parallax, timeline choreography, or React/Vue/Svelte animation; GSAP guidance is non-mutating and the owner agent still verifies locally.\n" +
 		"- assets: use asset-slicer for generated icon sheets, sprite sheets, generated icons, generate-then-slice asset pipelines, multi-asset bitmap slicing, crop drift checks, dirty-cut checks, or 切图/切分图标 requests; custom icons default to image_gen sheet generation then slicing.\n" +
+		"- mcp: use mcp-generator for MCP helper scaffolds, skill/MCP pairs, dispatcher-compatible tool surfaces, stdio JSON-RPC tools, route adapters, or MCP 生成 requests.\n" +
 		"- research: use grok-augment for current research, outside critique, risk review, product/frontend direction, creative paths, or Grok video briefs/generation.\n" +
 		"- planning: use task-gate for broad, multi-step, ambiguous, risky, or decomposition-first work.\n" +
 		"- stuck: use thinking-gate when Codex is stuck, uncertain, looping, or needs divergent thinking.\n" +
@@ -644,11 +645,32 @@ function missingPluginEvidence(
 	routeDecision: RouteDecision,
 	text: string,
 ): string[] {
-	const lower = text.toLowerCase();
-	if (!lower.includes("plugin evidence"))
+	const evidenceLines = text
+		.split(/\r?\n/)
+		.map((line) => line.trim())
+		.filter((line) => /^[-*]?\s*plugin evidence\s*:/i.test(line));
+	if (!evidenceLines.length)
 		return [...routeDecision.requiredPlugins];
 	return routeDecision.requiredPlugins.filter(
-		(plugin) => !lower.includes(plugin.toLowerCase()),
+		(plugin) =>
+			!evidenceLines.some((line) => lineHasUsablePluginEvidence(line, plugin)),
+	);
+}
+
+function lineHasUsablePluginEvidence(line: string, plugin: string): boolean {
+	const pluginName = plugin.toLowerCase();
+	const segments = line
+		.split(/[;,]|\s+\|\s+/)
+		.map((segment) => segment.trim())
+		.filter((segment) => segment.toLowerCase().includes(pluginName));
+	if (!segments.length) return false;
+	return /\b(command|tool|transcript|artifact|via|script|node|spawn_agent|simulated-packet|workflow\.json|\.agent-workflows|dynamic_workflow|task_gate|codex_gate|grok_augment|asset_slice|agy|claude|grok|image_gen|mcp)\b/i.test(
+		segments.find(
+			(segment) =>
+				!/\b(not run|not used|skipped|missing|unavailable|blocked|none|no evidence)\b/i.test(
+					segment,
+				),
+		) || "",
 	);
 }
 

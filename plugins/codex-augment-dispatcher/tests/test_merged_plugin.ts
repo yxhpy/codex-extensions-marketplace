@@ -56,6 +56,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
 		"Animation",
 		"Coordination",
 		"Assets",
+		"MCP",
 	]) {
 		assert.ok(
 			manifest.interface.capabilities.includes(capability),
@@ -63,11 +64,15 @@ test("merged plugin manifest uses a generic extensible name", () => {
 		);
 	}
 	assert.match(manifest.description, /dynamic workflow artifacts/);
+	assert.match(manifest.description, /MCP helpers/);
 	assert.match(manifest.description, /reliable cross-harness delivery/);
 	assert.match(manifest.description, /GSAP motion guidance/);
 	assert.match(manifest.description, /high-quality media guidance/);
 	assert.match(manifest.interface.longDescription, /reliable-agent-workflow/);
 	assert.match(manifest.interface.longDescription, /dynamic-workflow/);
+	assert.match(manifest.interface.longDescription, /mcp-generator/);
+	assert.match(manifest.interface.longDescription, /ultracode/);
+	assert.match(manifest.interface.longDescription, /\.claude\/workflows/);
 	assert.match(manifest.interface.longDescription, /subagent fanout/);
 	assert.match(manifest.interface.longDescription, /worker-agent fanout/);
 	assert.match(manifest.interface.longDescription, /GSAP\/ScrollTrigger/);
@@ -116,6 +121,8 @@ test("main dispatch skill defines generic adapter routing without taking over Co
 		"Grok CLI",
 		"AGY CLI",
 		"asset-slicer",
+		"mcp-generator",
+		"dispatcher_mcp.ts",
 		"gsap-animation",
 		"GSAP motion design guidance",
 		"cross-harness reliable delivery",
@@ -146,7 +153,7 @@ test("routing skill descriptions favor dispatcher before direct adapters", () =>
 	assert.match(dispatch, /description: Use before any non-trivial agent task/);
 	assert.match(
 		dispatch,
-		/classify whether `reliable-agent-workflow`, `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`, or `asset-slicer` should run/,
+		/classify whether `reliable-agent-workflow`, `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`, `asset-slicer`, or `mcp-generator` should run/,
 	);
 	assert.match(dispatch, /Use this skill before non-trivial agent work/);
 	assert.match(
@@ -195,6 +202,7 @@ test("merged plugin keeps existing capability skills under one plugin", () => {
 		"skills/agy-frontend/SKILL.md",
 		"skills/gsap-animation/SKILL.md",
 		"skills/asset-slicer/SKILL.md",
+		"skills/mcp-generator/SKILL.md",
 	]) {
 		assert.ok(existsSync(path.join(PLUGIN_ROOT, skill)), `missing ${skill}`);
 	}

@@ -1,5 +1,11 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import {
+	existsSync,
+	mkdtempSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -9,6 +15,7 @@ import {
 	DYNAMIC_WORKFLOW_PLUGIN,
 	approveWorkflow,
 	createWorkflow,
+	denyWorkflow,
 	detectDynamicWorkflow,
 	simulateWorkflow,
 	validateWorkflow,
@@ -104,6 +111,31 @@ test("detector routes deep analysis and optimization plans through reliable work
 	assert.ok(detection.recommendedPackets.includes("verification"));
 });
 
+test("detector recognizes OPTIMIZATION.md Claude workflow interop terms", () => {
+	const prompts = [
+		"OPTIMIZATION.md 按照建议深度优化",
+		"ultracode 做大规模迁移",
+		"Claude Code dynamic workflows 重构 500 文件",
+		"使用 workflow script 做审计",
+		"优化 .claude/workflows 桥接",
+		"把 .atomic artifacts 对齐到 .agent-workflows 审计 trail",
+	];
+
+	for (const prompt of prompts) {
+		const detection = detectDynamicWorkflow(prompt);
+		assert.equal(detection.dynamic, true, prompt);
+		assert.ok(
+			detection.requiredPlugins.includes(DYNAMIC_WORKFLOW_PLUGIN),
+			prompt,
+		);
+		assert.ok(detection.requiredPlugins.includes("task-gate"), prompt);
+	}
+
+	const ultracode = detectDynamicWorkflow("ultracode 做大规模迁移");
+	assert.ok(ultracode.signals.includes("native-workflow-interop"));
+	assert.ok(ultracode.recommendedPackets.includes("interop"));
+});
+
 test("workflow artifact creation is durable and platform-neutral", () => {
 	const root = tempRoot();
 	try {
@@ -132,9 +164,63 @@ test("workflow artifact creation is durable and platform-neutral", () => {
 		);
 		assert.match(orchestration, /owner agent/i);
 		assert.doesNotMatch(orchestration, /Codex/);
+		assert.match(orchestration, /\.agent-workflows/);
 		const report = validateWorkflow(dir);
 		assert.equal(report.ok, true, report.failures.join("\n"));
 		assert.equal(report.complete, false);
+		assert.equal(
+			report.workflow?.interop.canonicalArtifactRoot,
+			".agent-workflows",
+		);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+test("workflow interop metadata keeps .agent-workflows canonical", () => {
+	const root = tempRoot();
+	try {
+		const { dir, workflow } = createWorkflow({
+			root,
+			id: "claude-interop",
+			prompt:
+				"Bridge Claude Code dynamic workflows and workflow script output from .claude/workflows into the dispatcher audit trail.",
+		});
+
+		assert.equal(workflow.interop.workflowScriptInterop, true);
+		assert.deepEqual(workflow.interop.optionalNativeLayouts, [
+			".claude/workflows/",
+		]);
+		assert.ok(workflow.packets.some((packet) => packet.id.endsWith("interop")));
+		const plan = readFileSync(path.join(dir, "plan.md"), "utf8");
+		assert.match(plan, /Canonical artifact root: \.agent-workflows/);
+		assert.match(plan, /\.claude\/workflows\//);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+test("validator normalizes older workflow artifacts without interop metadata", () => {
+	const root = tempRoot();
+	try {
+		const { dir } = createWorkflow({
+			root,
+			id: "legacy-workflow",
+			prompt: "Plan a legacy workflow artifact with verification.",
+		});
+		const workflowPath = path.join(dir, "workflow.json");
+		const workflow = JSON.parse(readFileSync(workflowPath, "utf8"));
+		workflow.schemaVersion = 1;
+		delete workflow.interop;
+		writeFileSync(workflowPath, JSON.stringify(workflow, null, 2) + "\n");
+
+		const report = validateWorkflow(dir);
+		assert.equal(report.ok, true, report.failures.join("\n"));
+		assert.equal(report.workflow?.schemaVersion, 2);
+		assert.equal(
+			report.workflow?.interop.canonicalArtifactRoot,
+			".agent-workflows",
+		);
 	} finally {
 		rmSync(root, { recursive: true, force: true });
 	}
@@ -168,6 +254,51 @@ test("approval gate blocks simulation until execution approval is granted", () =
 	}
 });
 
+test("simulation does not report PASS before release approval", () => {
+	const root = tempRoot();
+	try {
+		const { dir } = createWorkflow({
+			root,
+			prompt:
+				"Create a dynamic workflow with approval gates and end-to-end verification.",
+		});
+		approveWorkflow({ workflowDir: dir, scope: "execute", by: "unit-test" });
+		simulateWorkflow({ workflowDir: dir });
+		const report = validateWorkflow(dir, { requireComplete: true });
+		assert.equal(report.ok, false);
+		assert.equal(report.workflow?.finalVerdict, "pending");
+		const finalReport = readFileSync(path.join(dir, "final-report.md"), "utf8");
+		assert.match(finalReport, /VERDICT: PENDING/);
+		assert.doesNotMatch(finalReport, /VERDICT: PASS/);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+test("deny command records blocked approval state", () => {
+	const root = tempRoot();
+	try {
+		const { dir } = createWorkflow({
+			root,
+			prompt:
+				"Coordinate a dynamic workflow with approval gates and verification.",
+		});
+		const workflow = denyWorkflow({
+			workflowDir: dir,
+			scope: "execute",
+			by: "unit-test",
+			reason: "destructive action refused",
+		});
+		assert.equal(workflow.state, "blocked");
+		assert.equal(workflow.finalVerdict, "blocked");
+		const finalReport = readFileSync(path.join(dir, "final-report.md"), "utf8");
+		assert.match(finalReport, /VERDICT: BLOCKED/);
+		assert.match(finalReport, /destructive action refused/);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
 test("CLI e2e creates, approves, simulates, and verifies a workflow", () => {
 	const root = tempRoot();
 	try {
@@ -189,6 +320,12 @@ test("CLI e2e creates, approves, simulates, and verifies a workflow", () => {
 		const verify = runScript(["verify", "--complete", output.dir]);
 		assert.equal(verify.status, 0, verify.stderr || verify.stdout);
 		assert.match(verify.stdout, /workflow verification passed/);
+		const finalReport = readFileSync(
+			path.join(output.dir, "final-report.md"),
+			"utf8",
+		);
+		assert.match(finalReport, /VERDICT: PASS/);
+		assert.doesNotMatch(finalReport, /blocked — Simulation refused/);
 	} finally {
 		rmSync(root, { recursive: true, force: true });
 	}

@@ -10,7 +10,10 @@ metadata:
 Use this skill to turn complex work into a supervised, auditable AI-agent
 workflow that can run on any platform with subagent support. It is intentionally
 not tied to one agent brand: if real subagents are unavailable, simulate packets
-serially with owner-agent notes and result files.
+serially with owner-agent notes and result files. It also recognizes native
+workflow terms such as Claude Code Dynamic Workflows, `ultracode`, workflow
+scripts, `.claude/workflows/`, and `.atomic/`, while keeping `.agent-workflows/`
+as the canonical cross-harness audit trail.
 
 ## Decision Rule
 
@@ -58,6 +61,8 @@ Prefer a local artifact directory:
 - approval records for plan, execution, and release/finalization
 - packets with role, mode, dependencies, plugin requirements, and evidence
 - packet results, structured plugin evidence, verification records, and verdict
+- optional native bridge metadata for `.claude/workflows/`, `.atomic/`, or
+  workflow-script evidence
 
 ## Operating Workflow
 
@@ -145,6 +150,20 @@ Use the narrowest reliable checks first, then broaden as risk warrants:
 Do not mark the workflow complete until every required approval is granted,
 every packet has a result, every required helper plugin has structured evidence,
 and verification records prove the original success criteria.
+
+## Native Workflow Interop
+
+When a task references Claude Code Dynamic Workflows, `ultracode`, workflow
+scripts, `.claude/workflows/`, `.atomic/`, or native DW bridge wording:
+
+- Create the normal `.agent-workflows/<workflow-id>/` artifact first.
+- Record native script paths, approvals, packet results, token/cost notes, and
+  verification evidence in `workflow.json`, `orchestration.md`, and
+  `final-report.md`.
+- Treat native workflow output as advisory until the owner agent re-checks files
+  and commands locally.
+- Never pass secrets, raw credentials, or unnecessary repo context into native
+  workflow scripts or external CLIs.
 
 ## Boundaries
 

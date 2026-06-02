@@ -47,6 +47,10 @@ Use plugins proactively. Explicit plugin names are strong hints, not required.
   or 切分图标. Custom icons default to image_gen sheet generation, then
   deterministic slicing; gate on the JSON report before AGY or frontend code
   consumes the assets.
+- `mcp-generator`: MCP helper scaffolds, skill/MCP pairs, dispatcher-compatible
+  tool surfaces, stdio JSON-RPC tools, or adapter skeletons. Keep surfaces
+  minimal, script-only by default, and covered by fake stdio tests before adding
+  install-time MCP registration.
 
 When multiple apply, create a Dynamic Workflow artifact first, fan out real
 subagents for independent read-only research/review/validation when available,
@@ -66,7 +70,9 @@ Thread roles:
   records, packets, results, structured evidence, and final reports for complex
   work. Use `dynamic-workflow` before other helpers when orchestration,
   subagents, background threads, worker agents, fanout, or approval gates are
-  mentioned.
+  mentioned. For Claude Code Dynamic Workflows, `ultracode`, workflow scripts,
+  `.claude/workflows/`, or `.atomic/`, keep `.agent-workflows/` as the canonical
+  audit trail and record native bridge evidence as metadata.
 - `reliable`: run `reliable-agent-workflow` for cross-harness reliable delivery
   with design, review, repair-until-zero-open-issues, independent verification,
   artifact tracking, and memory capture. Keep it generic for Pi, Codex, Claude
@@ -92,6 +98,9 @@ Thread roles:
   and expected-count checks. Use `asset-slicer`; treat failed reports as
   blockers instead of hand-waving visual acceptance. Do not use SVG or emoji as
   default icon assets; generate an icon sheet and slice it.
+- `mcp`: dispatcher-compatible MCP helper or skill/MCP scaffolding. Use
+  `mcp-generator`, prefer repository-owned TypeScript stdio scripts, and verify
+  `initialize`, `tools/list`, and `tools/call` with fake/local tests.
 - `subagent`: execute one bounded packet with explicit dependencies, allowed
   paths/sources, do/do-not rules, expected evidence, and stop conditions. Treat
   output as advisory until the owner agent re-checks final files and commands.

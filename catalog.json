@@ -6,7 +6,7 @@
       "name": "codex-augment-dispatcher",
       "path": "plugins/codex-augment-dispatcher",
       "install": "codex plugin add codex-augment-dispatcher@yxhpy-codex-extensions",
-      "summary": "Extensible reliable-agent workflow and external CLI adapter hub for owner-agent orchestration across Pi, Codex, Claude Code, Grok, and similar CLIs; adapters cover reliable delivery, workflow artifacts, stronger subagent fanout, Claude task gating, Grok augmentation, AGY frontend implementation, high-quality media defaults, GSAP motion guidance, and deterministic asset slicing."
+      "summary": "Extensible reliable-agent workflow, MCP helper, and external CLI adapter hub for owner-agent orchestration across Pi, Codex, Claude Code, Grok, and similar CLIs; adapters cover reliable delivery, workflow artifacts, Claude Dynamic Workflow/ultracode interop, stronger subagent fanout, Claude task gating, Grok augmentation, AGY frontend implementation, high-quality media defaults, GSAP motion guidance, mcp-generator, and deterministic asset slicing."
     }
   ],
   "skills": []

@@ -379,6 +379,19 @@ test("route prompt advertises reliable workflow for cross CLI delivery", () => {
 	assert.equal(decision.pluginEvidenceRequired, true);
 });
 
+test("route prompt advertises workflow interop and MCP generator routes", () => {
+	const routePrompt = buildRoutePrompt(
+		"用 ultracode workflow script 和 .claude/workflows 桥接，再生成 MCP helper",
+	);
+
+	assert.match(routePrompt, /ultracode/);
+	assert.match(routePrompt, /workflow script/);
+	assert.match(routePrompt, /\.claude\/workflows/);
+	assert.match(routePrompt, /\.atomic/);
+	assert.match(routePrompt, /mcp-generator/);
+	assert.match(routePrompt, /stdio JSON-RPC/);
+});
+
 test("route planner advertises asset slicer for generated sheets", () => {
 	const thinker = new FakeThinker(
 		JSON.stringify({
@@ -582,6 +595,170 @@ test("codex gate refuses completion when required plugin evidence is missing", (
 	assert.equal(result.exitCode, 1);
 	assert.match(result.output, /missing required plugin evidence/);
 	assert.doesNotMatch(result.output, /Task Gate completion verdict: complete/);
+});
+
+test("codex gate requires plugin names on usable Plugin evidence lines", () => {
+	class StaticPlanner {
+		plan(prompt: string): TaskPlan {
+			return new TaskPlan({
+				sourcePrompt: prompt,
+				tasks: [new Task({ id: 1, title: "Run workflow gate" })],
+			});
+		}
+	}
+	class CompleteFollowup {
+		assess(): FollowupDecision {
+			return new FollowupDecision({
+				complete: true,
+				summary: "All tasks are complete.",
+			});
+		}
+	}
+	const routePlanner = new StaticRoutePlanner(
+		new RouteDecision({
+			route: "dynamic-workflow",
+			reason: "Workflow route requires evidence.",
+			requiredPlugins: ["dynamic-workflow", "task-gate"],
+			pluginEvidenceRequired: true,
+		}),
+	);
+	const gate = new CodexGate({
+		planner: new StaticPlanner(),
+		routePlanner,
+		executor: new CodexExecutor({
+			command: "/fake/codex",
+			runner() {
+				return {
+					status: 0,
+					stdout:
+						"Detailed completion summary:\n" +
+						"Work completed: dynamic-workflow and task-gate were discussed.\n" +
+						"Plugin evidence: missing for now.\n" +
+						"Completion verdict: complete",
+					stderr: "",
+				};
+			},
+		}),
+		followupPlanner: new CompleteFollowup(),
+	});
+
+	const result = gate.run({
+		prompt: "Create a workflow",
+		execute: true,
+		maxRounds: 1,
+	});
+
+	assert.equal(result.exitCode, 1);
+	assert.match(
+		result.output,
+		/missing required plugin evidence: dynamic-workflow, task-gate/,
+	);
+});
+
+test("codex gate accepts command-backed Plugin evidence lines", () => {
+	class StaticPlanner {
+		plan(prompt: string): TaskPlan {
+			return new TaskPlan({
+				sourcePrompt: prompt,
+				tasks: [new Task({ id: 1, title: "Run workflow gate" })],
+			});
+		}
+	}
+	class CompleteFollowup {
+		assess(): FollowupDecision {
+			return new FollowupDecision({
+				complete: true,
+				summary: "All tasks are complete.",
+			});
+		}
+	}
+	const gate = new CodexGate({
+		planner: new StaticPlanner(),
+		routePlanner: new StaticRoutePlanner(
+			new RouteDecision({
+				route: "dynamic-workflow",
+				reason: "Workflow route requires evidence.",
+				requiredPlugins: ["dynamic-workflow", "task-gate"],
+				pluginEvidenceRequired: true,
+			}),
+		),
+		executor: new CodexExecutor({
+			command: "/fake/codex",
+			runner() {
+				return {
+					status: 0,
+					stdout:
+						"Detailed completion summary:\n" +
+						"Plugin evidence: dynamic-workflow via node scripts/dynamic_workflow.ts detect; task-gate via node scripts/task_gate.ts --json.\n" +
+						"Completion verdict: complete",
+					stderr: "",
+				};
+			},
+		}),
+		followupPlanner: new CompleteFollowup(),
+	});
+
+	const result = gate.run({
+		prompt: "Create a workflow",
+		execute: true,
+		maxRounds: 1,
+	});
+
+	assert.equal(result.exitCode, 0, result.output);
+	assert.match(result.output, /Task Gate completion verdict: complete/);
+});
+
+test("codex gate rejects negative Plugin evidence segments", () => {
+	class StaticPlanner {
+		plan(prompt: string): TaskPlan {
+			return new TaskPlan({
+				sourcePrompt: prompt,
+				tasks: [new Task({ id: 1, title: "Run workflow gate" })],
+			});
+		}
+	}
+	class CompleteFollowup {
+		assess(): FollowupDecision {
+			return new FollowupDecision({
+				complete: true,
+				summary: "All tasks are complete.",
+			});
+		}
+	}
+	const gate = new CodexGate({
+		planner: new StaticPlanner(),
+		routePlanner: new StaticRoutePlanner(
+			new RouteDecision({
+				route: "dynamic-workflow",
+				reason: "Workflow route requires evidence.",
+				requiredPlugins: ["dynamic-workflow", "task-gate"],
+				pluginEvidenceRequired: true,
+			}),
+		),
+		executor: new CodexExecutor({
+			command: "/fake/codex",
+			runner() {
+				return {
+					status: 0,
+					stdout:
+						"Detailed completion summary:\n" +
+						"Plugin evidence: dynamic-workflow via node scripts/dynamic_workflow.ts detect; task-gate skipped because unavailable.\n" +
+						"Completion verdict: complete",
+					stderr: "",
+				};
+			},
+		}),
+		followupPlanner: new CompleteFollowup(),
+	});
+
+	const result = gate.run({
+		prompt: "Create a workflow",
+		execute: true,
+		maxRounds: 1,
+	});
+
+	assert.equal(result.exitCode, 1);
+	assert.match(result.output, /missing required plugin evidence: task-gate/);
 });
 
 test("codex gate continues with gate next tasks until complete", () => {
