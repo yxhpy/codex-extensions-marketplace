@@ -91,6 +91,7 @@ function validateSkills(): void {
 	assert.match(dispatch, /worker agents/);
 	assert.match(dispatch, /asset-slicer/);
 	assert.match(dispatch, /gsap-animation/);
+	assert.match(dispatch, /ui-ux-closed-loop/);
 	assert.match(dispatch, /mcp-generator/);
 	assert.match(dispatch, /dispatcher_mcp\.ts/);
 	assert.match(dispatch, /owner agent owns local file edits/i);

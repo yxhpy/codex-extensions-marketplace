@@ -6,7 +6,7 @@ Public catalog for optional Codex plugins and MCP-oriented tools.
 
 | Type | Name | Path | Purpose |
 | --- | --- | --- | --- |
-| Plugin + Scripts + Skills | `codex-augment-dispatcher` | `plugins/codex-augment-dispatcher` | Extensible reliable-agent workflow, dynamic-workflow, MCP helper, subagent fanout, external CLI adapter, high-quality media guidance, GSAP motion guidance, deterministic generated-asset workflow, and owner-agent coordination hub; adapters cover cross-harness reliable delivery for Pi/Codex/Claude Code/Grok, platform-neutral workflow artifacts, Claude task gating, Grok augmentation, AGY frontend implementation, generated icon slicing, GSAP animation briefs, dispatcher MCP, mcp-generator, and asset slicing. |
+| Plugin + Scripts + Skills | `codex-augment-dispatcher` | `plugins/codex-augment-dispatcher` | Extensible reliable-agent workflow, dynamic-workflow, MCP helper, subagent fanout, external CLI adapter, high-quality media guidance, GSAP motion guidance, deterministic generated-asset workflow, and owner-agent coordination hub; adapters cover cross-harness reliable delivery for Pi/Codex/Claude Code/Grok, platform-neutral workflow artifacts, Claude task gating, Grok augmentation, AGY frontend implementation, generated icon slicing, GSAP animation briefs, dispatcher MCP, mcp-generator, and asset slicing. **Now also includes ui-ux-closed-loop for full requirements-to-product-thinking-to-low-fi-prototype-to-polished-UI/UX orchestration with external skill references.** |
 | Pi Extension | `codex_generate_image` | `extensions/codex-image-gen` | Generate bitmap images from Pi through the OpenAI Codex Responses backend using the existing `openai-codex` login; backend image model is gpt-image-2. |
 | Pi Extension | `xai_grok_x_search`, `xai_grok_video_generate` | `extensions/xai-grok` | Search X and generate Grok Imagine videos from Pi using xAI API keys or Pi-owned xAI OAuth, without depending on Hermes. |
 
@@ -32,7 +32,7 @@ Recommended project instructions:
 - These rules help the owner agent proactively choose `dynamic-workflow`,
   `reliable-agent-workflow`, `dynamic-workflow`, `task-gate`,
   `thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`,
-  `asset-slicer`, or `mcp-generator` without waiting for explicit mentions.
+  `asset-slicer`, `ui-ux-closed-loop`, or `mcp-generator` without waiting for explicit mentions.
 - Mandatory gated execution does not require editing project `AGENTS.md`; use
   `scripts/codex_gate.ts` when the raw prompt must be classified before Codex
   receives execution tasks.
@@ -49,6 +49,33 @@ codex plugin add codex-augment-dispatcher@yxhpy-codex-extensions
 ```
 
 During development, do not publish or install this merge for normal use until the isolated release gates pass.
+
+## UI/UX Design Closed Loop (Requirements → Product Thinking → Low-fi Prototypes → Polished UI/UX)
+
+This marketplace now provides orchestration for the complete visual/product design flow while **referencing** (not hardcoding) best external skills for depth. See the new `ui-ux-closed-loop` skill inside the dispatcher and `docs/UI-UX-CLOSED-LOOP.md` for the full workflow, exact install commands for externals (npx skills add ...), coordination rules, and philosophy.
+
+Key local pieces that stay self-contained:
+- `agy-frontend`: specialist delegation for frontend impl + strict real generated media (image_gen/Grok Video) + no SVG/emoji defaults + taste rules.
+- `asset-slicer`: deterministic quality gate for generated icon/sprite sheets.
+- `gsap-animation`: distilled motion guidance + verification (references the official greensock/gsap-skills).
+
+External references (install separately for best results; the loop skill will compose their rules when active):
+- `frontend-design` (anthropics) for bold non-generic aesthetics.
+- `ui-ux-pro-max` for design intelligence DB (styles, palettes, UX guidelines, priority rules).
+- Wireframe Prototyping skills for low-fi stage.
+- Vercel guidelines for correctness/a11y/perf review.
+- Official GSAP skills for deep animation.
+- And more (product research, critique, DS, a11y) as listed in the docs.
+
+Install the externals with the skills CLI (works across Codex, Claude Code, Cursor...):
+```bash
+npx skills add https://github.com/anthropics/skills --skill frontend-design
+npx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max
+npx skills add https://github.com/greensock/gsap-skills
+# ... see docs/UI-UX-CLOSED-LOOP.md for the full curated list and commands
+```
+
+The dispatcher plugin already anticipates this: agy-frontend SKILL.md says to use `frontend-design` constraints when present.
 
 ## Install in Pi
 
@@ -144,13 +171,14 @@ Initial adapters:
 - Asset slicing workflow: `skills/asset-slicer` and `scripts/asset_slice.ts` split generated icon/sprite sheets into deterministic PNG slices, remove background pixels, and fail on dirty borders, clipped assets, insufficient gutters, count mismatches, or expected-box drift. Custom icons default to image_gen sheet generation followed by `asset-slicer` rather than SVG or emoji.
 - Dispatcher MCP surface: `scripts/dispatcher_mcp.ts` is a minimal stdio JSON-RPC tool surface exposing dispatch classification, workflow create/approve/verify, and reliable-stage contracts. It is script-only by default and does not add manifest-level `mcpServers` wiring.
 - MCP generator guidance: `skills/mcp-generator` helps create small dispatcher-compatible MCP or skill/MCP scaffolds with owner-agent verification boundaries and fake stdio tests.
+- **UI/UX closed loop (new)**: `skills/ui-ux-closed-loop` orchestrates the full flow from requirements/product thinking/low-fi prototypes (referencing external wireframe + research skills) through aesthetics (frontend-design), design intelligence (ui-ux-pro-max), assets (local + slicer), motion (gsap), impl (agy-frontend composed with externals), to review/verification (Vercel guidelines + local evidence loops). External skills are integrated as references/install guidance only.
 
 ## Mandatory gated execution
 
 `scripts/codex_gate.ts --execute "<raw prompt>"` now classifies the route before
 Codex receives an execution prompt. The route can require `dynamic-workflow`,
 `reliable-agent-workflow`, `dynamic-workflow`, `task-gate`, `thinking-gate`,
-`grok-augment`, `agy-frontend`, `gsap-animation`, `asset-slicer`, or
+`grok-augment`, `agy-frontend`, `gsap-animation`, `asset-slicer`, `ui-ux-closed-loop`, or
 `mcp-generator` for
 reliable delivery, workflow orchestration, planning, stuck, research/review,
 frontend work, GSAP motion, generated asset slicing, or MCP helper scaffolding.
@@ -221,6 +249,7 @@ python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/gsap-animation
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/asset-slicer
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/mcp-generator
+python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/ui-ux-closed-loop
 npm ci
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/sync_reliable_agent_workflow.ts check --remote
 node --experimental-strip-types --check plugins/codex-augment-dispatcher/scripts/dispatcher_mcp.ts
