@@ -148,3 +148,19 @@ test("install docs describe background thread owner and verification boundaries"
 	assert.match(changelog, /0\.1\.3 - 2026-05-30/);
 	assert.match(changelog, /background thread fanout guidance/);
 });
+
+test("cross-harness example agents referenced by launcher are shipped", () => {
+	for (const relative of [
+		"docs/examples/codex-agents/researcher.toml",
+		"docs/examples/codex-agents/reviewer.toml",
+		"docs/examples/codex-agents/implementer.toml",
+		"docs/examples/codex-agents/verifier.toml",
+		"docs/examples/claude-agents/reliable-researcher.md",
+		"docs/examples/claude-agents/reliable-reviewer.md",
+		"docs/examples/claude-agents/reliable-implementer.md",
+		"docs/examples/claude-agents/reliable-verifier.md",
+	]) {
+		const contents = readFileSync(path.join(REPO_ROOT, relative), "utf8");
+		assert.ok(contents.trim(), `empty example agent: ${relative}`);
+	}
+});
