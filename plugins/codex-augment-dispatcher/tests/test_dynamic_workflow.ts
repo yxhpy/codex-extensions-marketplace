@@ -223,6 +223,45 @@ test("workflow artifact creation is durable and platform-neutral", () => {
 	}
 });
 
+test("explicit fanout workflows create launchable subagent packet recipes", () => {
+	const root = tempRoot();
+	try {
+		const { dir, workflow } = createWorkflow({
+			root,
+			id: "launchable-fanout",
+			prompt:
+				"Use dynamic-workflow subagent fanout with background threads for research and review before implementation.",
+		});
+		const subagentPackets = workflow.packets.filter(
+			(packet) => packet.mode === "subagent",
+		);
+		assert.ok(
+			subagentPackets.some((packet) => packet.role === "researcher"),
+			"expected researcher subagent packet",
+		);
+		assert.ok(
+			subagentPackets.some((packet) => packet.role === "reviewer"),
+			"expected reviewer subagent packet",
+		);
+
+		const codex = runScript(["launch-packets", "--harness", "codex", dir]);
+		assert.equal(codex.status, 0, codex.stderr || codex.stdout);
+		assert.match(codex.stdout, /docs\/examples\/codex-agents\/researcher\.toml/);
+		assert.match(codex.stdout, /docs\/examples\/codex-agents\/reviewer\.toml/);
+		assert.doesNotMatch(codex.stdout, /No subagent-mode packets/);
+
+		const auto = runScript(["launch-packets", dir]);
+		assert.equal(auto.status, 0, auto.stderr || auto.stdout);
+		assert.match(auto.stdout, /Grok task:/);
+		assert.match(auto.stdout, /Claude: @reliable-researcher/);
+		assert.match(auto.stdout, /codex --profile deep-review/);
+		assert.match(auto.stdout, /Pi: subagent/);
+		assert.match(auto.stdout, /cc-router: taskctl capability/);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
 test("workflow interop metadata keeps .agent-workflows canonical", () => {
 	const root = tempRoot();
 	try {

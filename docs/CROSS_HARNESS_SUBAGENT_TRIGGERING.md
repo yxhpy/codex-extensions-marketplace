@@ -100,19 +100,19 @@ See the rest of this doc for full research details, exact proposed/ implemented 
 
 ### 3. Shipped example agent definitions (new files under docs/examples/)
 - `codex-agents/reviewer.toml`, `implementer.toml`, `researcher.toml`, `verifier.toml` (ready to copy to project/.codex/agents/ or ~/.codex/agents/).
-- `claude-agents/reliable-reviewer.md`, `reliable-researcher.md`, `reliable-implementer.md` (full frontmatter + prompt body matching packet objectives + "write to exact path" contracts).
+- `claude-agents/reliable-reviewer.md`, `reliable-researcher.md`, `reliable-implementer.md`, `reliable-verifier.md` (full frontmatter + prompt body matching packet objectives + "write to exact path" contracts).
 - `grok-agents/` or notes + sample personas/roles in toml for config.
 - README section: "To enable real subagents on Codex/Claude/Grok: copy the examples/ into your project, then explicitly tell the owner to use them for the workflow packets."
 
 ### 4. Cross-harness packet launcher helper (new script + integration)
 - `scripts/launch_packet.ts` (or extend dynamic_workflow.ts with `launch-packets <workflow-dir>` subcommand):
-  - Detects harness (env vars like CODEX_BIN, CLAUDE_BIN, GROK_BIN, presence of .claude/, .grok/config, pi, or prompt arg).
-  - For each packet in workflow.json, if mode subagent and not yet completed, outputs (and optionally execs with --yes) the exact spawn command / tool call / subagent() for that role, using worktree where possible, capturing output to results/<id>.md + evidence.
+  - Accepts an explicit harness (`codex|claude|grok|pi|cc-router`) or `auto`, which prints recipes for all supported harnesses.
+  - For each packet in workflow.json, if mode subagent and not yet completed, outputs the exact spawn command / tool call / subagent() recipe for that role. The owner or native harness then executes it and captures output to results/<id>.md + evidence.
   - For Codex: uses codex exec with injected "you are the <role> from toml".
   - For Claude: prints claude -p "@reliable-reviewer ..." or the Agent call.
-  - For Grok: prints the task tool JSON or uses available if in env.
-  - For simulation fallback: the existing simulate.
-  - Respects approvals, records Plugin evidence lines.
+  - For Grok: prints the task tool JSON.
+  - For simulation fallback: the existing simulate command remains available.
+  - Recipes require Plugin evidence lines in the subagent output.
 - Update e2e / tests to exercise (at least the "print commands" path).
 - In dispatch: after "create dynamic first", "then run launch-packets or manually spawn per the recipes".
 

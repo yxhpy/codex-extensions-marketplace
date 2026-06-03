@@ -31,7 +31,7 @@ To enable *real* (not just simulated) subagent fanout, copy the harness-specific
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts launch-packets --harness codex .agent-workflows/<id>
 ```
 
-This emits the exact native spawn commands (Grok task+persona, Claude Agent/@mention, Codex with tomls + profile, Pi subagent(), or cc-router taskctl fallback) so the owner can (or the harness can auto) execute the subagent-mode packets and record evidence.
+This prints harness-specific spawn recipes (Grok task+persona, Claude Agent/@mention, Codex with tomls + profile, Pi subagent(), or cc-router taskctl fallback) so the owner can execute the subagent-mode packets and record evidence. Use `--harness auto` to print recipes for all supported harnesses.
 
 Recommended project instructions:
 
