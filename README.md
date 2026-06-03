@@ -25,6 +25,14 @@ Install the merged plugin:
 codex plugin add codex-augment-dispatcher@yxhpy-codex-extensions
 ```
 
+To enable *real* (not just simulated) subagent fanout, copy the harness-specific examples from `docs/examples/` (Codex .toml, Claude .md frontmatter agents, Grok personas) into your project or global config. See the full research + recipes in `docs/CROSS_HARNESS_SUBAGENT_TRIGGERING.md`. After `dynamic_workflow.ts new`, run:
+
+```bash
+node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts launch-packets --harness codex .agent-workflows/<id>
+```
+
+This emits the exact native spawn commands (Grok task+persona, Claude Agent/@mention, Codex with tomls + profile, Pi subagent(), or cc-router taskctl fallback) so the owner can (or the harness can auto) execute the subagent-mode packets and record evidence.
+
 Recommended project instructions:
 
 - Merge [`AGENTS.md`](AGENTS.md) into the target project's existing

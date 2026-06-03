@@ -1191,6 +1191,7 @@ type CliArgs = {
 	by?: string;
 	reason?: string;
 	complete: boolean;
+	harness?: string;
 };
 
 function parseArgs(argv: string[]): CliArgs {
@@ -1200,6 +1201,7 @@ function parseArgs(argv: string[]): CliArgs {
 		json: false,
 		root: ".agent-workflows",
 		complete: false,
+		harness: "auto",
 	};
 	for (let i = 1; i < argv.length; i += 1) {
 		const item = argv[i];
@@ -1212,6 +1214,7 @@ function parseArgs(argv: string[]): CliArgs {
 		else if (item === "--reason") args.reason = argv[++i] || undefined;
 		else if (item === "--complete") args.complete = true;
 		else if (item === "-h" || item === "--help") args.command = "help";
+		else if (item === "--harness") args.harness = argv[++i] || "auto";
 		else args.prompt.push(item);
 	}
 	return args;
@@ -1236,6 +1239,12 @@ Commands:
   verify [--complete] <dir>         Validate structure, or full completion with --complete.
   e2e [--root DIR] [--json] <prompt>
                                     Create, approve, simulate, and verify a full workflow.
+  launch-packets [--harness codex|claude|grok|pi] <workflow-dir>
+                                    Print (and optionally execute) harness-specific spawn commands
+                                    for subagent-mode packets. Uses native primitives where
+                                    available (Grok task/spawn, Claude Agent/@, Codex with tomls,
+                                    Pi subagent calls) or documented fallbacks + cc-router taskctl
+                                    note. Records results into the workflow results/ dir.
 `);
 }
 
@@ -1356,6 +1365,36 @@ export function main(argv = process.argv.slice(2)): number {
 					`${report.ok ? "e2e passed" : "e2e failed"}: ${created.dir}`,
 				);
 			return report.ok ? 0 : 1;
+		}
+		if (args.command === "launch-packets" || args.command === "launch") {
+			const workflowDir = args.prompt[0];
+			if (!workflowDir) throw new Error("launch-packets requires workflow directory");
+			const harness = (args.harness || "auto").toLowerCase();
+			const workflow = loadWorkflow(workflowDir);
+			console.log(`# launch-packets for ${workflow.id} (harness=${harness})`);
+			console.log("# Owner should run these (or equivalent native tool calls) for subagent packets.");
+			console.log("# Results must be written back to results/<packet>.md + evidence recorded.");
+			console.log("# See docs/CROSS_HARNESS_SUBAGENT_TRIGGERING.md for exact syntax per harness + cc-router interop.");
+			for (const packet of workflow.packets) {
+				if (packet.mode !== "subagent") continue;
+				const role = packet.role;
+				let suggestion = "";
+				if (harness === "grok" || harness === "auto") {
+					suggestion = `task({ description: "Packet ${packet.id}: ${packet.objective}", subagent_type: "general-purpose", persona: "${role.includes("review") ? "reviewer" : role.includes("research") ? "researcher" : "implementer"}", prompt: "Follow ${workflowDir}/packets/${packet.id}.md exactly. Write result to ${workflowDir}/results/${packet.id}.md. End with: Plugin evidence: dynamic-workflow ${role} via Grok task + persona.", /* worktree: true if risky */ })`;
+				} else if (harness === "claude" || harness === "auto") {
+					suggestion = `Claude: @"${role}" (or Agent(${role})) follow the packet at ${workflowDir}/packets/${packet.id}.md . Write to results/. Use the claude-agents/ example in the marketplace docs.`;
+				} else if (harness === "codex" || harness === "auto") {
+					suggestion = `codex --profile deep-review "You are the ${role} defined in .codex/agents/${role}.toml (copy from marketplace docs/examples/codex-agents/). Packet: read ${workflowDir}/packets/${packet.id}.md . Write structured result + 'Plugin evidence: ...' to ${workflowDir}/results/${packet.id}.md . Use read-only where possible."`;
+				} else if (harness === "pi" || harness === "auto") {
+					suggestion = `pi subagent or in code: subagent({ agent: "${role.includes("review") ? "reviewer" : "worker"}", task: "Follow packet ${workflowDir}/packets/${packet.id}.md . Output to results/${packet.id}.md + evidence.", model: "openai-codex/gpt-5.5:high", async: true })`;
+				} else {
+					suggestion = `Harnesses: Grok task+persona, Claude Agent/@ + .claude/agents/, Codex .codex/agents/*.toml + explicit spawn or codex exec, Pi subagent({}). Or use cc-router taskctl capability --role ${role} (still record into this .agent-workflows/ for portable trail).`;
+				}
+				console.log(`\n# ${packet.id} (${role}, deps: ${packet.dependencies.join(",") || "none"})`);
+				console.log(suggestion);
+			}
+			console.log("\n# After launches, run: node .../dynamic_workflow.ts verify --complete " + workflowDir);
+			return 0;
 		}
 		throw new Error(`unknown command: ${args.command}`);
 	} catch (error) {

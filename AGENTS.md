@@ -145,3 +145,20 @@ Concurrency boundaries:
 For each new CLI adapter or instructional design skill, add trigger terms,
 strengths, mutation boundary, verification requirements, and secret-handling
 rules. Keep the plugin name `codex-augment-dispatcher`.
+
+## Subagent Fanout Across Harnesses (Codex, Claude Code, Grok, Pi, cc-router)
+
+See docs/CROSS_HARNESS_SUBAGENT_TRIGGERING.md for the full research on why
+"manual use workflow / subagent" was hard even with the dispatcher, the
+differences in native primitives (Grok task+persona+worktree, Claude .claude/agents
++ Agent tool + fork, Pi subagent(), Codex tomls + explicit spawn or codex exec),
+and the complementary role of cc-router/taskctl external workers.
+
+**Actionable:** Copy docs/examples/*/ into your tree. After creating a
+.agent-workflows/ artifact, use the new `launch-packets` command (or the
+exact recipes in the doc) to drive real fanout for packets marked subagent.
+Always record results + "Plugin evidence: ..." lines. Owner thread owns
+integration and final claims.
+
+The dispatcher keeps .agent-workflows/ as the portable canonical trail even
+when you realize some packets via cc-router taskctl capabilities.
