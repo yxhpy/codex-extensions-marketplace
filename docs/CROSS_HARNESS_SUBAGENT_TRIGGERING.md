@@ -182,3 +182,7 @@ This PR closes the "even manual doesn't trigger real subagents reliably" gap by 
 - Claude: fetched docs (rich frontmatter model)
 
 (End of plan doc. The PR implements the "Implemented in this PR" items above.)
+
+---
+
+**Future direction note (this file remains the actionable subagent fanout reference):** See `docs/ADAPTIVE-HIERARCHICAL-ORCHESTRATOR-OPTIMIZATIONS.md` (pure optimization suggestions PR) for extending the packet model into a live adaptive hierarchical orchestrator: main first inventories agents/tools/skills/MCPs, builds graph with pre-assigned specs, delegates via subagents for refined results only, then performs post-node judgment + re-decomposition/replan using tools (no unnecessary user asks), until all nodes complete. Harness recipes will need corresponding "live loop + wait for refined + compact judgment" updates; .agent-workflows/ + Plugin evidence stay canonical.

@@ -27,6 +27,8 @@ Use plugins proactively. Explicit plugin names are strong hints, not required.
   approval gates, reusable recipes, or end-to-end verification. Use real
   subagents when available and simulated packets otherwise; keep artifacts
   under `.agent-workflows/`.
+  **Dynamic packet composition**: When Claude CLI is available (TASK_GATE_CLAUDE_BIN or DYNAMIC_WORKFLOW_CLAUDE_BIN), the packet graph is *dynamically proposed by Claude itself* from the raw prompt (semantic understanding, not just regex), followed by a model review round for the plan. If the review agrees, the LLM-composed structure is used (with safety normalization). This greatly improves hit rate and adaptability vs static templates. Fallback to rule-based detection + templates when no Claude.
+  **See also**: `docs/ADAPTIVE-HIERARCHICAL-ORCHESTRATOR-OPTIMIZATIONS.md` for live adaptive loop, mandatory inventory survey of agents/tools/skills/MCPs, per-node pre-assigned execution specs + refined result contracts, post-node main-model replan judgment (re-split large nodes, adapt topology), tool-first doubt resolution (minimize `ask_user_question`), and integration of HMAS/Lybic/LangGraph/OrchVis patterns. Use for evolving the orchestrator toward main-only-sees-refined + continuous adaptation until full completion.
 - `reliable-agent-workflow`: complex coding, refactors, migrations, debugging,
   architecture work, deep analysis, optimization plans, high-risk changes,
   design-review-implement, Best-of-N, check-work, zero-open-issue repair loops,
@@ -44,6 +46,20 @@ Use plugins proactively. Explicit plugin names are strong hints, not required.
   browser UI work, visual verification, or visual asset integration. Bound
   paths and verify the result. SVG and emoji are prohibited as default visual
   assets; use high-quality image_gen/Grok Video media instead.
+
+**Reference site / visual fidelity work (critical rule)**: When the task involves matching an external reference site (or design) for a static page, component, or small app — even if described as "single page static frontend + local visual verification" — **do NOT treat it as a pure agy-frontend task**. 
+
+Such tasks have obvious parallel independent tracks:
+- Reference style research (read-only: palette, typography, layout, components via screenshots + CSS).
+- Local implementation (agy-frontend, strictly bounded).
+- Independent visual similarity / fidelity review (MUST use a separate `review` subagent or reliable-reviewer packet; NOT the owner and NOT AGY).
+- Mobile / interaction / a11y QA.
+
+Per dynamic-workflow rules: create the `.agent-workflows/` artifact first. Explicitly allocate a "style-review" packet assigned to an independent reviewer. This packet must approve *before* AGY impl begins, and must explicitly check "fidelity to reference" *and* "no unintended complete refactor". 
+
+AGY is an implementation helper only. Self-performed screenshots + CSS sampling + iterations by the same thread/agent does not count as independent review. The owner thread owns final evidence and claims, but the style acceptance must come from the independent packet.
+
+Always record the independent review evidence in the workflow results/. Owner must re-verify locally after.
 - `gsap-animation`: webpage animation, UI motion, GSAP, ScrollTrigger,
   timeline choreography, parallax, React/Vue/Svelte animation, 动效,
   滚动动画, or 视差. Pair with AGY for implementation and verify reduced

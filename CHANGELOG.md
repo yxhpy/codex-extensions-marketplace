@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **docs only (optimization suggestions, no implementation changes)**: Added `docs/ADAPTIVE-HIERARCHICAL-ORCHESTRATOR-OPTIMIZATIONS.md` — comprehensive proposal to evolve dynamic-workflow/dispatch/reliable toward the live adaptive hierarchical orchestrator model requested by users. Covers: mandatory first-step environment inventory (agents/personas/skills/MCP/tools via grok inspect + search_tool), richer per-node pre-assignment of execution_spec + output contracts, enforced *refined results only* for main context (executive + tools_used_for_resolution + suggested_replan), live post-node replan judgment loop in owner (re-split large next nodes, insert evaluators, adapt parallel/serial/topology based on results), tool-first doubt resolution to avoid unnecessary user asks, integration of researched patterns (Agentic Lybic 4-tier Controller/Manager/Workers/Evaluator + adaptive replan on quality, HMAS layers, LangGraph state+conditional+reflection+checkpointing analogs, OrchVis goal alignment + selective replan, AdaptOrch adaptive topology gains). Updates AGENTS.md pointer. All suggestions preserve .agent-workflows/ canonical, cross-harness recipes, owner-owns-edits, and approval gates. Follow-up implementation roadmap included. See the doc for full details + citations.
+
 ## 0.1.21 - 2026-06-04
 
 - Deep isolated end-to-end CLI testing coverage for the full plugin using real `codex` and `pi` CLI installs into completely isolated temporary `HOME`/`CODEX_HOME`/`PI_*` directories.

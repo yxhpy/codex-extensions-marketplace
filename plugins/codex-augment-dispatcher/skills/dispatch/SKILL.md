@@ -21,7 +21,7 @@ Initial adapters and trigger language:
 - `task-gate`: plan, decompose, break down, multi-step, ambiguous, risky, 规划, 拆解, 分解任务, 复杂任务.
 - `thinking-gate`: stuck, looping, brainstorm, no idea, divergent thinking, 卡住, 没思路, 头脑风暴, 换个思路.
 - `grok-augment`: current research, external critique, risk review, creative/product/frontend direction, Grok video, 最新, 调研, 外部评审, 创意方向.
-- `agy-frontend`: frontend, UI, landing page, redesign, CSS, animation, responsive, browser visual verification, 前端, 落地页, 动效, 视觉检查.
+- `agy-frontend`: frontend, UI, landing page, redesign, CSS, animation, responsive, browser visual verification, 前端, 落地页, 动效, 视觉检查. **Important for reference-driven work**: prompts involving "reference site", "match this design/screenshot", "visual fidelity to [external reference]", "looks exactly like [the provided reference]" should also trigger `dynamic-workflow` + `task-gate` + an independent `style-review` subagent packet (fidelity + no-unintended-refactor check) *before* AGY impl. Do not default to agy-only for visual matching tasks.
 - `ui-ux-closed-loop`: full UI/UX design loop from requirements/product thinking through low-fidelity wireframes or prototypes to polished UI/frontend; reference external skills by install guidance and summaries rather than vendoring their full contents; trigger on UI/UX design, product-to-UI, low-fi prototype, wireframe, design system, visual design loop, 页面需求, 产品思维, 低保真原型, 设计闭环.
 - `gsap-animation`: webpage animation, UI motion, GSAP, ScrollTrigger, timeline choreography, parallax, React/Vue/Svelte animation, 动效, 滚动动画, 视差.
 - `asset-slicer`: generated icon sheets, sprite sheets, multi-asset images, generated icons, generate-then-slice icon pipelines, crop drift, dirty cuts, 切图, 切分图标, 多素材切分, 生成图标.
@@ -81,7 +81,7 @@ optimization/training/tuning, optimizing `SKILL.md`, or 优化 skill/技能优�
 
 ## Routing Order
 
-1. If the task is complex, multi-track, approval-gated, subagent-oriented, background-thread/fanout-oriented, reusable, or requires end-to-end proof, create an agent dynamic workflow first:
+1. If the task is complex, multi-track, approval-gated, subagent-oriented, background-thread/fanout-oriented, reusable, or requires end-to-end proof, create an agent dynamic workflow first. For the evolved live adaptive version (inventory survey of all agents/tools/skills/MCPs first, pre-assigned per-node specs, subagent → refined-result only, main-model post-node judgment + re-split/replan until complete, tool-first question resolution), see the optimization proposal in `docs/ADAPTIVE-HIERARCHICAL-ORCHESTRATOR-OPTIMIZATIONS.md` (and AGENTS.md). Current mechanics:
 
 ```bash
 node --experimental-strip-types ../../scripts/dynamic_workflow.ts detect --json "<raw task>"

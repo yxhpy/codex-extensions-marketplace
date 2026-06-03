@@ -68,6 +68,8 @@ Prefer a local artifact directory:
 
 ## Operating Workflow
 
+**See also** the optimization proposal `docs/ADAPTIVE-HIERARCHICAL-ORCHESTRATOR-OPTIMIZATIONS.md` for the target live adaptive model (inventory first, pre-assigned specs per node, refined-results-only to main, post-node replan/re-split judgment loop, tool-first doubt resolution, continue until full node completion) + researched patterns integrated as suggestions.
+
 1. Restate the goal, success criteria, constraints, and risk profile.
 2. Detect whether dynamic orchestration is needed:
 
