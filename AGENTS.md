@@ -11,6 +11,12 @@ verifies locally, and reports evidence. AGY must not start or keep alive
 frontend dev/preview servers; the owner agent handles any bounded server-based
 verification after AGY exits.
 
+## UI/UX Closed Loop (new)
+
+For full page requirements → product thinking → low-fidelity prototypes → polished UI/UX, use `ui-ux-closed-loop` (provided by this plugin). It orchestrates the stages, references best external skills (installed separately via npx skills add etc.; see docs/UI-UX-CLOSED-LOOP.md for the curated list and exact commands), and composes their constraints with local capabilities (agy-frontend for impl, asset-slicer for icons, gsap-animation for motion, dynamic-workflow/task-gate/reliable for structure/verification).
+
+Key: externals are **references** (install + use their rules when active). Do not assume they are present; the skill falls back gracefully and recommends them. The loop produces artifacts, evidence, and "Plugin evidence:" lines.
+
 ## Plugin Trigger Rules
 
 Use plugins proactively. Explicit plugin names are strong hints, not required.
@@ -51,6 +57,7 @@ Use plugins proactively. Explicit plugin names are strong hints, not required.
   tool surfaces, stdio JSON-RPC tools, or adapter skeletons. Keep surfaces
   minimal, script-only by default, and covered by fake stdio tests before adding
   install-time MCP registration.
+- `ui-ux-closed-loop` (new): full requirements/product/low-fi-prototype/UI/UX closed loop. Use for visual product work that needs the complete chain. It will activate external references (frontend-design, ui-ux-pro-max, wireframe-prototyping, Vercel guidelines, etc.) by name and compose their rules with local agy/asset/gsap/dispatch skills. See docs/UI-UX-CLOSED-LOOP.md for the exact externals and install steps.
 
 When multiple apply, create a Dynamic Workflow artifact first, fan out real
 subagents for independent read-only research/review/validation when available,
@@ -107,6 +114,7 @@ Thread roles:
 - `stuck`: divergent thinking when the owner agent is looping or lacks a good next step.
   Use `thinking-gate`, then convert the chosen idea into concrete tasks before
   editing.
+- `design-loop` (new for UI/UX): the full product-to-prototype-to-UI closed loop. Use `ui-ux-closed-loop` skill. Fan out research/wireframe stages read-only; owner drives decisions, asset gen, and final claims.
 
 Model and thinking guidance:
 
