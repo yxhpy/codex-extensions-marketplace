@@ -136,6 +136,27 @@ test("detector routes SkillOpt skill optimization through reliable workflow", ()
 	}
 });
 
+test("detector routes full UI UX design loops through design-loop packet", () => {
+	const prompts = [
+		"Use ui-ux-closed-loop to go from requirements to low-fi prototype to polished UI",
+		"从页面需求到产品思维、低保真原型，再做 polished UI/UX",
+		"Plan a visual product design closed loop with wireframes and frontend implementation",
+	];
+
+	for (const prompt of prompts) {
+		const detection = detectDynamicWorkflow(prompt);
+
+		assert.equal(detection.dynamic, true, prompt);
+		assert.ok(detection.signals.includes("ui-ux-closed-loop"), prompt);
+		assert.ok(detection.requiredPlugins.includes(DYNAMIC_WORKFLOW_PLUGIN));
+		assert.ok(detection.requiredPlugins.includes("task-gate"));
+		assert.ok(detection.requiredPlugins.includes("ui-ux-closed-loop"));
+		assert.ok(detection.requiredPlugins.includes("agy-frontend"));
+		assert.ok(detection.recommendedPackets.includes("design-loop"));
+		assert.ok(detection.recommendedPackets.includes("frontend"));
+	}
+});
+
 test("detector recognizes OPTIMIZATION.md Claude workflow interop terms", () => {
 	const prompts = [
 		"OPTIMIZATION.md 按照建议深度优化",

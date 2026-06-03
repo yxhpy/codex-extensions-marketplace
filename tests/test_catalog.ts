@@ -16,7 +16,7 @@ test("repo catalog and marketplace install only the merged plugin", () => {
 		path.join(REPO_ROOT, ".agents/plugins/marketplace.json"),
 	);
 
-	assert.equal(pkg.version, "0.1.18");
+	assert.equal(pkg.version, "0.1.19");
 	assert.ok(pkg.keywords.includes("pi-package"));
 	assert.ok(
 		pkg.dependencies["@types/node"],
@@ -68,6 +68,7 @@ test("install docs include recommended AGENTS.md proactive trigger rules", () =>
 	assert.match(readme, /release:check/);
 	assert.match(readme, /dynamic_workflow\.ts/);
 	assert.match(readme, /asset-slicer/);
+	assert.match(readme, /ui-ux-closed-loop/);
 	assert.match(readme, /asset_slice\.ts/);
 	assert.match(readme, /SVG and emoji are prohibited/);
 	assert.match(readme, /high-quality image_gen\/Grok Video/);
@@ -85,6 +86,7 @@ test("install docs include recommended AGENTS.md proactive trigger rules", () =>
 	assert.match(agents, /`grok-augment`: current research/);
 	assert.match(agents, /`agy-frontend`: frontend build/);
 	assert.match(agents, /`asset-slicer`: generated icon sheets/);
+	assert.match(agents, /`ui-ux-closed-loop`/);
 	assert.match(agents, /Agent Thread And Subagent Fanout/);
 	assert.match(agents, /`workflow`: create or update/);
 	assert.match(agents, /`research`: read-only context gathering/);
@@ -114,6 +116,9 @@ test("install docs describe background thread owner and verification boundaries"
 		readme,
 		/Never run parallel writers against the same working tree/,
 	);
+	assert.match(changelog, /0\.1\.19 - 2026-06-03/);
+	assert.match(changelog, /UI\/UX closed loop/);
+	assert.match(changelog, /external skill references/);
 	assert.match(changelog, /0\.1\.18 - 2026-06-03/);
 	assert.match(changelog, /SkillOpt/);
 	assert.match(changelog, /dispatcher MCP stdio surface/);

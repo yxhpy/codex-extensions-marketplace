@@ -56,7 +56,7 @@ When multiple stages apply, start with Dynamic Workflow artifact + fanout read-o
 
 ## Recommended External Skills & Exact Install Commands (引用, not vendored)
 
-These are best-of-breed from research (Snyk Top 8, aiuxplayground.com/skills curation, official repos, cross-verified 2026). Install them alongside this marketplace's plugin. The ui-ux-closed-loop skill (and agy-frontend) will detect/coordinate when they are active.
+These are curated external references. Verify current availability and install commands before use. Install them alongside this marketplace's plugin when you want deeper domain rules. The ui-ux-closed-loop skill (and agy-frontend) will detect/coordinate when they are active.
 
 **Core for aesthetics + knowledge (install these):**
 - `frontend-design` (Anthropic): `npx skills add https://github.com/anthropics/skills --skill frontend-design`  (or codex plugin marketplace / Claude plugin add if available in their marketplace).

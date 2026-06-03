@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.1.19 - 2026-06-03
+
+- Add `ui-ux-closed-loop`, a thin orchestrator skill for full UI/UX closed loop work from requirements and product thinking through low-fi prototypes, polished frontend implementation, assets, motion, and verification.
+- Add `docs/UI-UX-CLOSED-LOOP.md` and a short `frontend-design` reference note so external skill references stay as install guidance and summaries rather than vendored long `SKILL.md` content.
+- Route full visual product design loop prompts through the dispatcher, dynamic workflow detection, and Codex gate with `ui-ux-closed-loop` evidence.
+- Update README, AGENTS guidance, plugin manifest, validation docs, and tests for the new UI/UX closed-loop adapter.
+
 ## 0.1.18 - 2026-06-03
 
 - Add Claude Code Dynamic Workflows / `ultracode` / workflow-script / `.claude/workflows` / `.atomic` interop detection while preserving `.agent-workflows/` as the canonical audit trail.

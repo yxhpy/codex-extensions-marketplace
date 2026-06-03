@@ -43,7 +43,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
 	);
 
 	assert.equal(manifest.name, "codex-augment-dispatcher");
-	assert.equal(manifest.version, "0.1.18");
+	assert.equal(manifest.version, "0.1.19");
 	assert.equal(manifest.skills, "./skills/");
 	assert.equal(manifest.interface.displayName, "Codex Augment Dispatcher");
 	assert.deepEqual(manifest.author, { name: "yxhpy" });
@@ -57,6 +57,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
 		"Coordination",
 		"Assets",
 		"MCP",
+		"UIUXDesignLoop",
 	]) {
 		assert.ok(
 			manifest.interface.capabilities.includes(capability),
@@ -68,9 +69,11 @@ test("merged plugin manifest uses a generic extensible name", () => {
 	assert.match(manifest.description, /reliable cross-harness delivery/);
 	assert.match(manifest.description, /GSAP motion guidance/);
 	assert.match(manifest.description, /high-quality media guidance/);
+	assert.match(manifest.description, /ui-ux-closed-loop/);
 	assert.match(manifest.interface.longDescription, /reliable-agent-workflow/);
 	assert.match(manifest.interface.longDescription, /dynamic-workflow/);
 	assert.match(manifest.interface.longDescription, /mcp-generator/);
+	assert.match(manifest.interface.longDescription, /ui-ux-closed-loop/);
 	assert.match(manifest.interface.longDescription, /ultracode/);
 	assert.match(manifest.interface.longDescription, /\.claude\/workflows/);
 	assert.match(manifest.interface.longDescription, /subagent fanout/);
@@ -87,6 +90,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
 	assert.match(defaultPrompt, /dynamic-workflow/);
 	assert.match(defaultPrompt, /task-gate/);
 	assert.match(defaultPrompt, /GSAP/);
+	assert.match(defaultPrompt, /ui-ux/);
 	assert.match(defaultPrompt, /image_gen/);
 	assert.match(defaultPrompt, /slicer/);
 	assert.match(defaultPrompt, /subagents/);
@@ -121,9 +125,11 @@ test("main dispatch skill defines generic adapter routing without taking over Co
 		"Grok CLI",
 		"AGY CLI",
 		"asset-slicer",
+		"ui-ux-closed-loop",
 		"mcp-generator",
 		"dispatcher_mcp.ts",
 		"gsap-animation",
+		"ui-ux-closed-loop",
 		"GSAP motion design guidance",
 		"cross-harness reliable delivery",
 		"SkillOpt-style skill optimization",
@@ -154,7 +160,7 @@ test("routing skill descriptions favor dispatcher before direct adapters", () =>
 	assert.match(dispatch, /description: Use before any non-trivial agent task/);
 	assert.match(
 		dispatch,
-		/classify whether `reliable-agent-workflow`, `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`, `asset-slicer`, or `mcp-generator` should run/,
+		/classify whether `reliable-agent-workflow`, `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, `ui-ux-closed-loop`, `gsap-animation`, `asset-slicer`, or `mcp-generator` should run/,
 	);
 	assert.match(dispatch, /Use this skill before non-trivial agent work/);
 	assert.match(dispatch, /SkillOpt-Style Skill Optimization/);
@@ -205,6 +211,7 @@ test("merged plugin keeps existing capability skills under one plugin", () => {
 		"skills/gsap-animation/SKILL.md",
 		"skills/asset-slicer/SKILL.md",
 		"skills/mcp-generator/SKILL.md",
+		"skills/ui-ux-closed-loop/SKILL.md",
 	]) {
 		assert.ok(existsSync(path.join(PLUGIN_ROOT, skill)), `missing ${skill}`);
 	}

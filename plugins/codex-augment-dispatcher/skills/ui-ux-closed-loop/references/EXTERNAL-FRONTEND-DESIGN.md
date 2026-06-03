@@ -25,4 +25,4 @@ npx skills add https://github.com/anthropics/skills --skill frontend-design
 
 **Original source:** https://github.com/anthropics/skills/tree/main/skills/frontend-design (and the claude-code plugin mirror). Read the full SKILL.md there for exact wording.
 
-**Version note:** As of 2026, highly recommended in Snyk "Top 8 for UI/UX" and community for breaking generic output.
+**Version note:** Verify the upstream repository and install command before use; this repo keeps only a compact reference summary.

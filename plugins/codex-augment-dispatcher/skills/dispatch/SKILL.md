@@ -1,6 +1,6 @@
 ---
 name: dispatch
-description: Use before any non-trivial agent task to classify whether `reliable-agent-workflow`, `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`, `asset-slicer`, or `mcp-generator` should run; route helper CLIs/tools/MCP surfaces while the owner agent keeps execution and verification authority.
+description: Use before any non-trivial agent task to classify whether `reliable-agent-workflow`, `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, `ui-ux-closed-loop`, `gsap-animation`, `asset-slicer`, or `mcp-generator` should run; route helper CLIs/tools/MCP surfaces while the owner agent keeps execution and verification authority.
 ---
 
 # Codex Augment Dispatcher
@@ -11,7 +11,7 @@ threads, use subagents, or require Plugin evidence.
 
 It is the front door for deciding whether `reliable-agent-workflow`,
 `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`,
-`agy-frontend`, `gsap-animation`, `asset-slicer`, or `mcp-generator` should run before
+`agy-frontend`, `ui-ux-closed-loop`, `gsap-animation`, `asset-slicer`, or `mcp-generator` should run before
 implementation or final claims.
 
 Initial adapters and trigger language:
@@ -22,6 +22,7 @@ Initial adapters and trigger language:
 - `thinking-gate`: stuck, looping, brainstorm, no idea, divergent thinking, 卡住, 没思路, 头脑风暴, 换个思路.
 - `grok-augment`: current research, external critique, risk review, creative/product/frontend direction, Grok video, 最新, 调研, 外部评审, 创意方向.
 - `agy-frontend`: frontend, UI, landing page, redesign, CSS, animation, responsive, browser visual verification, 前端, 落地页, 动效, 视觉检查.
+- `ui-ux-closed-loop`: full UI/UX design loop from requirements/product thinking through low-fidelity wireframes or prototypes to polished UI/frontend; reference external skills by install guidance and summaries rather than vendoring their full contents; trigger on UI/UX design, product-to-UI, low-fi prototype, wireframe, design system, visual design loop, 页面需求, 产品思维, 低保真原型, 设计闭环.
 - `gsap-animation`: webpage animation, UI motion, GSAP, ScrollTrigger, timeline choreography, parallax, React/Vue/Svelte animation, 动效, 滚动动画, 视差.
 - `asset-slicer`: generated icon sheets, sprite sheets, multi-asset images, generated icons, generate-then-slice icon pipelines, crop drift, dirty cuts, 切图, 切分图标, 多素材切分, 生成图标.
 - `mcp-generator`: MCP helper scaffolds, skill/MCP pairs, dispatcher-compatible tool surfaces, stdio JSON-RPC tools, route adapters, MCP 生成, MCP 骨架.
@@ -33,6 +34,7 @@ Adapter backends:
 - Claude CLI for numbered task planning, divergent thinking, and follow-up review through `scripts/task_gate.ts` and `scripts/codex_gate.ts`.
 - Grok CLI for non-mutating research, critique, creative direction, divergence, Grok-video-only briefs, and Grok video generation through `scripts/grok_augment.ts`.
 - AGY CLI for frontend build, edit, redesign, styling, interaction, and browser-rendered UI implementation through the `agy-frontend` skill. AGY must not start or keep alive frontend dev/preview servers; Codex handles bounded server-based verification after AGY exits.
+- UI/UX closed-loop orchestration through `skills/ui-ux-closed-loop`, which coordinates requirements, product thinking, low-fidelity prototypes, polished UI implementation constraints, assets, motion, review, and external skill references while keeping the owner agent as final verifier.
 - GSAP motion design guidance through the `gsap-animation` skill. It distills `greensock/gsap-skills` into owner-agent/AGY prompt constraints for webpage animation, ScrollTrigger, framework cleanup, accessibility, and performance; it is advisory and non-mutating.
 - Deterministic asset slicing for generated icon/sprite sheets through the `asset-slicer` skill and `scripts/asset_slice.ts`.
 - Minimal stdio MCP exposure through `scripts/dispatcher_mcp.ts`, with tools for dispatch classification, workflow create/approve/verify, and reliable-stage contracts. It is script-only by default and does not add manifest `mcpServers` wiring.
@@ -120,11 +122,13 @@ registration.
 
 6. If the task involves webpage animation, UI motion, GSAP, ScrollTrigger, parallax, timeline choreography, or framework animation, use the `gsap-animation` skill. When implementation is also required, pair it with `agy-frontend` and pass a Motion / GSAP brief; verify reduced-motion, cleanup, performance, and scroll positions locally.
 
-7. If the task is frontend build/edit/style/debug/review/visual verification, use the `agy-frontend` skill. Build a bounded prompt, set explicit workspace scope with `--add-dir`, tell AGY not to start any frontend dev/preview server, and verify locally after AGY returns.
+7. If the task is a full UI/UX design loop from requirements/product thinking through low-fidelity prototype or wireframe to polished frontend/UI, use `ui-ux-closed-loop`. It references external skills such as `frontend-design`, `ui-ux-pro-max`, wireframe prototyping, Vercel guidelines, and full GSAP skills only as install guidance and compact coordination notes; do not copy their long `SKILL.md` bodies into this repo.
 
-8. If multiple helpers are relevant, create the dynamic workflow first, run `reliable-agent-workflow` for the delivery contract when applicable, use Grok CLI for outside critique/research, then Claude CLI to convert the chosen direction into numbered tasks.
+8. If the task is frontend build/edit/style/debug/review/visual verification, use the `agy-frontend` skill. Build a bounded prompt, set explicit workspace scope with `--add-dir`, tell AGY not to start any frontend dev/preview server, and verify locally after AGY returns.
 
-9. If platform-native workflow skills apply in the active agent session, including Superpowers-style gates when present, follow them as workflow gates. This dispatcher does not replace them; it selects helper CLIs while preserving planning, TDD, review, and verification discipline.
+9. If multiple helpers are relevant, create the dynamic workflow first, run `reliable-agent-workflow` for the delivery contract when applicable, use Grok CLI for outside critique/research, then Claude CLI to convert the chosen direction into numbered tasks.
+
+10. If platform-native workflow skills apply in the active agent session, including Superpowers-style gates when present, follow them as workflow gates. This dispatcher does not replace them; it selects helper CLIs while preserving planning, TDD, review, and verification discipline.
 
 ## Agent Thread And Subagent Fanout
 
@@ -150,6 +154,10 @@ Recommended thread roles:
   visual-led assets, prohibit SVG/emoji defaults and use high-quality
   image_gen/Grok Video assets; custom icons default to image_gen sheets sliced
   with `asset-slicer`.
+- `design-loop`: for full visual product work, use `ui-ux-closed-loop` to
+  coordinate requirements, product thinking, low-fidelity prototypes, design
+  constraints, implementation handoff, external references, and verification;
+  owner drives product decisions, local edits, and final claims.
 - `assets`: run deterministic `asset-slicer` checks for generated icon/sprite
   sheets before AGY or frontend code consumes the sliced files. Treat icon
   generation requests as image_gen → `asset-slicer` by default, not SVG or emoji.
@@ -190,6 +198,7 @@ python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/reliable-agent-workflow
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/dynamic-workflow
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/mcp-generator
+python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/ui-ux-closed-loop
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py plugins/codex-augment-dispatcher/skills/gsap-animation
 node --experimental-strip-types --check plugins/codex-augment-dispatcher/scripts/dispatcher_mcp.ts
 node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/sync_reliable_agent_workflow.ts check --remote

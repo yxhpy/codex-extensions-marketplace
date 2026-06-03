@@ -19,6 +19,7 @@ const PLUGIN_ORDER = [
 	"task-gate",
 	"grok-augment",
 	"thinking-gate",
+	"ui-ux-closed-loop",
 	"agy-frontend",
 	"asset-slicer",
 ];
@@ -61,6 +62,24 @@ const SIGNALS: Array<{
 			/\bskill\s*(?:optimization|optimisation|optimizer|training|tuning)\b/i,
 			/optimi[sz]e\s+(?:this\s+|the\s+)?(?:agent\s+)?skills?\b/i,
 			/最大化优化\s*skills?|优化\s*skills?|优化\s*技能|技能优化|训练\s*skills?|训练\s*技能/i,
+		],
+	},
+	{
+		name: "ui-ux-closed-loop",
+		weight: 3,
+		plugins: [
+			DYNAMIC_WORKFLOW_PLUGIN,
+			"task-gate",
+			"ui-ux-closed-loop",
+			"agy-frontend",
+		],
+		patterns: [
+			/ui\/ux|ux\/ui|visual product|product[- ]to[- ]ui/i,
+			/closed[- ]loop.*(?:ui|ux|design)|(?:ui|ux|design).*closed[- ]loop/i,
+			/requirements?.*(?:prototype|wireframe).*(?:ui|ux|frontend)/i,
+			/low[- ]fi(?:delity)?|wireframes?|prototype.*polished/i,
+			/design system.*(?:frontend|ui|ux)|polished (?:ui|ux|interface)/i,
+			/页面需求.*产品思维.*低保真|低保真原型|视觉设计闭环|设计闭环|产品到\s*UI|UI\/UX\s*闭环/i,
 		],
 	},
 	{
@@ -812,6 +831,25 @@ function buildPackets(detection: DynamicWorkflowDetection): Packet[] {
 			expectedEvidence: ["candidate ideas", "chosen approach"],
 		});
 	}
+	if (detection.requiredPlugins.includes("ui-ux-closed-loop")) {
+		push({
+			id: nextPacketId(packets, "design-loop"),
+			role: "ui-ux-closed-loop",
+			objective:
+				"Orchestrate requirements, product thinking, low-fidelity prototype, design direction, implementation constraints, and verification evidence.",
+			status: "pending",
+			dependencies: ["01-orchestration"],
+			requiredPlugins: ["ui-ux-closed-loop"],
+			approvalRequired: false,
+			mode: "owner",
+			expectedEvidence: [
+				"requirements/product-thinking note",
+				"low-fidelity prototype or wireframe artifact",
+				"external reference install/availability notes",
+				"UI/UX verification checklist",
+			],
+		});
+	}
 	if (detection.requiredPlugins.includes("asset-slicer")) {
 		push({
 			id: nextPacketId(packets, "assets"),
@@ -964,6 +1002,7 @@ function recommendedPacketIds(
 	if (plugins.includes("grok-augment")) packets.push("research");
 	if (signals.has("native-workflow-interop")) packets.push("interop");
 	if (plugins.includes("thinking-gate")) packets.push("thinking");
+	if (plugins.includes("ui-ux-closed-loop")) packets.push("design-loop");
 	if (plugins.includes("asset-slicer")) packets.push("assets");
 	if (plugins.includes("agy-frontend")) packets.push("frontend");
 	if (signals.has("approval-risk")) packets.push("approval");

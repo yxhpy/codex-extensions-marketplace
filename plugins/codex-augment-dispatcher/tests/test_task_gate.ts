@@ -336,6 +336,42 @@ test("route planner advertises GSAP animation for webpage motion", () => {
 	assert.match(thinker.prompts[0], /parallax/);
 });
 
+test("route planner advertises UI UX closed loop for full design flow", () => {
+	const routePrompt = buildRoutePrompt(
+		"从页面需求到产品思维、低保真原型，再做 polished UI/UX",
+	);
+	assert.match(routePrompt, /ui-ux-closed-loop/);
+	assert.match(routePrompt, /low-fidelity/);
+	assert.match(routePrompt, /frontend-design/);
+	assert.match(routePrompt, /ui-ux-pro-max/);
+
+	const thinker = new FakeThinker(
+		JSON.stringify({
+			route: "ui-ux-closed-loop",
+			reason: "The prompt asks for the full requirements-to-prototype-to-UI design loop.",
+			required_plugins: [
+				"ui-ux-closed-loop",
+				"agy-frontend",
+				"task-gate",
+			],
+			plugin_evidence_required: true,
+		}),
+	);
+
+	const decision = new RoutePlanner({ thinker }).classify(
+		"从页面需求到产品思维、低保真原型，再做 polished UI/UX",
+	);
+
+	assert.equal(decision.route, "ui-ux-closed-loop+dynamic-workflow");
+	assert.deepEqual(decision.requiredPlugins, [
+		"ui-ux-closed-loop",
+		"agy-frontend",
+		"task-gate",
+		"dynamic-workflow",
+	]);
+	assert.equal(decision.pluginEvidenceRequired, true);
+});
+
 test("route prompt advertises background thread and worker fanout triggers", () => {
 	const routePrompt = buildRoutePrompt("Classify this");
 	const routeGuide = routePrompt.split("Raw user prompt:")[0] || routePrompt;
