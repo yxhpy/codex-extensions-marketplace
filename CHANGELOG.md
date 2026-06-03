@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## 0.1.21 - 2026-06-04
+
+- Deep isolated end-to-end CLI testing coverage for the full plugin using real `codex` and `pi` CLI installs into completely isolated temporary `HOME`/`CODEX_HOME`/`PI_*` directories.
+- From the *actually installed* plugin roots (and skill-relative paths for Pi), perform real invocations of **every** public script subcommand and scenario:
+  - `dynamic_workflow.ts`: `help`, `detect --json` (all signal categories: reliable-delivery, explicit-workflow/subagent/fanout, native interop, ui-ux-closed-loop, skill-optimization + negatives), `new`, `approve`, `deny`, `simulate`, `verify` + `--complete`, `e2e --json`, `launch-packets` for all harnesses (auto, codex, claude, grok, pi).
+  - `task_gate.ts`, `codex_gate.ts` (plan + `--execute` with full route classification, evidence requirements, followup gates, max-rounds rejection).
+  - `grok_augment.ts` (all modes: inspect/research/critic/creative/diverge/video + `--json`/`--print-prompt` paths).
+  - `asset_slice.ts` (real generated icon sheet + `--expect-count`/`--expected`/`--json` report validation).
+  - `verify-static-frontend.ts`, `sync_reliable_agent_workflow.ts` (metadata, `check --remote`, `sync` dispatch).
+  - `dispatcher_mcp.ts` full stdio JSON-RPC contract (initialize, tools/list, dispatch_classify for every route type, workflow_create/approve/verify, reliable_stage_contract).
+- Robust per-test fake harness binaries (claude/grok/agy/codex) that return correct JSON schemas (`tasks`, `ideas`, route decisions with `required_plugins`, followup `{"complete": true, ...}`) so the complete gate/workflow/MCP paths execute without external dependencies.
+- All negative/guard paths validated: missing Plugin evidence, approval gates, max rounds, bad sources, schema mismatches, etc.
+- Release gates (`npm run release:check` equivalent, python validators for plugin + all 11 skills, docker clean, sync --remote, full `npm test`) pass with 103/103.
+- Minor test robustness improvements (pretty-JSON parser, fake dispatch logic, assertions) made during deep runs; no production code changes required (all gate logic and contracts were confirmed correct).
+- This change makes the "isolated release gates" story significantly stronger for future publishes.
+
 ## 0.1.20 - 2026-06-03
 
 - Add cross-harness subagent triggering research and setup guidance for Codex, Claude Code, Grok, Pi, and cc-router interop.

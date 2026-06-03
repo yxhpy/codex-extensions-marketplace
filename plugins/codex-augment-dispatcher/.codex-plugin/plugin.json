@@ -1,6 +1,6 @@
 {
   "name": "codex-augment-dispatcher",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "description": "Route agent work through reliable cross-harness delivery, dynamic workflow artifacts, MCP helpers, subagent fanout, extensible external CLI adapters, high-quality media guidance, GSAP motion guidance, deterministic asset workflows, and Plugin evidence. Adds ui-ux-closed-loop for full requirements-to-prototype-to-UI/UX with external references.",
   "author": {
     "name": "yxhpy"
