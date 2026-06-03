@@ -1,0 +1,18 @@
+[
+  {
+    "id": "val-skillopt-heldout",
+    "question": "A user asks: \"Apply SkillOpt to tighten this SKILL.md with held-out validation\". Which plugin route names are required before completion? Return only the comma-separated route names.",
+    "context": "[DOC] SkillOpt-style SKILL.md tuning is a bounded skill optimization task. Use dynamic-workflow, reliable-agent-workflow, and task-gate.",
+    "answers": [
+      "dynamic-workflow, reliable-agent-workflow, task-gate"
+    ]
+  },
+  {
+    "id": "val-gsap-routing",
+    "question": "A user asks for ScrollTrigger parallax animation on a web page. Which plugin route names are required? Return only the comma-separated route names.",
+    "context": "[DOC] Webpage animation, GSAP, ScrollTrigger, parallax, and timeline choreography require gsap-animation. If implementation is required, pair it with agy-frontend.",
+    "answers": [
+      "agy-frontend, gsap-animation"
+    ]
+  }
+]

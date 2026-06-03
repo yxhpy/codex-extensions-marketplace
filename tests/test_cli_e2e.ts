@@ -18,7 +18,7 @@ import test from "node:test";
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const PLUGIN_NAME = "codex-augment-dispatcher";
 const MARKETPLACE_NAME = "yxhpy-codex-extensions";
-const VERSION = "0.1.17";
+const VERSION = "0.1.18";
 
 function readJson(filePath: string) {
 	return JSON.parse(readFileSync(filePath, "utf8"));

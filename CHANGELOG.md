@@ -2,11 +2,17 @@
 
 ## Unreleased
 
+## 0.1.18 - 2026-06-03
+
 - Add Claude Code Dynamic Workflows / `ultracode` / workflow-script / `.claude/workflows` / `.atomic` interop detection while preserving `.agent-workflows/` as the canonical audit trail.
 - Add a script-only dispatcher MCP stdio surface for classification, workflow create/approve/verify, and reliable-stage contracts.
 - Add `mcp-generator` guidance for small dispatcher-compatible skill/MCP scaffolds.
 - Tighten Codex gate Plugin evidence parsing so required plugin names must appear on usable `Plugin evidence:` lines.
 - Add optimization-focused tests for detector coverage, release approval reporting, MCP stdio behavior, native interop metadata, and evidence enforcement.
+- Route SkillOpt and self-evolving skill optimization prompts through `dynamic-workflow`, `reliable-agent-workflow`, and `task-gate`.
+- Add SkillOpt-style skill optimization guidance for bounded skill edits, held-out prompt checks, and compact deployable skill docs.
+- Add a local Microsoft SkillOpt setup under `tools/skillopt/` with pinned requirements, prompt repair from the official `v0.1.0` tag, a small dispatcher-routing split, validation tooling, and run instructions.
+- Add `npm run skillopt:install-prompts` and `npm run skillopt:validate` for repeatable local SkillOpt setup checks without committing real credentials.
 
 ## 0.1.17 - 2026-06-02
 

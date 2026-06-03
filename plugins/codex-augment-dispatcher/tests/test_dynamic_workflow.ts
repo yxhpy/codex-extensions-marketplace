@@ -111,6 +111,31 @@ test("detector routes deep analysis and optimization plans through reliable work
 	assert.ok(detection.recommendedPackets.includes("verification"));
 });
 
+test("detector routes SkillOpt skill optimization through reliable workflow", () => {
+	const prompts = [
+		"使用 https://github.com/microsoft/SkillOpt 最大化优化skill",
+		"Apply SkillOpt to tighten this SKILL.md with held-out validation",
+		"Run a self-evolving agent skill optimization pass",
+		"优化技能触发词并验证不要漏检",
+		"optimize the agent skill with bounded add delete replace edits",
+	];
+
+	for (const prompt of prompts) {
+		const detection = detectDynamicWorkflow(prompt);
+
+		assert.equal(detection.dynamic, true, prompt);
+		assert.ok(detection.signals.includes("skill-optimization"), prompt);
+		assert.ok(
+			detection.requiredPlugins.includes("reliable-agent-workflow"),
+			prompt,
+		);
+		assert.ok(detection.requiredPlugins.includes(DYNAMIC_WORKFLOW_PLUGIN));
+		assert.ok(detection.requiredPlugins.includes("task-gate"), prompt);
+		assert.ok(detection.recommendedPackets.includes("reliable-workflow"));
+		assert.ok(detection.recommendedPackets.includes("verification"));
+	}
+});
+
 test("detector recognizes OPTIMIZATION.md Claude workflow interop terms", () => {
 	const prompts = [
 		"OPTIMIZATION.md 按照建议深度优化",

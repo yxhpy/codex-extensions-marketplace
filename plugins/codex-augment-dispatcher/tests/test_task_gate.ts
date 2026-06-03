@@ -355,6 +355,8 @@ test("route prompt advertises reliable workflow for cross CLI delivery", () => {
 	assert.match(routePrompt, /reliable-agent-workflow/);
 	assert.match(routePrompt, /Codex, Claude Code, Grok, Pi/);
 	assert.match(routePrompt, /optimization plans/);
+	assert.match(routePrompt, /SkillOpt-style skill optimization/);
+	assert.match(routePrompt, /self-evolving agent skills/);
 	assert.match(routePrompt, /zero-open-issue/);
 
 	const thinker = new FakeThinker(

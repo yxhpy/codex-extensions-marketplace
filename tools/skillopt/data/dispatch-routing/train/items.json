@@ -1,0 +1,34 @@
+[
+  {
+    "id": "train-skillopt-routing",
+    "question": "A user asks: \"使用 https://github.com/microsoft/SkillOpt 最大化优化skill\". Which plugin route names are required before completion? Return only the comma-separated route names.",
+    "context": "[DOC] SkillOpt or skill optimization requests are complex skill-edit tasks. The dispatcher must use dynamic-workflow first, then reliable-agent-workflow for the delivery contract, and task-gate for decomposition.",
+    "answers": [
+      "dynamic-workflow, reliable-agent-workflow, task-gate"
+    ]
+  },
+  {
+    "id": "train-frontend-routing",
+    "question": "A user asks to redesign a React UI with responsive browser verification. Which plugin route name is required? Return only the route name.",
+    "context": "[DOC] Frontend, UI, redesign, styling, responsive layout, React, Vue, Svelte, browser visual verification, and visual implementation are owned by agy-frontend.",
+    "answers": [
+      "agy-frontend"
+    ]
+  },
+  {
+    "id": "train-asset-routing",
+    "question": "A user asks to slice a generated icon sheet and reject dirty cuts. Which plugin route name is required? Return only the route name.",
+    "context": "[DOC] Generated icon sheets, sprite sheets, crop drift, dirty cuts, and slice-assets workflows are handled by asset-slicer.",
+    "answers": [
+      "asset-slicer"
+    ]
+  },
+  {
+    "id": "train-stuck-routing",
+    "question": "A user says Codex is stuck and needs divergent brainstorming before editing. Which plugin route name is required? Return only the route name.",
+    "context": "[DOC] Stuck, unsure, looping, no idea, brainstorm, and divergent thinking requests are routed to thinking-gate.",
+    "answers": [
+      "thinking-gate"
+    ]
+  }
+]

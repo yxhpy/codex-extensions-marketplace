@@ -16,7 +16,7 @@ test("repo catalog and marketplace install only the merged plugin", () => {
 		path.join(REPO_ROOT, ".agents/plugins/marketplace.json"),
 	);
 
-	assert.equal(pkg.version, "0.1.17");
+	assert.equal(pkg.version, "0.1.18");
 	assert.ok(pkg.keywords.includes("pi-package"));
 	assert.ok(
 		pkg.dependencies["@types/node"],
@@ -114,6 +114,9 @@ test("install docs describe background thread owner and verification boundaries"
 		readme,
 		/Never run parallel writers against the same working tree/,
 	);
+	assert.match(changelog, /0\.1\.18 - 2026-06-03/);
+	assert.match(changelog, /SkillOpt/);
+	assert.match(changelog, /dispatcher MCP stdio surface/);
 	assert.match(changelog, /0\.1\.16 - 2026-06-01/);
 	assert.match(changelog, /0\.1\.17 - 2026-06-02/);
 	assert.match(changelog, /reliable-agent-workflow-skill/);

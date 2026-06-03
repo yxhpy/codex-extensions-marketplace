@@ -82,6 +82,7 @@ function validateSkills(): void {
 	assert.match(dispatch, /Add future CLI adapters/);
 	assert.match(dispatch, /reliable-agent-workflow/);
 	assert.match(dispatch, /cross-harness reliable delivery/);
+	assert.match(dispatch, /SkillOpt-style skill optimization/);
 	assert.match(dispatch, /Claude CLI/);
 	assert.match(dispatch, /Grok CLI/);
 	assert.match(dispatch, /AGY CLI/);

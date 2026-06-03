@@ -26,6 +26,8 @@ Use dynamic workflow orchestration when at least two are true:
   production data, billing, user accounts, or repo-wide changes.
 - Verification benefits from a separate pass from implementation.
 - The workflow could become a reusable recipe for future tasks.
+- The request asks to optimize agent skills, `SKILL.md`, routing behavior,
+  helper prompts, or SkillOpt/self-evolving skill workflows.
 - The user explicitly asks for a workflow, swarm, subagents, background
   threads, agent threads, worker agents, fanout, delegation, parallel review,
   parallel agents, goal mode, approval gates, packet/result flow, or
@@ -146,6 +148,11 @@ Use the narrowest reliable checks first, then broaden as risk warrants:
 - source-citation check for research tasks
 - migration dry run for data changes
 - final artifact verification with `verify --complete`
+
+For SkillOpt-style skill optimization, include held-out prompt checks that were
+not used to justify the edit. Treat a detector miss, failed helper invocation,
+or weak final evidence as a trajectory failure to repair with the smallest
+bounded edit that passes validation.
 
 Do not mark the workflow complete until every required approval is granted,
 every packet has a result, every required helper plugin has structured evidence,

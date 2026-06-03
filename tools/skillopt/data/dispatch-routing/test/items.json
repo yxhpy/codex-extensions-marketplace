@@ -1,0 +1,18 @@
+[
+  {
+    "id": "test-mcp-routing",
+    "question": "A user asks to scaffold a dispatcher-compatible stdio JSON-RPC MCP helper. Which plugin route name is required? Return only the route name.",
+    "context": "[DOC] MCP helper scaffolds, skill/MCP pairs, dispatcher-compatible tool surfaces, stdio JSON-RPC tools, and adapter skeletons are handled by mcp-generator.",
+    "answers": [
+      "mcp-generator"
+    ]
+  },
+  {
+    "id": "test-grok-routing",
+    "question": "A user asks for latest current-source research and outside risk critique before implementation. Which plugin route name is required? Return only the route name.",
+    "context": "[DOC] Current research, latest information, outside critique, risk review, product direction, and creative paths are routed to grok-augment.",
+    "answers": [
+      "grok-augment"
+    ]
+  }
+]

@@ -48,6 +48,22 @@ const SIGNALS: Array<{
 		],
 	},
 	{
+		name: "skill-optimization",
+		weight: 4,
+		plugins: [
+			DYNAMIC_WORKFLOW_PLUGIN,
+			"reliable-agent-workflow",
+			"task-gate",
+		],
+		patterns: [
+			/SkillOpt/i,
+			/self[- ]evolving agent skills?/i,
+			/\bskill\s*(?:optimization|optimisation|optimizer|training|tuning)\b/i,
+			/optimi[sz]e\s+(?:this\s+|the\s+)?(?:agent\s+)?skills?\b/i,
+			/最大化优化\s*skills?|优化\s*skills?|优化\s*技能|技能优化|训练\s*skills?|训练\s*技能/i,
+		],
+	},
+	{
 		name: "native-workflow-interop",
 		weight: 4,
 		plugins: [DYNAMIC_WORKFLOW_PLUGIN, "task-gate"],

@@ -16,7 +16,7 @@ implementation or final claims.
 
 Initial adapters and trigger language:
 
-- `reliable-agent-workflow`: cross-harness reliable engineering delivery for Codex, Claude Code, Grok, Pi, and similar CLI tools; trigger on complex coding, refactors, migrations, debugging, architecture work, deep analysis, optimization plans, high-risk changes, design-review-implement, Best-of-N, check-work, zero-open-issue repair loops, independent verification, e2e verification, 可靠交付, 深度分析, 优化方案, 质量门禁, 发布准备.
+- `reliable-agent-workflow`: cross-harness reliable engineering delivery for Codex, Claude Code, Grok, Pi, and similar CLI tools; trigger on complex coding, refactors, migrations, debugging, architecture work, deep analysis, optimization plans, SkillOpt-style skill optimization, high-risk changes, design-review-implement, Best-of-N, check-work, zero-open-issue repair loops, independent verification, e2e verification, 可靠交付, 深度分析, 优化方案, 技能优化, 质量门禁, 发布准备.
 - `dynamic-workflow`: complex multi-track work, workflow artifacts, workflow scripts, Claude Code dynamic workflows, ultracode, `.claude/workflows`, `.atomic`, native workflow bridges, approval gates, subagent/packet orchestration, background threads, agent threads, worker agents, fanout, delegation, parallel review/research/QA, end-to-end verification, 工作流, 工作流脚本, 原生动态工作流, 桥接, 编排, 多代理, 子代理, 后台线程, 审批门禁, 端到端.
 - `task-gate`: plan, decompose, break down, multi-step, ambiguous, risky, 规划, 拆解, 分解任务, 复杂任务.
 - `thinking-gate`: stuck, looping, brainstorm, no idea, divergent thinking, 卡住, 没思路, 头脑风暴, 换个思路.
@@ -59,6 +59,23 @@ each required plugin and the exact command, tool, or transcript evidence.
 The follow-up gate rejects completion when required Plugin evidence is missing,
 even if Codex says the work is complete. This makes plugin use mandatory for
 plugin-demanding routes without requiring project `AGENTS.md` changes.
+
+## SkillOpt-Style Skill Optimization
+
+When a request mentions SkillOpt, self-evolving agent skills, skill
+optimization/training/tuning, optimizing `SKILL.md`, or 优化 skill/技能优化:
+
+- Treat missed routes, failed helper calls, weak prompts, and missing
+  verification as training examples.
+- Make bounded add/delete/replace edits. Prefer fixing dispatcher signals,
+  concise skill trigger text, helper boundaries, and tests over broad rewrites.
+- Do not rewrite vendored upstream skills unless the sync metadata and release
+  checks are intentionally updated.
+- Accept edits only after held-out prompt checks, `quick_validate`, relevant
+  unit tests, and workflow evidence pass. Record rejected or unvalidated ideas
+  in workflow artifacts, not deployed skill text.
+- Keep deployable skills compact; move optimizer notes, logs, and rationale to
+  `.agent-workflows/`, `.agent-runs/`, or references loaded only when needed.
 
 ## Routing Order
 

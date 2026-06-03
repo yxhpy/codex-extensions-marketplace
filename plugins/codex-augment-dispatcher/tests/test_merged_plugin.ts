@@ -43,7 +43,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
 	);
 
 	assert.equal(manifest.name, "codex-augment-dispatcher");
-	assert.equal(manifest.version, "0.1.17");
+	assert.equal(manifest.version, "0.1.18");
 	assert.equal(manifest.skills, "./skills/");
 	assert.equal(manifest.interface.displayName, "Codex Augment Dispatcher");
 	assert.deepEqual(manifest.author, { name: "yxhpy" });
@@ -126,6 +126,7 @@ test("main dispatch skill defines generic adapter routing without taking over Co
 		"gsap-animation",
 		"GSAP motion design guidance",
 		"cross-harness reliable delivery",
+		"SkillOpt-style skill optimization",
 		"background threads",
 		"worker agents",
 		"SVG/emoji defaults",
@@ -156,6 +157,7 @@ test("routing skill descriptions favor dispatcher before direct adapters", () =>
 		/classify whether `reliable-agent-workflow`, `dynamic-workflow`, `task-gate`, `thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`, `asset-slicer`, or `mcp-generator` should run/,
 	);
 	assert.match(dispatch, /Use this skill before non-trivial agent work/);
+	assert.match(dispatch, /SkillOpt-Style Skill Optimization/);
 	assert.match(
 		taskGate,
 		/description: Use for broad, multi-step, ambiguous, risky, or decomposition-first work/,

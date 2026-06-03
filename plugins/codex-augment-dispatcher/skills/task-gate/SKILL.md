@@ -10,7 +10,8 @@ metadata:
 Use this skill when work should be decomposed into numbered tasks before Codex
 executes. Strong triggers include: plan, decompose, break down, task list,
 step-by-step, broad work, multi-step work, ambiguous request, risky change,
-release gate, migration, refactor plan, 规划, 拆解, 分解任务, 任务列表, 复杂任务.
+release gate, migration, refactor plan, SkillOpt, skill optimization,
+`SKILL.md` tuning, 规划, 拆解, 分解任务, 任务列表, 复杂任务, 技能优化.
 
 Also use it when Codex does not know the next move, has no strong idea, is
 looping on a weak approach, or needs several candidate directions before acting.
