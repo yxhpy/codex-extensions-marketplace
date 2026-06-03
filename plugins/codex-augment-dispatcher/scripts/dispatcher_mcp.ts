@@ -117,7 +117,7 @@ export function handleMcpRequest(request: JsonRpcRequest): JsonRpcResponse | nul
 				protocolVersion: "2024-11-05",
 				serverInfo: {
 					name: "codex-augment-dispatcher",
-					version: "0.1.19",
+					version: "0.1.20",
 				},
 				capabilities: { tools: {} },
 			});

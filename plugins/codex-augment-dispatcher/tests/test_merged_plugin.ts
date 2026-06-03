@@ -43,7 +43,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
 	);
 
 	assert.equal(manifest.name, "codex-augment-dispatcher");
-	assert.equal(manifest.version, "0.1.19");
+	assert.equal(manifest.version, "0.1.20");
 	assert.equal(manifest.skills, "./skills/");
 	assert.equal(manifest.interface.displayName, "Codex Augment Dispatcher");
 	assert.deepEqual(manifest.author, { name: "yxhpy" });

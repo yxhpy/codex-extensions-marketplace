@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.1.20 - 2026-06-03
+
+- Add cross-harness subagent triggering research and setup guidance for Codex, Claude Code, Grok, Pi, and cc-router interop.
+- Add `dynamic_workflow.ts launch-packets` recipes for Grok task, Claude Agent/@, Codex agents, Pi `subagent()`, and cc-router `taskctl`.
+- Make explicit subagent/fanout workflows generate launchable researcher/reviewer packets instead of owner-only packets.
+- Ship missing Codex and Claude example agents referenced by launcher recipes.
+- Add regression coverage for launchable fanout packet generation, launcher recipe output, and shipped cross-harness example agents.
+
 ## 0.1.19 - 2026-06-03
 
 - Add `ui-ux-closed-loop`, a thin orchestrator skill for full UI/UX closed loop work from requirements and product thinking through low-fi prototypes, polished frontend implementation, assets, motion, and verification.

@@ -16,7 +16,7 @@ test("repo catalog and marketplace install only the merged plugin", () => {
 		path.join(REPO_ROOT, ".agents/plugins/marketplace.json"),
 	);
 
-	assert.equal(pkg.version, "0.1.19");
+	assert.equal(pkg.version, "0.1.20");
 	assert.ok(pkg.keywords.includes("pi-package"));
 	assert.ok(
 		pkg.dependencies["@types/node"],

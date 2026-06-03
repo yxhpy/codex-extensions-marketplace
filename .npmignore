@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.tmp/
+.venv/
+.pi-lens/
+.agent-workflows/
+.agent-runs/
+node_modules/
+dist/
+build/
+*.tgz
+OPTIMIZATION.md
