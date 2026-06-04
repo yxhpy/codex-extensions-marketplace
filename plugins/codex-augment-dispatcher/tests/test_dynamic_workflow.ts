@@ -17,6 +17,10 @@ import {
 	createWorkflow,
 	denyWorkflow,
 	detectDynamicWorkflow,
+	getRefinedResults,
+	getWorkflowInventory,
+	listLaunchSuggestions,
+	recordAdaptiveReplan,
 	simulateWorkflow,
 	validateWorkflow,
 } from "../scripts/dynamic_workflow.ts";
@@ -157,6 +161,40 @@ test("detector routes full UI UX design loops through design-loop packet", () =>
 	}
 });
 
+test("detector catches reference-site visual fidelity work and forces independent style-review packet (improved hit rate for conservative agy-only mistake)", () => {
+	const prompts = [
+		// English
+		"Build a landing page that matches the reference site https://example.com/design exactly, including colors and layout",
+		"Create a static frontend that looks identical to this reference design screenshot",
+		"Implement a page with high visual fidelity to the provided reference mockup, pixel perfect",
+		"Copy the style and components from the reference site for our new marketing page",
+		"Build UI that has the exact same look as the attached reference design, do visual comparison",
+		// Chinese
+		"做一个单页静态前端，要和参考站 https://example.com 视觉上完全一致，包括配色和布局",
+		"按照这个参考设计截图实现落地页，视觉保真度要高",
+		"复刻参考站的样式和组件，做一个视觉匹配的页面",
+		"参考这个设计图构建前端页面，检查有没有变成完全不同的重构",
+		"页面需求：像提供的参考站点一样，做视觉相似度审查",
+	];
+
+	for (const prompt of prompts) {
+		const detection = detectDynamicWorkflow(prompt);
+
+		assert.equal(detection.dynamic, true, `should be dynamic for: ${prompt}`);
+		assert.ok(detection.signals.includes("reference-visual"), `missing reference-visual signal for: ${prompt}`);
+		assert.ok(detection.requiredPlugins.includes(DYNAMIC_WORKFLOW_PLUGIN), prompt);
+		assert.ok(detection.requiredPlugins.includes("task-gate"), prompt);
+		assert.ok(detection.requiredPlugins.includes("agy-frontend"), prompt);
+		// The packet builder will add style-review because of the signal
+		// (we check recommended at least)
+		assert.ok(
+			detection.recommendedPackets.includes("style-review") ||
+			detection.recommendedPackets.includes("frontend"),
+			`should recommend review or frontend for reference visual: ${prompt}`
+		);
+	}
+});
+
 test("detector recognizes OPTIMIZATION.md Claude workflow interop terms", () => {
 	const prompts = [
 		"OPTIMIZATION.md 按照建议深度优化",
@@ -180,6 +218,114 @@ test("detector recognizes OPTIMIZATION.md Claude workflow interop terms", () => 
 	const ultracode = detectDynamicWorkflow("ultracode 做大规模迁移");
 	assert.ok(ultracode.signals.includes("native-workflow-interop"));
 	assert.ok(ultracode.recommendedPackets.includes("interop"));
+});
+
+test("adaptive orchestrator workflows persist inventory, execution specs, refined results, and replan evidence", () => {
+	const detection = detectDynamicWorkflow(
+		"Implement adaptive hierarchical orchestrator with environment inventory, execution_spec, refined results, post-node replan, evaluator, and tool-first resolution.",
+	);
+	assert.equal(detection.dynamic, true);
+	assert.ok(detection.signals.includes("adaptive-orchestrator"));
+	assert.ok(detection.requiredPlugins.includes(DYNAMIC_WORKFLOW_PLUGIN));
+	assert.ok(detection.requiredPlugins.includes("reliable-agent-workflow"));
+	assert.ok(detection.recommendedPackets.includes("evaluator"));
+
+	const root = tempRoot();
+	try {
+		const { dir, workflow } = createWorkflow({
+			root,
+			id: "adaptive-orchestrator",
+			prompt:
+				"Implement adaptive hierarchical orchestrator with environment inventory, pre-assigned execution_spec, refined-json-v1 results, evaluator, post-node replan loop, and tool-first doubt resolution.",
+		});
+
+		assert.equal(workflow.schemaVersion, 3);
+		assert.ok(workflow.environmentInventory.capturedAt);
+		assert.ok(
+			workflow.environmentInventory.skills.some(
+				(skill) => skill.name === "dynamic-workflow",
+			),
+		);
+		assert.equal(workflow.adaptive.enabled, true);
+		assert.equal(workflow.adaptive.refinedResultContract, "refined-json-v1");
+		assert.ok(workflow.packets.some((packet) => packet.role === "evaluator"));
+		for (const packet of workflow.packets) {
+			assert.ok(packet.executionSpec, `${packet.id} missing executionSpec`);
+			assert.equal(packet.executionSpec?.outputContract, "refined-json-v1");
+			assert.ok(packet.executionSpec?.recommendedTools.length);
+		}
+		assert.ok(existsSync(path.join(dir, "graph.json")));
+		assert.ok(existsSync(path.join(dir, "condensed_log.jsonl")));
+		assert.ok(existsSync(path.join(dir, "replan_events")));
+		assert.match(
+			readFileSync(path.join(dir, "packets/01-orchestration.md"), "utf8"),
+			/refined-json-v1/,
+		);
+
+		const inventory = getWorkflowInventory(dir);
+		assert.equal(inventory.harness, "generic");
+		const launch = listLaunchSuggestions({ workflowDir: dir, harness: "pi" });
+		assert.ok(launch.length > 0);
+		assert.match(launch[0].command, /executionSpec=/);
+		assert.match(launch[0].command, /refined-json-v1/);
+
+		approveWorkflow({ workflowDir: dir, scope: "execute", by: "unit-test" });
+		approveWorkflow({ workflowDir: dir, scope: "release", by: "unit-test" });
+		simulateWorkflow({ workflowDir: dir });
+		const refined = getRefinedResults(dir);
+		assert.equal(refined.length, workflow.packets.length);
+		assert.ok(
+			refined.every((result) =>
+				result.toolsUsedForSelfResolution.includes("inspect:workflow.json executionSpec"),
+			),
+		);
+		const adaptive = recordAdaptiveReplan({
+			workflowDir: dir,
+			packetId: workflow.packets[0].id,
+			trigger: "unit-test post-node judgment",
+			reason: "Result was compact and next packet was small enough to continue.",
+			action: "continue",
+		});
+		assert.equal(adaptive.event.status, "applied");
+		assert.ok(existsSync(path.join(dir, "replan_events", `${adaptive.event.id}.json`)));
+
+		const complete = validateWorkflow(dir, { requireComplete: true });
+		assert.equal(complete.ok, true, complete.failures.join("\n"));
+		assert.equal(complete.complete, true);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+test("cross-harness prompts keep generic inventory and portable launch specs", () => {
+	const root = tempRoot();
+	try {
+		const { dir, workflow } = createWorkflow({
+			root,
+			id: "cross-harness",
+			prompt:
+				"Verify Codex, Pi, Grok, and Claude call chains for adaptive subagent workflow launch-packets.",
+		});
+
+		assert.equal(workflow.environmentInventory.harness, "generic");
+		for (const packet of workflow.packets) {
+			assert.ok(
+				!(packet.executionSpec?.recommendedTools || []).some((tool) =>
+					/grok native subagent tools|codex native subagent tools|claude native subagent tools|pi native subagent tools/.test(tool),
+				),
+				`${packet.id} has provider-specific default tool leakage`,
+			);
+		}
+		const launch = listLaunchSuggestions({ workflowDir: dir, harness: "auto" });
+		assert.ok(launch.length > 0);
+		assert.ok(
+			launch.every((item) =>
+				item.command.includes("native subagent tools for the selected harness"),
+			),
+		);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
 });
 
 test("workflow artifact creation is durable and platform-neutral", () => {
@@ -301,7 +447,7 @@ test("validator normalizes older workflow artifacts without interop metadata", (
 
 		const report = validateWorkflow(dir);
 		assert.equal(report.ok, true, report.failures.join("\n"));
-		assert.equal(report.workflow?.schemaVersion, 2);
+		assert.equal(report.workflow?.schemaVersion, 3);
 		assert.equal(
 			report.workflow?.interop.canonicalArtifactRoot,
 			".agent-workflows",

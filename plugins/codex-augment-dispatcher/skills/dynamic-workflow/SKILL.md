@@ -49,10 +49,13 @@ Prefer a local artifact directory:
 ```text
 .agent-workflows/<workflow-id>/
 |-- workflow.json
+|-- graph.json
+|-- condensed_log.jsonl
 |-- plan.md
 |-- orchestration.md
 |-- packets/
 |-- results/
+|-- replan_events/
 `-- final-report.md
 ```
 
@@ -60,13 +63,24 @@ Prefer a local artifact directory:
 
 - schema version, prompt hash, redacted prompt summary, state, and timestamps
 - deterministic route signals and required helper plugins
+- environment inventory: local skills, subagent types, personas, core tools,
+  MCP notes, harness adapters, and discovery sources
 - approval records for plan, execution, and release/finalization
-- packets with role, mode, dependencies, plugin requirements, and evidence
-- packet results, structured plugin evidence, verification records, and verdict
+- packets with role, mode, dependencies, plugin requirements, evidence, and
+  execution specs
+- packet results, refined-json-v1 summaries, structured plugin evidence,
+  verification records, and verdict
+- adaptive graph metadata, condensed log entries, and replan events
 - optional native bridge metadata for `.claude/workflows/`, `.atomic/`, or
   workflow-script evidence
 
 ## Operating Workflow
+
+For adaptive/hierarchical orchestrator work, see
+`docs/ADAPTIVE-HIERARCHICAL-ORCHESTRATOR-OPTIMIZATIONS.md`: inventory first,
+pre-assigned execution specs per node, refined-results-only to owner context,
+post-node replan/re-split judgment, tool-first doubt resolution, and continuing
+until full graph completion.
 
 1. Restate the goal, success criteria, constraints, and risk profile.
 2. Detect whether dynamic orchestration is needed:
@@ -81,6 +95,13 @@ node --experimental-strip-types ../../scripts/dynamic_workflow.ts detect --json 
 node --experimental-strip-types ../../scripts/dynamic_workflow.ts new --json "<task>"
 ```
 
+Inspect adaptive setup before launches:
+
+```bash
+node --experimental-strip-types ../../scripts/dynamic_workflow.ts inventory --json .agent-workflows/<workflow-id>
+node --experimental-strip-types ../../scripts/dynamic_workflow.ts launch-packets --harness auto .agent-workflows/<workflow-id>
+```
+
 4. Stop at pending approval gates. Continue only with read-only planning until
    explicit approval exists for risky execution:
 
@@ -93,7 +114,14 @@ node --experimental-strip-types ../../scripts/dynamic_workflow.ts approve --scop
    validation, assets, or frontend checks; otherwise simulate packet ownership
    serially, preserving packet/result notes.
 6. Integrate packet results explicitly; accept, reject, or mark stale outputs.
-7. Verify the final state:
+7. After each packet result or batch, record adaptive judgment:
+
+```bash
+node --experimental-strip-types ../../scripts/dynamic_workflow.ts refined-results --json .agent-workflows/<workflow-id>
+node --experimental-strip-types ../../scripts/dynamic_workflow.ts adaptive-step --packet <packet-id> --action continue .agent-workflows/<workflow-id> "<judgment>"
+```
+
+8. Verify the final state:
 
 ```bash
 node --experimental-strip-types ../../scripts/dynamic_workflow.ts verify --complete .agent-workflows/<workflow-id>

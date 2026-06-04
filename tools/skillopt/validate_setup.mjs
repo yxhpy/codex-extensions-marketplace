@@ -69,7 +69,10 @@ import sys
 from importlib.metadata import version
 from skillopt.config import load_config, flatten_config
 from scripts.train import get_adapter
-from skillopt.model.backend_config import set_optimizer_backend, set_target_backend
+from tools.skillopt.codex_skillopt_runner import install_codex_optimizer_patch
+
+install_codex_optimizer_patch()
+from skillopt.model import set_optimizer_backend, set_target_backend
 
 cfg = flatten_config(load_config(sys.argv[1]))
 required = {
@@ -77,8 +80,10 @@ required = {
     "skill_init": "plugins/codex-augment-dispatcher/skills/dispatch/SKILL.md",
     "split_mode": "split_dir",
     "split_dir": "tools/skillopt/data/dispatch-routing",
-    "optimizer_backend": "openai_chat",
-    "target_backend": "openai_chat",
+    "model_backend": "codex",
+    "optimizer_backend": "codex_exec",
+    "target_backend": "codex_exec",
+    "codex_exec_use_sdk": "cli",
 }
 for key, expected in required.items():
     actual = cfg.get(key)

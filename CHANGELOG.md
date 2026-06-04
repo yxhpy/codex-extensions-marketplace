@@ -1,6 +1,21 @@
 # Changelog
 
-## Unreleased
+## 0.1.22 - 2026-06-04
+
+- Implement adaptive hierarchical orchestrator scaffolding from PR #3:
+  `dynamic_workflow.ts` now records environment inventory, per-packet
+  `executionSpec`, refined-json-v1 result contracts, adaptive graph metadata,
+  condensed logs, and replan events. Adds `inventory`, `refined-results`, and
+  `adaptive-step` CLI commands plus MCP tools for inventory, refined results,
+  replan proposals, and launch recipes. `launch-packets` now includes the
+  execution spec and refined result contract for Codex, Pi, Grok, Claude, and
+  cc-router call chains.
+- Make `tools/skillopt` use Codex CLI by default: add a local compatibility
+  runner that lets SkillOpt route both optimizer and target calls through
+  `codex exec` without requiring Azure/OpenAI-compatible API keys. A real
+  Codex CLI SkillOpt train/eval pass now runs against the dispatcher-routing
+  split, and the accepted bounded skill edit adds canonical comma-separated
+  route ordering to the dispatch skill.
 
 ## 0.1.21 - 2026-06-04
 

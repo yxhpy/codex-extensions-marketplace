@@ -23,7 +23,7 @@ import { writePng } from "../plugins/codex-augment-dispatcher/scripts/asset_slic
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const PLUGIN_NAME = "codex-augment-dispatcher";
 const MARKETPLACE_NAME = "yxhpy-codex-extensions";
-const VERSION = "0.1.21";
+const VERSION = "0.1.22";
 
 function readJson(filePath: string) {
 	return JSON.parse(readFileSync(filePath, "utf8"));
@@ -349,6 +349,22 @@ test("Codex CLI installs the local marketplace in an isolated HOME and installed
 	assert.equal(newWf.status, 0, newWf.output);
 	const wfDir = path.join(wfRoot, wfId);
 	assert.ok(existsSync(path.join(wfDir, "workflow.json")), "workflow.json created");
+	assert.ok(existsSync(path.join(wfDir, "graph.json")), "graph.json created");
+
+	const inventoryCmd = run(
+		process.execPath,
+		[
+			"--experimental-strip-types",
+			path.join(installedRoot, "scripts/dynamic_workflow.ts"),
+			"inventory",
+			"--json",
+			wfDir,
+		],
+		{ cwd: installedRoot, env: deepEnv },
+	);
+	assert.equal(inventoryCmd.status, 0, inventoryCmd.output);
+	const inventoryParsed = parseJsonFromOutput(inventoryCmd.stdout || "");
+	assert.ok(inventoryParsed?.skills?.length, "inventory includes local skills");
 
 	// approve execute and release
 	for (const scope of ["execute", "release"] as const) {
@@ -379,6 +395,40 @@ test("Codex CLI installs the local marketplace in an isolated HOME and installed
 	);
 	assert.equal(sim.status, 0, sim.output);
 	assert.match(sim.stdout || "", /simulate|PASS|complete/i);
+	assert.ok(existsSync(path.join(wfDir, "condensed_log.jsonl")), "condensed log created");
+	assert.ok(existsSync(path.join(wfDir, "replan_events", "replan-001.json")), "simulation replan event created");
+
+	const refinedCmd = run(
+		process.execPath,
+		[
+			"--experimental-strip-types",
+			path.join(installedRoot, "scripts/dynamic_workflow.ts"),
+			"refined-results",
+			"--json",
+			wfDir,
+		],
+		{ cwd: installedRoot, env: deepEnv },
+	);
+	assert.equal(refinedCmd.status, 0, refinedCmd.output);
+	const refinedParsed = parseJsonFromOutput(refinedCmd.stdout || "");
+	assert.ok(Array.isArray(refinedParsed) && refinedParsed.length > 0, "refined results returned");
+	assert.ok(refinedParsed[0].toolsUsedForSelfResolution?.length, "refined result includes tool-first evidence");
+
+	const adaptiveStep = run(
+		process.execPath,
+		[
+			"--experimental-strip-types",
+			path.join(installedRoot, "scripts/dynamic_workflow.ts"),
+			"adaptive-step",
+			"--packet", "01-orchestration",
+			"--action", "continue",
+			wfDir,
+			"deep e2e post-node judgment: continue",
+		],
+		{ cwd: installedRoot, env: deepEnv },
+	);
+	assert.equal(adaptiveStep.status, 0, adaptiveStep.output);
+	assert.match(adaptiveStep.stdout || "", /adaptive event recorded/);
 
 	// verify without complete
 	const ver1 = run(
@@ -426,6 +476,7 @@ test("Codex CLI installs the local marketplace in an isolated HOME and installed
 		);
 		assert.equal(lp.status, 0, `launch-packets ${harness} failed: ${lp.output}`);
 		assert.ok(lp.stdout && lp.stdout.length > 10, `launch-packets ${harness} produced no useful output`);
+		assert.match(lp.stdout || "", /refined-json-v1|executionSpec=/, `launch-packets ${harness} missing adaptive contract`);
 	}
 
 	// explicit "deny" + "help" to cover remaining dynamic_workflow command surface (all subcommands invoked in deep e2e)
@@ -625,16 +676,21 @@ test("Codex CLI installs the local marketplace in an isolated HOME and installed
 	assert.notEqual(ssync.status, 0, "sync with bad source should fail as expected");
 	assert.ok((ssync.stderr || ssync.stdout || "").match(/sync|source|must contain|reliable-agent-workflow/i), "sync command branch was reached");
 
-	// 9. dispatcher_mcp full stdio exercise from installed script: init, list, classify various, workflow ops, reliable contract
-	const mcpScript = path.join(installedRoot, "scripts/dispatcher_mcp.ts");
-	const mcpInput = [
-		{ jsonrpc: "2.0", id: 1, method: "initialize", params: {} },
-		{ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} },
-		{ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "dispatch_classify", arguments: { prompt: "reliable-agent-workflow for zero issues refactor" } } },
-		{ jsonrpc: "2.0", id: 4, method: "tools/call", params: { name: "dispatch_classify", arguments: { prompt: "ui ux closed loop design" } } },
-		{ jsonrpc: "2.0", id: 5, method: "tools/call", params: { name: "dispatch_classify", arguments: { prompt: "just trivial" } } },
-		{ jsonrpc: "2.0", id: "wcreate", method: "tools/call", params: { name: "workflow_create", arguments: { root: path.join(home, "mcp-wf"), id: "mcp-deep", prompt: "mcp e2e full" } } },
-	].map((r) => JSON.stringify(r)).join("\n");
+		// 9. dispatcher_mcp full stdio exercise from installed script: init, list, classify various, workflow ops, reliable contract
+		const mcpScript = path.join(installedRoot, "scripts/dispatcher_mcp.ts");
+		const mcpWorkflowDir = path.join(home, "mcp-wf", "mcp-deep");
+		const mcpInput = [
+			{ jsonrpc: "2.0", id: 1, method: "initialize", params: {} },
+			{ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} },
+			{ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "dispatch_classify", arguments: { prompt: "reliable-agent-workflow for zero issues refactor" } } },
+			{ jsonrpc: "2.0", id: 4, method: "tools/call", params: { name: "dispatch_classify", arguments: { prompt: "ui ux closed loop design" } } },
+			{ jsonrpc: "2.0", id: 5, method: "tools/call", params: { name: "dispatch_classify", arguments: { prompt: "just trivial" } } },
+			{ jsonrpc: "2.0", id: "wcreate", method: "tools/call", params: { name: "workflow_create", arguments: { root: path.join(home, "mcp-wf"), id: "mcp-deep", prompt: "adaptive hierarchical orchestrator with subagents and refined results" } } },
+			{ jsonrpc: "2.0", id: "winv", method: "tools/call", params: { name: "workflow_inventory", arguments: { workflowDir: mcpWorkflowDir } } },
+			{ jsonrpc: "2.0", id: "wlaunch", method: "tools/call", params: { name: "workflow_launch_packet", arguments: { workflowDir: mcpWorkflowDir, harness: "codex" } } },
+			{ jsonrpc: "2.0", id: "wreplan", method: "tools/call", params: { name: "workflow_replan_propose", arguments: { workflowDir: mcpWorkflowDir, reason: "deep e2e adaptive MCP judgment", action: "continue" } } },
+			{ jsonrpc: "2.0", id: "wrefined", method: "tools/call", params: { name: "workflow_refined_results", arguments: { workflowDir: mcpWorkflowDir } } },
+		].map((r) => JSON.stringify(r)).join("\n");
 	const mcpRun = run(
 		process.execPath,
 		["--experimental-strip-types", mcpScript],
@@ -643,15 +699,26 @@ test("Codex CLI installs the local marketplace in an isolated HOME and installed
 	assert.equal(mcpRun.status, 0, `mcp stdio failed: ${mcpRun.stderr || mcpRun.stdout}`);
 	const mcpLines = (mcpRun.stdout || "").trim().split(/\r?\n/).filter(Boolean).map((l: string) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
 	assert.ok(mcpLines.length >= 3, "mcp produced multiple responses");
-	assert.ok(mcpLines[0]?.result?.serverInfo?.name, "mcp init ok");
-	assert.ok(mcpLines[1]?.result?.tools?.some((t: any) => t.name === "workflow_create"), "mcp lists workflow_create");
+		assert.ok(mcpLines[0]?.result?.serverInfo?.name, "mcp init ok");
+		assert.ok(mcpLines[1]?.result?.tools?.some((t: any) => t.name === "workflow_create"), "mcp lists workflow_create");
+		assert.ok(mcpLines[1]?.result?.tools?.some((t: any) => t.name === "workflow_replan_propose"), "mcp lists workflow_replan_propose");
 	const classifyResp = mcpLines.find((r: any) => r.id === 3);
 	assert.ok(classifyResp?.result?.structuredContent, "mcp classify returned structured");
 	const cl = classifyResp.result.structuredContent;
 	assert.ok(cl.dynamic || (cl.signals && cl.signals.length) || (cl.requiredPlugins && cl.requiredPlugins.length), "mcp classify for reliable prompt produced a route decision");
-	// workflow create response
-	const createResp = mcpLines.find((r: any) => r.id === "wcreate");
-	assert.ok(createResp?.result, "mcp workflow create response");
+		// workflow create response
+		const createResp = mcpLines.find((r: any) => r.id === "wcreate");
+		assert.ok(createResp?.result, "mcp workflow create response");
+		const invResp = mcpLines.find((r: any) => r.id === "winv");
+		assert.ok(invResp?.result?.structuredContent?.skills?.length, "mcp inventory returned skills");
+		const launchResp = mcpLines.find((r: any) => r.id === "wlaunch");
+		const launchContent = launchResp?.result?.structuredContent;
+		assert.ok(Array.isArray(launchContent) && launchContent.length > 0, "mcp launch returned recipes");
+		assert.ok(String(launchContent[0].command).includes("refined-json-v1"), "mcp launch includes refined contract");
+		const replanResp = mcpLines.find((r: any) => r.id === "wreplan");
+		assert.equal(replanResp?.result?.structuredContent?.event?.status, "applied");
+		const refinedResp = mcpLines.find((r: any) => r.id === "wrefined");
+		assert.ok(Array.isArray(refinedResp?.result?.structuredContent), "mcp refined results returned array");
 
 	// 10. codex real CLI more commands in isolated (list, plugin info etc)
 	const listAgain = run("codex", ["plugin", "list", "--marketplace", MARKETPLACE_NAME], { env });
@@ -746,10 +813,37 @@ test("Pi CLI installs the local package in an isolated config and skill-relative
 		],
 		{ cwd: workflowSkillRoot, env },
 	);
-	assert.equal(workflow.status, 0, workflow.output);
-	assert.match(workflow.stdout || "", /"complete": true/);
+		assert.equal(workflow.status, 0, workflow.output);
+		assert.match(workflow.stdout || "", /"complete": true/);
+		const piWorkflowDir = path.join(home, "agent-workflows", "pi-cli-e2e");
+		const piInventory = run(
+			process.execPath,
+			[
+				"--experimental-strip-types",
+				workflowScript,
+				"inventory",
+				"--json",
+				piWorkflowDir,
+			],
+			{ cwd: workflowSkillRoot, env },
+		);
+		assert.equal(piInventory.status, 0, piInventory.output);
+		assert.ok(parseJsonFromOutput(piInventory.stdout || "")?.skills?.length, "Pi relative inventory works");
+		const piRefined = run(
+			process.execPath,
+			[
+				"--experimental-strip-types",
+				workflowScript,
+				"refined-results",
+				"--json",
+				piWorkflowDir,
+			],
+			{ cwd: workflowSkillRoot, env },
+		);
+		assert.equal(piRefined.status, 0, piRefined.output);
+		assert.ok(Array.isArray(parseJsonFromOutput(piRefined.stdout || "")), "Pi relative refined-results works");
 
-	const skillRoot = path.join(
+		const skillRoot = path.join(
 		REPO_ROOT,
 		"plugins/codex-augment-dispatcher/skills/task-gate",
 	);

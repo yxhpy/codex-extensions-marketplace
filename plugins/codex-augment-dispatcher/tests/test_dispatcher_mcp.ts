@@ -70,6 +70,11 @@ test("stdio MCP initializes, lists tools, and classifies interop prompts", () =>
 			(tool: { name: string }) => tool.name === "workflow_create",
 		),
 	);
+	assert.ok(
+		responses[1].result.tools.some(
+			(tool: { name: string }) => tool.name === "workflow_replan_propose",
+		),
+	);
 	const classify = responses[2].result.structuredContent;
 	assert.equal(classify.dynamic, true);
 	assert.ok(classify.signals.includes("native-workflow-interop"));
@@ -132,6 +137,69 @@ test("MCP handler creates, approves, and verifies workflow artifacts", () => {
 		const verifyPayload = structuredContent(verifyResponse);
 		assert.equal(verifyPayload.ok, true);
 		assert.equal(verifyPayload.complete, false);
+
+		const inventoryResponse = handleMcpRequest({
+			jsonrpc: "2.0",
+			id: "inventory",
+			method: "tools/call",
+			params: {
+				name: "workflow_inventory",
+				arguments: { workflowDir: createPayload.dir },
+			},
+		});
+		const inventoryPayload = structuredContent(inventoryResponse);
+		assert.ok(Array.isArray(inventoryPayload.skills));
+		assert.ok(String(inventoryPayload.coreToolCategories).includes("subagent"));
+
+		const launchResponse = handleMcpRequest({
+			jsonrpc: "2.0",
+			id: "launch",
+			method: "tools/call",
+			params: {
+				name: "workflow_launch_packet",
+				arguments: {
+					workflowDir: createPayload.dir,
+					harness: "grok",
+				},
+			},
+		});
+		const launchPayload = structuredContent(launchResponse) as Array<{
+			command: string;
+		}>;
+		assert.ok(launchPayload.length > 0);
+		assert.match(launchPayload[0].command, /executionSpec=/);
+		assert.match(launchPayload[0].command, /refined-json-v1/);
+
+		const replanResponse = handleMcpRequest({
+			jsonrpc: "2.0",
+			id: "replan",
+			method: "tools/call",
+			params: {
+				name: "workflow_replan_propose",
+				arguments: {
+					workflowDir: createPayload.dir,
+					reason: "MCP test recorded post-node adaptive judgment.",
+					action: "continue",
+				},
+			},
+		});
+		const replanPayload = structuredContent(replanResponse) as {
+			event: { action: string; status: string };
+		};
+		assert.equal(replanPayload.event.action, "continue");
+		assert.equal(replanPayload.event.status, "applied");
+
+		const refinedResponse = handleMcpRequest({
+			jsonrpc: "2.0",
+			id: "refined",
+			method: "tools/call",
+			params: {
+				name: "workflow_refined_results",
+				arguments: { workflowDir: createPayload.dir },
+			},
+		});
+		const refinedPayload = structuredContent(refinedResponse);
+		assert.deepEqual(refinedPayload, []);
 	} finally {
 		rmSync(root, { recursive: true, force: true });
 	}

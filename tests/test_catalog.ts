@@ -16,7 +16,7 @@ test("repo catalog and marketplace install only the merged plugin", () => {
 		path.join(REPO_ROOT, ".agents/plugins/marketplace.json"),
 	);
 
-	assert.equal(pkg.version, "0.1.21");
+	assert.equal(pkg.version, "0.1.22");
 	assert.ok(pkg.keywords.includes("pi-package"));
 	assert.ok(
 		pkg.dependencies["@types/node"],
@@ -29,6 +29,9 @@ test("repo catalog and marketplace install only the merged plugin", () => {
 		"./extensions/codex-image-gen/index.ts",
 		"./extensions/xai-grok/index.ts",
 	]);
+	assert.equal(pkg.scripts["skillopt:validate"], "node tools/skillopt/validate_setup.mjs");
+	assert.equal(pkg.scripts["skillopt:train"], "node tools/skillopt/run_train.mjs");
+	assert.equal(pkg.scripts["skillopt:eval"], "node tools/skillopt/run_eval.mjs");
 
 	assert.deepEqual(
 		catalog.plugins.map((plugin: { name: string }) => plugin.name),
@@ -96,6 +99,41 @@ test("install docs include recommended AGENTS.md proactive trigger rules", () =>
 		/Do not let multiple threads write the same working tree/,
 	);
 	assert.match(agents, /Extending to More CLIs/);
+});
+
+test("SkillOpt wrapper scripts document real train and eval gates", () => {
+	const readme = readFileSync(
+		path.join(REPO_ROOT, "tools/skillopt/README.md"),
+		"utf8",
+	);
+	const config = readFileSync(
+		path.join(REPO_ROOT, "tools/skillopt/configs/dispatch-routing-smoke.yaml"),
+		"utf8",
+	);
+	const train = readFileSync(path.join(REPO_ROOT, "tools/skillopt/run_train.mjs"), "utf8");
+	const evalScript = readFileSync(path.join(REPO_ROOT, "tools/skillopt/run_eval.mjs"), "utf8");
+	const runner = readFileSync(
+		path.join(REPO_ROOT, "tools/skillopt/codex_skillopt_runner.py"),
+		"utf8",
+	);
+
+	assert.match(readme, /npm run skillopt:validate/);
+	assert.match(readme, /npm run skillopt:train/);
+	assert.match(readme, /npm run skillopt:eval/);
+	assert.match(readme, /Codex CLI/);
+	assert.match(readme, /optimizer_backend=codex_exec/);
+	assert.match(readme, /best_skill\.md/);
+	assert.match(readme, /Do not automatically replace deployed plugin skills/);
+	assert.match(config, /model_backend: codex/);
+	assert.match(config, /optimizer_backend: codex_exec/);
+	assert.match(config, /target_backend: codex_exec/);
+	assert.match(config, /codex_exec_use_sdk: cli/);
+	assert.match(train, /SKILLOPT_BACKEND/);
+	assert.match(train, /codex_skillopt_runner\.py/);
+	assert.match(evalScript, /codex_skillopt_runner\.py/);
+	assert.match(runner, /install_codex_optimizer_patch/);
+	assert.match(runner, /CODEX_CHAT_BACKEND = "codex_exec"/);
+	assert.match(runner, /"exec"/);
 });
 
 test("install docs describe background thread owner and verification boundaries", () => {

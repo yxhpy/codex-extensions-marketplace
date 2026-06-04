@@ -1,6 +1,6 @@
 {
   "name": "codex-augment-dispatcher",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "Route agent work through reliable cross-harness delivery, dynamic workflow artifacts, MCP helpers, subagent fanout, extensible external CLI adapters, high-quality media guidance, GSAP motion guidance, deterministic asset workflows, and Plugin evidence. Adds ui-ux-closed-loop for full requirements-to-prototype-to-UI/UX with external references.",
   "author": {
     "name": "yxhpy"
@@ -26,8 +26,8 @@
     ],
     "defaultPrompt": [
       "Before non-trivial work, classify the route; required helper routes need Plugin evidence.",
-      "Route UI/media/assets via reliable-agent-workflow, dynamic-workflow, task-gate, AGY, GSAP, image_gen/slicer; ui-ux loop.",
-      "Fan out read-only subagents by default for independent research/review/validation; owner keeps final claims."
+      "Route reliable-agent-workflow, dynamic-workflow, task-gate, AGY, GSAP, ui-ux, image_gen/slicer assets.",
+      "Use subagents for fanout; reference-site UI needs style-review before AGY; owner verifies."
     ]
   }
 }

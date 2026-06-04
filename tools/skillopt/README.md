@@ -10,6 +10,7 @@ dispatcher skill with a small routing benchmark.
 - Config: `tools/skillopt/configs/dispatch-routing-smoke.yaml`
 - Split data: `tools/skillopt/data/dispatch-routing/{train,val,test}/items.json`
 - Setup validator: `npm run skillopt:validate`
+- Codex CLI compatibility runner: `tools/skillopt/codex_skillopt_runner.py`
 
 The benchmark uses SkillOpt's built-in `searchqa` environment. Each item asks a
 routing question and expects an exact plugin-route answer. The initial skill is
@@ -30,12 +31,37 @@ install the markdown prompt files required by the training reflection stage.
 `npm run skillopt:install-prompts` copies those prompts from the official
 Microsoft/SkillOpt `v0.1.0` tag into the local virtual environment.
 
-## Configure Credentials
+## Configure Codex CLI
 
-Do not commit real keys. Export credentials in your shell or copy
-`tools/skillopt/env.example` to a private location and edit it.
+The default path uses local Codex CLI auth instead of API keys. Confirm Codex
+is installed and logged in:
 
-For OpenAI-compatible mode:
+```bash
+codex --version
+codex exec --ephemeral --sandbox read-only --skip-git-repo-check "Return only OK"
+```
+
+Optional overrides:
+
+```bash
+export SKILLOPT_BACKEND="codex_cli"
+export SKILLOPT_CODEX_BIN="codex"
+export SKILLOPT_CODEX_SANDBOX="read-only"
+export CODEX_EXEC_USE_SDK="cli"
+export CODEX_EXEC_FULL_AUTO="false"
+# Leave unset to inherit the Codex CLI default model, or set explicitly:
+# export SKILLOPT_OPTIMIZER_MODEL="gpt-5.5"
+# export SKILLOPT_TARGET_MODEL="gpt-5.5"
+```
+
+SkillOpt 0.1.0 includes Codex exec support for target rollout, but its optimizer
+registry only accepts chat API providers. The repository runner installs an
+in-memory compatibility patch before the SkillOpt trainer loads, so
+`optimizer_backend=codex_exec` and `target_backend=codex_exec` both route
+through `codex exec` without editing third-party files in `.venv/skillopt`.
+
+To use the old OpenAI-compatible API path instead, set
+`SKILLOPT_BACKEND=openai_chat` and export:
 
 ```bash
 export AZURE_OPENAI_ENDPOINT="https://api.openai.com/v1"
@@ -45,24 +71,14 @@ export SKILLOPT_OPTIMIZER_MODEL="gpt-5.5"
 export SKILLOPT_TARGET_MODEL="gpt-5.5"
 ```
 
-SkillOpt intentionally reuses the `AZURE_OPENAI_*` environment names for this
-mode. The config uses SkillOpt's `openai_chat` optimizer and target backends;
-the `AZURE_OPENAI_*` values tell that backend which endpoint and auth mode to
-use.
-
 ## Run A Training Pass
 
 This runs the real SkillOpt training loop and writes outputs under
-`.tmp/skillopt-runs/dispatch-routing`.
+`.tmp/skillopt-runs/dispatch-routing`. By default, both optimizer calls and
+target rollout calls use Codex CLI.
 
 ```bash
-.venv/skillopt/bin/skillopt-train \
-  --config tools/skillopt/configs/dispatch-routing-smoke.yaml \
-  --azure_openai_endpoint "$AZURE_OPENAI_ENDPOINT" \
-  --azure_openai_auth_mode "$AZURE_OPENAI_AUTH_MODE" \
-  --azure_openai_api_key "$AZURE_OPENAI_API_KEY" \
-  --optimizer_model "$SKILLOPT_OPTIMIZER_MODEL" \
-  --target_model "$SKILLOPT_TARGET_MODEL"
+npm run skillopt:train
 ```
 
 The main artifact to inspect is:
@@ -78,14 +94,13 @@ preserve upstream sync constraints for vendored skills.
 ## Evaluate A Produced Skill
 
 ```bash
-.venv/skillopt/bin/skillopt-eval \
-  --config tools/skillopt/configs/dispatch-routing-smoke.yaml \
-  --skill .tmp/skillopt-runs/dispatch-routing/best_skill.md \
-  --split all \
-  --azure_openai_endpoint "$AZURE_OPENAI_ENDPOINT" \
-  --azure_openai_auth_mode "$AZURE_OPENAI_AUTH_MODE" \
-  --azure_openai_api_key "$AZURE_OPENAI_API_KEY" \
-  --target_model "$SKILLOPT_TARGET_MODEL"
+npm run skillopt:eval
+```
+
+To evaluate a reviewed candidate explicitly:
+
+```bash
+npm run skillopt:eval -- .tmp/skillopt-runs/dispatch-routing/best_skill.md
 ```
 
 ## Sources

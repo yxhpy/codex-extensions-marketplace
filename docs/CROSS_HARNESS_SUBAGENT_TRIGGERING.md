@@ -182,3 +182,30 @@ This PR closes the "even manual doesn't trigger real subagents reliably" gap by 
 - Claude: fetched docs (rich frontmatter model)
 
 (End of plan doc. The PR implements the "Implemented in this PR" items above.)
+
+---
+
+## Adaptive Loop Extension
+
+For adaptive hierarchical orchestrator work, `dynamic_workflow.ts` now records
+the environment inventory, packet `executionSpec`, refined result contract,
+`graph.json`, `condensed_log.jsonl`, and `replan_events/` in the canonical
+`.agent-workflows/<id>/` artifact.
+
+Before launching cross-harness workers:
+
+```bash
+node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts inventory --json .agent-workflows/<id>
+node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts launch-packets --harness auto .agent-workflows/<id>
+```
+
+After each result or batch, the owner records the compact judgment:
+
+```bash
+node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts refined-results --json .agent-workflows/<id>
+node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts adaptive-step --packet <packet-id> --action continue .agent-workflows/<id> "<judgment>"
+```
+
+Equivalent MCP tools are `workflow_inventory`, `workflow_launch_packet`,
+`workflow_refined_results`, and `workflow_replan_propose`. The owner still owns
+edits, integration, final verification, and release claims.

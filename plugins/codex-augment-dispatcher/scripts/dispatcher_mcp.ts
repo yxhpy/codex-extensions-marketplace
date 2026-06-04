@@ -6,6 +6,10 @@ import {
 	approveWorkflow,
 	createWorkflow,
 	detectDynamicWorkflow,
+	getRefinedResults,
+	getWorkflowInventory,
+	listLaunchSuggestions,
+	recordAdaptiveReplan,
 	validateWorkflow,
 } from "./dynamic_workflow.ts";
 
@@ -94,6 +98,68 @@ export const MCP_TOOLS = [
 		},
 	},
 	{
+		name: "workflow_inventory",
+		description:
+			"Return the captured environment inventory for a workflow artifact.",
+		inputSchema: {
+			type: "object",
+			properties: {
+				workflowDir: { type: "string" },
+			},
+			required: ["workflowDir"],
+			additionalProperties: false,
+		},
+	},
+	{
+		name: "workflow_refined_results",
+		description:
+			"Return compact refined-json-v1 packet results for owner-context integration.",
+		inputSchema: {
+			type: "object",
+			properties: {
+				workflowDir: { type: "string" },
+			},
+			required: ["workflowDir"],
+			additionalProperties: false,
+		},
+	},
+	{
+		name: "workflow_replan_propose",
+		description:
+			"Record a post-node adaptive judgment or replan event in the workflow artifact.",
+		inputSchema: {
+			type: "object",
+			properties: {
+				workflowDir: { type: "string" },
+				packetId: { type: "string" },
+				trigger: { type: "string" },
+				reason: { type: "string" },
+				action: {
+					enum: ["continue", "split-next", "insert-evaluator", "reorder", "blocked"],
+				},
+			},
+			required: ["workflowDir", "reason"],
+			additionalProperties: false,
+		},
+	},
+	{
+		name: "workflow_launch_packet",
+		description:
+			"Return harness-specific launch recipes for subagent-mode packets, including executionSpec and refined result contract.",
+		inputSchema: {
+			type: "object",
+			properties: {
+				workflowDir: { type: "string" },
+				harness: {
+					enum: ["auto", "codex", "claude", "grok", "pi", "cc-router"],
+				},
+				packetId: { type: "string" },
+			},
+			required: ["workflowDir"],
+			additionalProperties: false,
+		},
+	},
+	{
 		name: "reliable_stage_contract",
 		description:
 			"Return reliable-agent-workflow stage artifacts and owner verification boundaries.",
@@ -117,7 +183,7 @@ export function handleMcpRequest(request: JsonRpcRequest): JsonRpcResponse | nul
 				protocolVersion: "2024-11-05",
 				serverInfo: {
 					name: "codex-augment-dispatcher",
-					version: "0.1.21",
+					version: "0.1.22",
 				},
 				capabilities: { tools: {} },
 			});
@@ -171,6 +237,28 @@ function callTool(name: string, args: Record<string, unknown>): JsonValue {
 			requireComplete: Boolean(args.complete),
 		});
 		return toolResult(report as unknown as JsonValue);
+	}
+	if (name === "workflow_inventory") {
+		return toolResult(getWorkflowInventory(requiredString(args, "workflowDir")) as unknown as JsonValue);
+	}
+	if (name === "workflow_refined_results") {
+		return toolResult(getRefinedResults(requiredString(args, "workflowDir")) as unknown as JsonValue);
+	}
+	if (name === "workflow_replan_propose") {
+		return toolResult(recordAdaptiveReplan({
+			workflowDir: requiredString(args, "workflowDir"),
+			packetId: optionalString(args, "packetId"),
+			trigger: optionalString(args, "trigger"),
+			reason: requiredString(args, "reason"),
+			action: optionalReplanAction(args, "action"),
+		}) as unknown as JsonValue);
+	}
+	if (name === "workflow_launch_packet") {
+		return toolResult(listLaunchSuggestions({
+			workflowDir: requiredString(args, "workflowDir"),
+			harness: optionalString(args, "harness") || "auto",
+			packetId: optionalString(args, "packetId"),
+		}) as unknown as JsonValue);
 	}
 	if (name === "reliable_stage_contract") {
 		return toolResult(reliableContract(optionalString(args, "stage")) as JsonValue);
@@ -246,6 +334,26 @@ function requiredScope(
 		return value;
 	}
 	throw Object.assign(new Error(`${key} must be plan, execute, or release`), {
+		code: -32602,
+	});
+}
+
+function optionalReplanAction(
+	args: Record<string, unknown>,
+	key: string,
+): "continue" | "split-next" | "insert-evaluator" | "reorder" | "blocked" | undefined {
+	const value = args[key];
+	if (
+		value === "continue" ||
+		value === "split-next" ||
+		value === "insert-evaluator" ||
+		value === "reorder" ||
+		value === "blocked"
+	) {
+		return value;
+	}
+	if (value === undefined || value === null || value === "") return undefined;
+	throw Object.assign(new Error(`${key} must be a valid adaptive action`), {
 		code: -32602,
 	});
 }

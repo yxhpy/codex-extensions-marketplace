@@ -1,6 +1,6 @@
 {
   "name": "yxhpy-codex-extensions",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "private": true,
   "type": "module",
   "keywords": [
@@ -13,6 +13,8 @@
     "test:docker-clean": "node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/docker_clean_test.ts",
     "skillopt:install-prompts": "node tools/skillopt/install_prompts.mjs",
     "skillopt:validate": "node tools/skillopt/validate_setup.mjs",
+    "skillopt:train": "node tools/skillopt/run_train.mjs",
+    "skillopt:eval": "node tools/skillopt/run_eval.mjs",
     "check:reliable-agent-workflow": "node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/sync_reliable_agent_workflow.ts check --remote",
     "release:check": "npm ci && node --experimental-strip-types --check plugins/codex-augment-dispatcher/scripts/dispatcher_mcp.ts && node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/sync_reliable_agent_workflow.ts check --remote && npm test && node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts e2e --json \"Plan a subagent workflow with approval gates and end-to-end verification\" && npm run test:clean && npm run test:docker-clean"
   },
