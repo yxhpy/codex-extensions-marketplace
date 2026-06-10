@@ -154,7 +154,7 @@ test("video generation builds request, polls, downloads MP4", async () => {
 	assert.equal(result.requestId, "vid_123");
 	assert.equal(result.status, "done");
 	assert.equal(result.polls, 2);
-	assert.ok(result.file?.endsWith("videos/vid_123.mp4"));
+	assert.equal(path.relative(cwd, result.file || ""), path.join("videos", "vid_123.mp4"));
 	assert.ok(existsSync(result.file || ""));
 	assert.deepEqual(calls, [
 		"https://api.x.ai/v1/videos/generations",

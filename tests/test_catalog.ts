@@ -16,7 +16,7 @@ test("repo catalog and marketplace install only the merged plugin", () => {
 		path.join(REPO_ROOT, ".agents/plugins/marketplace.json"),
 	);
 
-	assert.equal(pkg.version, "0.1.23");
+	assert.equal(pkg.version, "0.1.24");
 	assert.ok(pkg.keywords.includes("pi-package"));
 	assert.ok(
 		pkg.dependencies["@types/node"],
@@ -32,6 +32,7 @@ test("repo catalog and marketplace install only the merged plugin", () => {
 	assert.equal(pkg.scripts["skillopt:validate"], "node tools/skillopt/validate_setup.mjs");
 	assert.equal(pkg.scripts["skillopt:train"], "node tools/skillopt/run_train.mjs");
 	assert.equal(pkg.scripts["skillopt:eval"], "node tools/skillopt/run_eval.mjs");
+	assert.equal(pkg.scripts["uiux:bootstrap"], "node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/uiux_bootstrap.ts");
 
 	assert.deepEqual(
 		catalog.plugins.map((plugin: { name: string }) => plugin.name),
@@ -78,6 +79,9 @@ test("install docs include recommended AGENTS.md proactive trigger rules", () =>
 	assert.match(readme, /subagent fanout/);
 	assert.match(readme, /AGENTS\.md/);
 	assert.match(readme, /proactively choose/);
+	assert.match(readme, /uiux:bootstrap/);
+	assert.match(readme, /CODEX_AUGMENT_AUTO_INSTALL_UIUX_SKILLS/);
+	assert.match(readme, /Codex plugin manifests do not run arbitrary postinstall scripts/);
 	assert.match(agents, /Plugin Trigger Rules/);
 	assert.match(agents, /Use plugins proactively/);
 	assert.match(agents, /`reliable-agent-workflow`: complex coding/);

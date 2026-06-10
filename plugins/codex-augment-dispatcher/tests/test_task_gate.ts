@@ -294,7 +294,7 @@ test("route planner classifies plugin-demanding prompts", () => {
 	);
 
 	const decision = new RoutePlanner({ thinker }).classify(
-		"Redesign the React dashboard",
+		"Update the React button spacing",
 	);
 
 	assert.equal(decision.route, "frontend");
@@ -344,6 +344,8 @@ test("route planner advertises UI UX closed loop for full design flow", () => {
 	assert.match(routePrompt, /low-fidelity/);
 	assert.match(routePrompt, /frontend-design/);
 	assert.match(routePrompt, /ui-ux-pro-max/);
+	assert.match(routePrompt, /ugly\/no-planning/);
+	assert.match(routePrompt, /does not need to name this skill/);
 
 	const thinker = new FakeThinker(
 		JSON.stringify({

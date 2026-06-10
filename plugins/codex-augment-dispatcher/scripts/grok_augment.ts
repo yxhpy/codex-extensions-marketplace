@@ -1,5 +1,5 @@
 #!/usr/bin/env -S node --experimental-strip-types
-import { spawnSync } from "node:child_process";
+import { spawnCliSync } from "./spawn_util.ts";
 import {
 	mkdirSync,
 	mkdtempSync,
@@ -50,7 +50,7 @@ function defaultRunner(
 ): RunResult {
 	const [command, ...rest] = args;
 	if (!command) return { status: 1, stderr: "missing command" };
-	return spawnSync(command, rest, {
+	return spawnCliSync(command, rest, {
 		encoding: "utf8",
 		timeout: Number(options.timeout || DEFAULT_TIMEOUT_SECONDS * 1000),
 	}) as RunResult;

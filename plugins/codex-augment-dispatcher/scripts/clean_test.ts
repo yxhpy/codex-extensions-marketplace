@@ -42,6 +42,7 @@ function validateManifest(): void {
 		"Coordination",
 		"Assets",
 		"MCP",
+		"UIUXDesignLoop",
 	]) {
 		assert.ok(
 			manifest.interface.capabilities.includes(capability),
@@ -49,7 +50,7 @@ function validateManifest(): void {
 		);
 	}
 	assert.ok(!("mcpServers" in manifest));
-	assert.ok(!("hooks" in manifest));
+	assert.equal(manifest.hooks, "./hooks/hooks.json");
 }
 
 function validateNoPythonFiles(root: string): void {
@@ -171,6 +172,10 @@ function main(): number {
 		"asset_slice.ts",
 		"sync_reliable_agent_workflow.ts",
 		"dispatcher_mcp.ts",
+		"uiux_auto_hook.ts",
+		"uiux_bootstrap.ts",
+		"uiux_shared.ts",
+		"spawn_util.ts",
 	]) {
 		run(
 			["node", "--experimental-strip-types", "--check", `scripts/${script}`],

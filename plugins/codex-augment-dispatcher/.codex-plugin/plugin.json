@@ -1,15 +1,16 @@
 {
   "name": "codex-augment-dispatcher",
-  "version": "0.1.23",
-  "description": "A polished owner-agent dispatcher for reliable cross-harness delivery, dynamic workflow artifacts, MCP helpers, subagent fanout, high-quality media guidance, GSAP motion guidance, deterministic asset workflows, and ui-ux-closed-loop orchestration with external references.",
+  "version": "0.1.24",
+  "description": "A polished owner-agent dispatcher for reliable cross-harness delivery, dynamic workflow artifacts, MCP helpers, subagent fanout, high-quality media guidance, GSAP motion guidance, deterministic asset workflows, and automatic ui-ux-closed-loop orchestration with external-skill bootstrap guidance.",
   "author": {
     "name": "yxhpy"
   },
   "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "Codex Augment Dispatcher",
-    "shortDescription": "Route complex work through workflows, reviews, subagents, frontend/media helpers, and release-grade evidence.",
-    "longDescription": "Codex Augment Dispatcher is an adapter hub for owner-agent orchestration across Codex, Pi, Claude Code, Grok, and similar CLIs. It keeps one owner responsible for edits and final claims while routing specialist work through reliable-agent-workflow, dynamic-workflow, task-gate/thinking-gate, grok-augment, AGY frontend, GSAP/ScrollTrigger motion guidance, asset-slicer, mcp-generator, dispatcher MCP tools, and ui-ux-closed-loop. It supports platform-neutral workflow artifacts, approval gates, packet/result lifecycles, launch recipes for real subagent fanout and worker-agent fanout, record-result ingestion, Claude Code Dynamic Workflows / ultracode / .claude/workflows interop, high-quality image/video asset defaults, and deterministic generated-asset checks. SVG and emoji are prohibited as default visual assets; custom icons default to image_gen sheets sliced with asset-slicer. External design and verification skills such as frontend-design, ui-ux-pro-max, wireframe prototyping, Vercel guidelines, and official GSAP skills are referenced by install guidance and composition rather than vendored wholesale.",
+    "shortDescription": "Auto-route complex work, UI/UX loops, subagents, frontend/media helpers, reviews, and evidence.",
+    "longDescription": "Codex Augment Dispatcher is an adapter hub for owner-agent orchestration across Codex, Pi, Claude Code, Grok, and similar CLIs. It keeps one owner responsible for edits and final claims while routing specialist work through reliable-agent-workflow, dynamic-workflow, task-gate/thinking-gate, grok-augment, AGY frontend, GSAP/ScrollTrigger motion guidance, asset-slicer, mcp-generator, dispatcher MCP tools, and ui-ux-closed-loop. It supports platform-neutral workflow artifacts, approval gates, packet/result lifecycles, launch recipes for real subagent fanout and worker-agent fanout, record-result ingestion, Claude Code Dynamic Workflows / ultracode / .claude/workflows interop, high-quality image/video asset defaults, and deterministic generated-asset checks. SVG and emoji are prohibited as default visual assets; custom icons default to image_gen sheets sliced with asset-slicer. UI/UX automation now includes bundled SessionStart/UserPromptSubmit hooks that auto-create fallback project instructions when AGENTS.md is missing and auto-route full-page, redesign, ugly/no-planning, product-facing, high-polish, or wireframe/design-system prompts through ui-ux-closed-loop without requiring users to remember skill names. External design and verification skills such as frontend-design, ui-ux-pro-max, wireframe prototyping, Vercel guidelines, and official GSAP skills are referenced by install guidance and can be installed by model-triggered bootstrap after explicit opt-in rather than vendored wholesale.",
     "developerName": "yxhpy",
     "category": "Productivity",
     "capabilities": [
@@ -25,9 +26,9 @@
       "UIUXDesignLoop"
     ],
     "defaultPrompt": [
-      "Before non-trivial work, classify the route and preserve Plugin evidence.",
-      "Use reliable-agent-workflow, dynamic-workflow, task-gate, AGY, GSAP, ui-ux, image_gen, and slicer helpers when they apply.",
-      "Use subagents for fanout; reference-site UI needs style-review before AGY; owner verifies."
+      "Auto-classify non-trivial work; routed helpers require Plugin evidence.",
+      "Full-page/ugly/no-planning UI auto-routes through ui-ux-closed-loop before AGY implementation.",
+      "Missing AGENTS.md: fallback hooks auto-create UI/UX rules; uiux_bootstrap is only for externals."
     ]
   }
 }

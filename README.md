@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <code>v0.1.23</code> · <code>Node >= 22.18</code> · <code>Codex plugin</code> · <code>Pi package</code> · <code>MCP-ready</code>
+  <code>v0.1.24</code> · <code>Node >= 22.18</code> · <code>Codex plugin</code> · <code>Pi package</code> · <code>MCP-ready</code>
 </p>
 
 ---
@@ -72,6 +72,54 @@ codex plugin add codex-augment-dispatcher@yxhpy-codex-extensions
 > During development, do not publish or install this merge for normal use until
 > the isolated release gates pass.
 
+
+## UI/UX Auto Bootstrap and Auto-Routing
+
+For polished page/frontend work, users can type the product request directly;
+they do **not** need to remember `ui-ux-closed-loop`, `frontend-design`, or
+verification skill names.
+
+When trusted/enabled by Codex, the bundled lifecycle hooks now do the safe local
+automation automatically:
+
+- `SessionStart` creates the project `AGENTS.md` UI/UX routing snippet when no
+  project instructions are present. Disable with `CODEX_AUGMENT_AUTO_AGENTS=0`
+  or `CODEX_AUGMENT_DISABLE_AUTO_AGENTS=1`.
+- `UserPromptSubmit` classifies prompts. Full-page, redesign, ugly/no-planning,
+  product-facing, high-polish, wireframe/prototype, or design-system UI requests
+  route through `ui-ux-closed-loop`; tiny bounded visual changes use the lighter
+  `agy-frontend` path. Motion adds `gsap-animation`; generated assets add
+  `asset-slicer`.
+
+Codex plugin manifests do not run arbitrary postinstall scripts. External UI/UX
+skill installation is therefore **opt-in**, but the model/hook can run it after
+authorization so the user does not need to remember the command.
+
+Authorize automatic external-skill installs for a workspace once:
+
+```bash
+node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/uiux_bootstrap.ts --cwd <project> --authorize-auto-install --no-install-skills
+```
+
+Or use an environment variable:
+
+```bash
+set CODEX_AUGMENT_AUTO_INSTALL_UIUX_SKILLS=1
+```
+
+Once authorized, SessionStart may install the recommended external UI/UX skills
+with `npx skills add`: `frontend-design`, Vercel `agent-skills`, official GSAP
+skills, and optional `ui-ux-pro-max`. To revoke workspace authorization:
+
+```bash
+node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/uiux_bootstrap.ts --cwd <project> --revoke-auto-install --no-install-skills
+```
+
+Manual bootstrap is still available for explicit setup or CI:
+
+```bash
+npm run uiux:bootstrap -- --cwd <project>
+```
 ## Real subagent fanout
 
 To enable **real** subagent fanout instead of only simulated packets, copy the

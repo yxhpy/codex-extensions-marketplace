@@ -13,6 +13,20 @@ verification after AGY exits.
 
 ## UI/UX Closed Loop (new)
 
+
+### UI/UX auto-routing addendum
+
+The user does not need to name UI/UX skills. For full-page, redesign,
+product-facing, high-polish, ugly/no-planning, wireframe/prototype, or
+design-system UI requests, automatically start the `ui-ux-closed-loop` route.
+For tiny bounded visual tweaks, use the lighter `agy-frontend` path. If the
+project lacks `AGENTS.md`, the plugin SessionStart hook should create the UI/UX
+routing snippet automatically. External design-skill installation is opt-in:
+after `CODEX_AUGMENT_AUTO_INSTALL_UIUX_SKILLS=1` or
+`uiux_bootstrap.ts --authorize-auto-install`, the owner/model may run the
+bootstrap automatically instead of asking the user to remember the command.
+
+
 For full page requirements → product thinking → low-fidelity prototypes → polished UI/UX, use `ui-ux-closed-loop` (provided by this plugin). It orchestrates the stages, references best external skills (installed separately via npx skills add etc.; see docs/UI-UX-CLOSED-LOOP.md for the curated list and exact commands), and composes their constraints with local capabilities (agy-frontend for impl, asset-slicer for icons, gsap-animation for motion, dynamic-workflow/task-gate/reliable for structure/verification).
 
 Key: externals are **references** (install + use their rules when active). Do not assume they are present; the skill falls back gracefully and recommends them. The loop produces artifacts, evidence, and "Plugin evidence:" lines.

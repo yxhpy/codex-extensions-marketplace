@@ -14,6 +14,41 @@ import {
 
 const PLUGIN_ROOT = path.resolve(import.meta.dirname, "..");
 
+function writeFakeGrok(tempDir: string, fallbackResponse: string): string {
+	const scriptPath = path.join(tempDir, "grok-fake.mjs");
+	writeFileSync(
+		scriptPath,
+		`const args = process.argv.slice(2).join(" ");
+if (args.includes("--version")) console.log("grok 0.0.fake");
+else if (args.includes("models")) console.log("grok-build");
+else console.log(${JSON.stringify(fallbackResponse)});
+`,
+		"utf8",
+	);
+	if (process.platform === "win32") {
+		const fakeGrok = path.join(tempDir, "grok.cmd");
+		writeFileSync(
+			fakeGrok,
+			`@echo off
+
+"${process.execPath}" "${scriptPath}" %*
+
+`,
+			"utf8",
+		);
+		return fakeGrok;
+	}
+	const fakeGrok = path.join(tempDir, "grok");
+	writeFileSync(
+		fakeGrok,
+		`#!/bin/sh
+exec "${process.execPath}" "${scriptPath}" "$@"
+`,
+		"utf8",
+	);
+	chmodSync(fakeGrok, 0o755);
+	return fakeGrok;
+}
 test("single turn uses configured grok without approval or fallback", () => {
 	const calls: Array<[string[], Record<string, unknown>]> = [];
 	const cli = new GrokCli({
@@ -102,19 +137,7 @@ test("video prompt requires Grok video and forbids fallbacks", () => {
 
 test("CLI outputs JSON with fake grok binary", () => {
 	const tempDir = mkdtempSync(path.join(tmpdir(), "grok-augment-test-"));
-	const fakeGrok = path.join(tempDir, "grok");
-	writeFileSync(
-		fakeGrok,
-		`#!/bin/sh
-case "$*" in
-  *--version*) echo 'grok 0.0.fake'; exit 0 ;;
-  *models*) echo 'grok-build'; exit 0 ;;
-  *) echo 'FAKE_GROK_RESPONSE'; exit 0 ;;
-esac
-`,
-		"utf8",
-	);
-	chmodSync(fakeGrok, 0o755);
+	const fakeGrok = writeFakeGrok(tempDir, "FAKE_GROK_RESPONSE");
 
 	const completed = spawnSync(
 		process.execPath,
@@ -140,19 +163,7 @@ esac
 
 test("inspect accepts json after subcommand", () => {
 	const tempDir = mkdtempSync(path.join(tmpdir(), "grok-augment-inspect-"));
-	const fakeGrok = path.join(tempDir, "grok");
-	writeFileSync(
-		fakeGrok,
-		`#!/bin/sh
-case "$*" in
-  *--version*) echo 'grok 0.0.fake'; exit 0 ;;
-  *models*) echo 'grok-build'; exit 0 ;;
-  *) echo 'unexpected'; exit 0 ;;
-esac
-`,
-		"utf8",
-	);
-	chmodSync(fakeGrok, 0o755);
+	const fakeGrok = writeFakeGrok(tempDir, "unexpected");
 
 	const completed = spawnSync(
 		process.execPath,

@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node --experimental-strip-types \"${PLUGIN_ROOT}/scripts/uiux_auto_hook.ts\" session-start",
+            "commandWindows": "node --experimental-strip-types \"${PLUGIN_ROOT}\\scripts\\uiux_auto_hook.ts\" session-start",
+            "timeout": 180,
+            "statusMessage": "Preparing Codex Augment UI/UX routing and project instructions"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node --experimental-strip-types \"${PLUGIN_ROOT}/scripts/uiux_auto_hook.ts\" user-prompt-submit",
+            "commandWindows": "node --experimental-strip-types \"${PLUGIN_ROOT}\\scripts\\uiux_auto_hook.ts\" user-prompt-submit",
+            "timeout": 5,
+            "statusMessage": "Classifying UI/UX route"
+          }
+        ]
+      }
+    ]
+  }
+}

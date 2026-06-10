@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.24 - 2026-06-10
+
+- Add UI/UX auto-bootstrap script plus SessionStart automation that creates missing AGENTS.md routing rules without requiring users to remember bootstrap commands.
+- Add plugin-bundled SessionStart/UserPromptSubmit hooks for AGENTS.md auto-creation/fallback context, opt-in external skill auto-install, and automatic UI/UX prompt classification.
+- Strengthen dynamic workflow and task-gate routing so full-page, ugly/no-planning, high-polish, redesign, and design-system UI requests auto-route through ui-ux-closed-loop without users naming skills.
+
 ## 0.1.23 - 2026-06-10
 
 - Add `dynamic_workflow.ts record-result --packet <id> [--status success|failure|blocked] [--result-file FILE] <workflow-dir>` so real subagent/worker outputs written to `results/<packet>.md` are ingested back into `workflow.json` before `verify --complete`.

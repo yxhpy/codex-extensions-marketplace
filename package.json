@@ -1,7 +1,7 @@
 {
   "name": "yxhpy-codex-extensions",
   "description": "Polished Codex/Pi marketplace for owner-agent workflows, real subagent fanout, MCP helpers, media tools, and release-grade verification.",
-  "version": "0.1.23",
+  "version": "0.1.24",
   "license": "MIT",
   "author": "yxhpy",
   "repository": {
@@ -30,6 +30,7 @@
     "test:dispatcher": "node --experimental-strip-types --test plugins/codex-augment-dispatcher/tests/*.ts",
     "test:clean": "node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/clean_test.ts",
     "test:docker-clean": "node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/docker_clean_test.ts",
+    "uiux:bootstrap": "node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/uiux_bootstrap.ts",
     "skillopt:install-prompts": "node tools/skillopt/install_prompts.mjs",
     "skillopt:validate": "node tools/skillopt/validate_setup.mjs",
     "skillopt:train": "node tools/skillopt/run_train.mjs",

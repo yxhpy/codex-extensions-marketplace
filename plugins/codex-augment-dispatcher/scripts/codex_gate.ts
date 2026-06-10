@@ -1,5 +1,5 @@
 #!/usr/bin/env -S node --experimental-strip-types
-import { spawnSync } from "node:child_process";
+import { spawnCliSync } from "./spawn_util.ts";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -133,7 +133,7 @@ export class FollowupDecision {
 function defaultRunner(args: string[]): RunResult {
 	const [command, ...rest] = args;
 	if (!command) return { status: 1, stderr: "missing command" };
-	return spawnSync(command, rest, { encoding: "utf8" }) as RunResult;
+	return spawnCliSync(command, rest, { encoding: "utf8" }) as RunResult;
 }
 
 export class CodexExecutor {
@@ -498,7 +498,7 @@ export function buildRoutePrompt(prompt: string): string {
 			"- reliable-agent-workflow: use reliable-agent-workflow for complex coding, refactors, migrations, debugging, architecture work, high-risk changes, deep analysis, optimization plans, SkillOpt-style skill optimization, self-evolving agent skills, design-review-implement loops, Best-of-N, check-work, zero-open-issue delivery, or e2e verification across Codex, Claude Code, Grok, Pi, or another supported CLI harness.\n" +
 				"- dynamic-workflow: use dynamic-workflow for complex, multi-track, approval-gated, subagent/packet, workflow script, Claude Code Dynamic Workflows, ultracode, .claude/workflows, .atomic, native workflow bridge, background thread, agent thread, worker agent, fanout, delegation, parallel review/research/QA, artifact, end-to-end verified work, adaptive hierarchical orchestrator, environment inventory, execution_spec, refined results, or post-node replan loops.\n" +
 			"- frontend: use agy-frontend for frontend build, edit, redesign, styling, layout, interaction, browser UI work, visual verification, or high-quality image/video asset integration; AGY must not start dev/preview servers and SVG/emoji are prohibited as default visual assets. For any reference-site or external-design matching task, always also route through dynamic-workflow + task-gate and require an independent style-review subagent packet (fidelity check + no complete unintended refactor guard) before allowing the agy-frontend packet.\n" +
-		"- ui-ux-closed-loop: use ui-ux-closed-loop for full UI/UX design loops from requirements/product thinking through low-fidelity wireframes or prototypes to polished frontend/UI, including external skill references such as frontend-design, ui-ux-pro-max, wireframe prototyping, or Vercel guidelines.\n" +
+		"- ui-ux-closed-loop: automatically use ui-ux-closed-loop for full-page, redesign, product-facing, high-polish, ugly/no-planning, wireframe/prototype, design-system, or ambiguous UI/UX work. The user does not need to name this skill. Start with requirements/product thinking, information architecture, low-fidelity wireframes, visual direction/tokens, asset/motion plan, implementation, review, and zero-open-issue verification. Compose external references such as frontend-design, ui-ux-pro-max, wireframe prototyping, Vercel guidelines, or official GSAP skills when installed.\n" +
 		"- gsap-animation: use gsap-animation with agy-frontend for webpage animation, UI motion, GSAP, ScrollTrigger, parallax, timeline choreography, or React/Vue/Svelte animation; GSAP guidance is non-mutating and the owner agent still verifies locally.\n" +
 		"- assets: use asset-slicer for generated icon sheets, sprite sheets, generated icons, generate-then-slice asset pipelines, multi-asset bitmap slicing, crop drift checks, dirty-cut checks, or 切图/切分图标 requests; custom icons default to image_gen sheet generation then slicing.\n" +
 		"- mcp: use mcp-generator for MCP helper scaffolds, skill/MCP pairs, dispatcher-compatible tool surfaces, stdio JSON-RPC tools, route adapters, or MCP 生成 requests.\n" +

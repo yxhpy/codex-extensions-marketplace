@@ -146,6 +146,8 @@ test("detector routes full UI UX design loops through design-loop packet", () =>
 		"Use ui-ux-closed-loop to go from requirements to low-fi prototype to polished UI",
 		"从页面需求到产品思维、低保真原型，再做 polished UI/UX",
 		"Plan a visual product design closed loop with wireframes and frontend implementation",
+		"This landing page is ugly and has no planning; redesign it into a production-grade page",
+		"这个首页页面很丑也没有规划，重做成生产级 UI",
 	];
 
 	for (const prompt of prompts) {

@@ -10,7 +10,8 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawnSync } from "node:child_process";
+import { spawnCliSync } from "./spawn_util.ts";
+import { classifyUiuxPrompt } from "./uiux_auto_hook.ts";
 
 export const DYNAMIC_WORKFLOW_PLUGIN = "dynamic-workflow";
 export const WORKFLOW_SCHEMA_VERSION = 3;
@@ -88,7 +89,7 @@ const SIGNALS: Array<{
 	},
 	{
 		name: "ui-ux-closed-loop",
-		weight: 3,
+		weight: 4,
 		plugins: [
 			DYNAMIC_WORKFLOW_PLUGIN,
 			"task-gate",
@@ -101,7 +102,12 @@ const SIGNALS: Array<{
 			/requirements?.*(?:prototype|wireframe).*(?:ui|ux|frontend)/i,
 			/low[- ]fi(?:delity)?|wireframes?|prototype.*polished/i,
 			/design system.*(?:frontend|ui|ux)|polished (?:ui|ux|interface)/i,
-			/页面需求.*产品思维.*低保真|低保真原型|视觉设计闭环|设计闭环|产品到\s*UI|UI\/UX\s*闭环/i,
+			/(?:page|screen|website|homepage|landing page|dashboard|portal|web app).*(?:ugly|generic|template|no planning|redesign|revamp|polish|production[- ]grade|premium)/i,
+			/(?:ugly|generic|template|no planning|looks bad).*(?:page|screen|website|homepage|landing page|dashboard|ui|frontend)/i,
+			/(?:full[- ]page|page[- ]level|product[- ]facing|marketing|conversion).*(?:ui|ux|design|frontend|redesign|polish)/i,
+			/(?:\u9875\u9762|\u754c\u9762|\u524d\u7aef|\u843d\u5730\u9875|\u9996\u9875|\u5b98\u7f51|\u4eea\u8868\u76d8).*(?:\u4e11|\u96be\u770b|\u4e0d\u597d\u770b|\u6ca1\u89c4\u5212|\u6ca1\u6709\u89c4\u5212|\u6a21\u677f|AI\u5473|\u91cd\u505a|\u6539\u7248|\u7f8e\u5316|\u89c6\u89c9\u5347\u7ea7|\u751f\u4ea7\u7ea7|\u9ad8\u7ea7\u611f)/i,
+			/(?:\u4e11|\u96be\u770b|\u4e0d\u597d\u770b|\u6ca1\u89c4\u5212|\u6ca1\u6709\u89c4\u5212|\u6a21\u677f|AI\u5473).*(?:\u9875\u9762|\u754c\u9762|UI|\u524d\u7aef|\u843d\u5730\u9875|\u9996\u9875|\u5b98\u7f51)/i,
+			/(?:\u9875\u9762\u9700\u6c42.*\u4ea7\u54c1\u601d\u7ef4.*\u4f4e\u4fdd\u771f|\u4f4e\u4fdd\u771f\u539f\u578b|\u89c6\u89c9\u8bbe\u8ba1\u95ed\u73af|\u8bbe\u8ba1\u95ed\u73af|\u4ea7\u54c1\u5230\s*UI|UI\/UX\s*\u95ed\u73af)/i,
 		],
 	},
 	{
@@ -494,6 +500,16 @@ export function detectDynamicWorkflow(
 			score += signal.weight;
 			for (const plugin of signal.plugins || []) plugins.add(plugin);
 		}
+	}
+
+	const uiuxDecision = classifyUiuxPrompt(text);
+	if (uiuxDecision.route === "uiux-closed-loop") {
+		signals.add("ui-ux-closed-loop");
+		score += uiuxDecision.complexity === "high" ? 4 : 3;
+		for (const plugin of uiuxDecision.requiredPlugins) plugins.add(plugin);
+	} else if (uiuxDecision.route === "simple-frontend") {
+		signals.add("frontend");
+		for (const plugin of uiuxDecision.requiredPlugins) plugins.add(plugin);
 	}
 
 	const explicit = signals.has("explicit-workflow");
@@ -897,7 +913,7 @@ Rules:
 
 ${schema}`;
 
-	const completed = spawnSync(
+	const completed = spawnCliSync(
 		claudeBin,
 		[planningPrompt],
 		{
@@ -957,7 +973,7 @@ As an independent auditor:
 
 Output ONLY JSON: { "approved": true/false, "feedback": "concise critique and suggestions", "revisedPackets": [ ... ] (optional, only if you have specific improvements) }`;
 
-	const completed = spawnSync(claudeBin, [reviewPrompt], {
+	const completed = spawnCliSync(claudeBin, [reviewPrompt], {
 		encoding: "utf8",
 		timeout: 120_000,
 	});

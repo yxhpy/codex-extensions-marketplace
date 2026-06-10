@@ -43,7 +43,7 @@ test("merged plugin manifest uses a generic extensible name", () => {
 	);
 
 	assert.equal(manifest.name, "codex-augment-dispatcher");
-	assert.equal(manifest.version, "0.1.23");
+	assert.equal(manifest.version, "0.1.24");
 	assert.equal(manifest.skills, "./skills/");
 	assert.equal(manifest.interface.displayName, "Codex Augment Dispatcher");
 	assert.deepEqual(manifest.author, { name: "yxhpy" });
@@ -84,16 +84,13 @@ test("merged plugin manifest uses a generic extensible name", () => {
 		/SVG and emoji are prohibited/,
 	);
 	const defaultPrompt = manifest.interface.defaultPrompt.join("\n");
-	assert.match(defaultPrompt, /classify the route/);
+	assert.match(defaultPrompt, /Auto-classify/);
 	assert.match(defaultPrompt, /Plugin evidence/);
-	assert.match(defaultPrompt, /reliable-agent-workflow/);
-	assert.match(defaultPrompt, /dynamic-workflow/);
-	assert.match(defaultPrompt, /task-gate/);
-	assert.match(defaultPrompt, /GSAP/);
-	assert.match(defaultPrompt, /ui-ux/);
-	assert.match(defaultPrompt, /image_gen/);
-	assert.match(defaultPrompt, /slicer/);
-	assert.match(defaultPrompt, /subagents/);
+	assert.match(defaultPrompt, /ui-ux-closed-loop/);
+	assert.match(defaultPrompt, /AGY/);
+	assert.match(defaultPrompt, /AGENTS\.md/);
+	assert.match(defaultPrompt, /fallback hooks/);
+	assert.match(defaultPrompt, /uiux_bootstrap/);
 	assert.ok(manifest.interface.defaultPrompt.length <= 3);
 	for (const prompt of manifest.interface.defaultPrompt) {
 		assert.ok(
@@ -102,7 +99,36 @@ test("merged plugin manifest uses a generic extensible name", () => {
 		);
 	}
 	assert.ok(!("mcpServers" in manifest));
-	assert.ok(!("hooks" in manifest));
+	assert.equal(manifest.hooks, "./hooks/hooks.json");
+	assert.ok(existsSync(path.join(PLUGIN_ROOT, "hooks/hooks.json")));
+});
+
+
+test("UI/UX auto hook and bootstrap helpers are shipped", () => {
+	const hooks = readJson(path.join(PLUGIN_ROOT, "hooks/hooks.json"));
+	assert.ok(hooks.hooks.SessionStart?.[0]?.hooks?.[0]?.command.includes("uiux_auto_hook.ts"));
+	assert.ok(hooks.hooks.UserPromptSubmit?.[0]?.hooks?.[0]?.command.includes("uiux_auto_hook.ts"));
+
+	const classify = runNodeScript(
+		"scripts/uiux_auto_hook.ts",
+		["classify", "这个首页页面很丑也没有规划，重做成生产级 UI"],
+	);
+	assert.equal(classify.status, 0, classify.stderr);
+	const decision = JSON.parse(classify.stdout);
+	assert.equal(decision.route, "uiux-closed-loop");
+	assert.ok(decision.requiredPlugins.includes("ui-ux-closed-loop"));
+	assert.ok(decision.requiredPlugins.includes("agy-frontend"));
+
+	const tempDir = mkdtempSync(path.join(tmpdir(), "uiux-bootstrap-test-"));
+	const bootstrap = runNodeScript(
+		"scripts/uiux_bootstrap.ts",
+		["--cwd", tempDir, "--no-install-skills"],
+	);
+	assert.equal(bootstrap.status, 0, bootstrap.stderr);
+	const bootstrapResult = JSON.parse(bootstrap.stdout);
+	assert.equal(bootstrapResult.agentsChanged, true);
+	assert.ok(existsSync(path.join(tempDir, "AGENTS.md")));
+	assert.match(readFileSync(path.join(tempDir, "AGENTS.md"), "utf8"), /Codex Augment Dispatcher UI\/UX Auto Route/);
 });
 
 test("main dispatch skill defines generic adapter routing without taking over Codex execution", () => {
@@ -275,20 +301,32 @@ test("plugin-owned executable scripts are TypeScript only", () => {
 
 test("fake Claude, Grok, and AGY commands exercise clean local smoke paths", () => {
 	const tempDir = mkdtempSync(path.join(tmpdir(), "dispatcher-fake-cli-"));
-	const fakeClaude = path.join(tempDir, "claude");
-	const fakeGrok = path.join(tempDir, "grok");
-	const fakeAgy = path.join(tempDir, "agy");
+	const fakeClaude = path.join(tempDir, process.platform === "win32" ? "claude.cmd" : "claude");
+	const fakeGrok = path.join(tempDir, process.platform === "win32" ? "grok.cmd" : "grok");
+	const fakeAgy = path.join(tempDir, process.platform === "win32" ? "agy.cmd" : "agy");
 
 	writeFileSync(
 		fakeClaude,
-		`#!/bin/sh
-printf '%s\\n' '{"tasks":[{"title":"Plan with fake Claude"},{"title":"Verify with fake Claude"}]}'
+		process.platform === "win32"
+			? `@echo off
+
+echo {"tasks":[{"title":"Plan with fake Claude"},{"title":"Verify with fake Claude"}]}
+
+`
+			: `#!/bin/sh
+printf '%s\n' '{"tasks":[{"title":"Plan with fake Claude"},{"title":"Verify with fake Claude"}]}'
 `,
 		"utf8",
 	);
 	writeFileSync(
 		fakeGrok,
-		`#!/bin/sh
+		process.platform === "win32"
+			? `@echo off
+
+echo FAKE_GROK_RESPONSE
+
+`
+			: `#!/bin/sh
 case "$*" in
   *--version*) echo 'grok 0.0.fake'; exit 0 ;;
   *models*) echo 'grok-build'; exit 0 ;;
@@ -299,7 +337,13 @@ esac
 	);
 	writeFileSync(
 		fakeAgy,
-		`#!/bin/sh
+		process.platform === "win32"
+			? `@echo off
+
+echo agy 0.0.fake
+
+`
+			: `#!/bin/sh
 case "$*" in
   *--version*) echo 'agy 0.0.fake'; exit 0 ;;
   *) echo 'OK'; exit 0 ;;
@@ -349,7 +393,7 @@ esac
 	assert.equal(grokCritic.status, 0, grokCritic.stderr);
 	assert.match(grokCritic.stdout, /FAKE_GROK_RESPONSE/);
 
-	const agyVersion = spawnSync(fakeAgy, ["--version"], { encoding: "utf8" });
+	const agyVersion = spawnSync(fakeAgy, ["--version"], { encoding: "utf8", shell: process.platform === "win32" });
 	assert.equal(agyVersion.status, 0, agyVersion.stderr);
 	assert.match(agyVersion.stdout, /agy 0\.0\.fake/);
 });

@@ -1,7 +1,7 @@
 #!/usr/bin/env -S node --experimental-strip-types
-import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { spawnCliSync } from "./spawn_util.ts";
 
 type JsonValue = unknown;
 
@@ -258,7 +258,7 @@ export class ThinkingPlan {
 function defaultRunner(args: string[], options: RunOptions): RunResult {
   const [command, ...rest] = args;
   if (!command) return { status: 1, stderr: "missing command" };
-  return spawnSync(command, rest, {
+  return spawnCliSync(command, rest, {
     encoding: "utf8",
     timeout: options.timeout,
   }) as RunResult;

@@ -25,6 +25,35 @@ skills into the repo.
 This keeps the plugin lean, lets upstream skills evolve independently, and
 preserves the owner agent as the verifier.
 
+
+## Auto-routing and bootstrap
+
+The dispatcher includes a lightweight UI/UX auto-router so users can enter a
+plain requirement such as "this page is ugly and has no planning; redesign it"
+without naming any skill. The router classifies:
+
+- full-page, redesign, product-facing, high-polish, ugly/no-planning,
+  wireframe/prototype, or design-system requests as `ui-ux-closed-loop`;
+- tiny bounded visual changes as the lightweight `agy-frontend` path;
+- motion and generated-asset work as add-ons through `gsap-animation` and
+  `asset-slicer`.
+
+When Codex trusts/enables plugin hooks, `SessionStart` automatically creates the
+project `AGENTS.md` UI/UX routing snippet if no project instructions are found.
+This safe local write can be disabled with `CODEX_AUGMENT_AUTO_AGENTS=0` or
+`CODEX_AUGMENT_DISABLE_AUTO_AGENTS=1`.
+
+Codex plugin manifests do not run arbitrary postinstall commands. Networked
+external skill installation is opt-in: authorize it once with
+`CODEX_AUGMENT_AUTO_INSTALL_UIUX_SKILLS=1` or:
+
+```bash
+node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/uiux_bootstrap.ts --cwd <project> --authorize-auto-install --no-install-skills
+```
+
+After authorization, the model/hook may run the external skill bootstrap
+automatically; users do not need to memorize the command. Revoke with
+`--revoke-auto-install --no-install-skills`.
 ## The loop
 
 | Stage | Goal | Recommended helpers | Evidence |
