@@ -112,9 +112,23 @@ node --experimental-strip-types ../../scripts/dynamic_workflow.ts approve --scop
 5. Execute packets with real subagents when the current platform supports them.
    Prefer subagent/thread fanout for independent read-only research, review,
    validation, assets, or frontend checks; otherwise simulate packet ownership
-   serially, preserving packet/result notes.
-6. Integrate packet results explicitly; accept, reject, or mark stale outputs.
-7. After each packet result or batch, record adaptive judgment:
+   serially, preserving packet/result notes. Real workers write Markdown or JSON
+   to `results/<packet-id>.md` and include `refined-json-v1` plus a `Plugin evidence:` line.
+6. Ingest each real worker result before final verification:
+
+```bash
+node --experimental-strip-types ../../scripts/dynamic_workflow.ts record-result --packet <packet-id> .agent-workflows/<workflow-id>
+# If the worker wrote elsewhere:
+node --experimental-strip-types ../../scripts/dynamic_workflow.ts record-result --packet <packet-id> --result-file <file> .agent-workflows/<workflow-id>
+```
+
+`record-result` parses whole-file JSON, fenced JSON, a `## Refined Result`
+section, or plain Markdown fallback. It updates packet status, `workflow.results`,
+`results[].refined` (`refined-json-v1`), plugin evidence, verification records,
+`condensed_log.jsonl`, adaptive `record-result` judgment, `graph.json`, and
+`final-report.md`.
+7. Integrate packet results explicitly; accept, reject, or mark stale outputs.
+   After a batch, inspect refined results and optionally add an owner judgment:
 
 ```bash
 node --experimental-strip-types ../../scripts/dynamic_workflow.ts refined-results --json .agent-workflows/<workflow-id>

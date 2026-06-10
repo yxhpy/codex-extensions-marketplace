@@ -20,6 +20,7 @@ import {
 	getRefinedResults,
 	getWorkflowInventory,
 	listLaunchSuggestions,
+	recordPacketResult,
 	recordAdaptiveReplan,
 	simulateWorkflow,
 	validateWorkflow,
@@ -403,6 +404,115 @@ test("explicit fanout workflows create launchable subagent packet recipes", () =
 		assert.match(auto.stdout, /codex --profile deep-review/);
 		assert.match(auto.stdout, /Pi: subagent/);
 		assert.match(auto.stdout, /cc-router: taskctl capability/);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+
+test("record-result ingests real worker JSON and markdown into workflow state", () => {
+	const root = tempRoot();
+	try {
+		const { dir, workflow } = createWorkflow({
+			root,
+			id: "real-worker-ingest",
+			prompt:
+				"Use dynamic-workflow subagent fanout with real workers, approval gates, refined results, and end-to-end verification.",
+		});
+		approveWorkflow({ workflowDir: dir, scope: "execute", by: "unit-test" });
+		approveWorkflow({ workflowDir: dir, scope: "release", by: "unit-test" });
+
+		for (const [index, packet] of workflow.packets.entries()) {
+			const resultPath = path.join(dir, "results", `${packet.id}.md`);
+			if (index === 0) {
+				writeFileSync(
+					resultPath,
+					JSON.stringify(
+						{
+							status: "success",
+							summary: `${packet.role} whole-file JSON result completed.`,
+							evidence: [
+								`checked ${packet.id} packet contract`,
+								`Plugin evidence: dynamic-workflow ${packet.role} via whole-file JSON`,
+							],
+							refined: {
+								packetId: packet.id,
+								verdict: "success",
+								executiveSummary: `${packet.role} whole-file JSON result was refined for owner context.`,
+								keyArtifacts: [`results/${packet.id}.md`],
+								evidencePointers: [`results/${packet.id}.md: whole-file JSON evidence`],
+								toolsUsedForSelfResolution: ["read:packet contract", "write:refined-json-v1 result"],
+								openQuestions: [],
+								suggestedNextActions: ["continue"],
+								confidence: 0.88,
+								pluginEvidence: `Plugin evidence: dynamic-workflow ${packet.role} via whole-file JSON`,
+								completedAt: "2026-01-01T00:00:00Z",
+							},
+						},
+						null,
+						2,
+					) + "\n",
+					"utf8",
+				);
+			} else {
+				writeFileSync(
+					resultPath,
+					`# Worker Result ${packet.id}
+
+Status: success
+
+## Summary
+
+${packet.role} real worker completed and wrote portable refined output.
+
+## Evidence
+
+- checked ${packet.id} packet contract
+- Plugin evidence: dynamic-workflow ${packet.role} via fake real worker
+
+## Refined Result
+
+\`\`\`json
+${JSON.stringify(
+	{
+		packetId: packet.id,
+		verdict: "success",
+		executiveSummary: `${packet.role} real worker result was refined for owner context.`,
+		keyArtifacts: [`results/${packet.id}.md`],
+		evidencePointers: [`results/${packet.id}.md: fake real worker evidence`],
+		toolsUsedForSelfResolution: ["read:packet contract", "write:refined-json-v1 result"],
+		openQuestions: [],
+		suggestedNextActions: ["continue"],
+		confidence: 0.88,
+		pluginEvidence: `Plugin evidence: dynamic-workflow ${packet.role} via fake real worker`,
+		completedAt: "2026-01-01T00:00:00Z",
+	},
+	null,
+	2,
+)}
+\`\`\`
+`,
+					"utf8",
+				);
+			}
+			recordPacketResult({ workflowDir: dir, packetId: packet.id });
+		}
+
+		const report = validateWorkflow(dir, { requireComplete: true });
+		assert.equal(report.ok, true, report.failures.join("\n"));
+		assert.equal(report.complete, true);
+		assert.equal(report.workflow?.finalVerdict, "complete");
+		assert.equal(report.workflow?.results.length, workflow.packets.length);
+		assert.ok(
+			report.workflow?.verification.some((item) =>
+				item.check.startsWith("packet result ingest:"),
+			),
+		);
+		assert.ok(
+			report.workflow?.adaptive.replanEvents.some((item) =>
+				item.trigger.startsWith("record-result:"),
+			),
+		);
 	} finally {
 		rmSync(root, { recursive: true, force: true });
 	}

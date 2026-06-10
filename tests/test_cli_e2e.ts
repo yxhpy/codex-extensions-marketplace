@@ -23,7 +23,7 @@ import { writePng } from "../plugins/codex-augment-dispatcher/scripts/asset_slic
 const REPO_ROOT = path.resolve(import.meta.dirname, "..");
 const PLUGIN_NAME = "codex-augment-dispatcher";
 const MARKETPLACE_NAME = "yxhpy-codex-extensions";
-const VERSION = "0.1.22";
+const VERSION = "0.1.23";
 
 function readJson(filePath: string) {
 	return JSON.parse(readFileSync(filePath, "utf8"));

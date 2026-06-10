@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.23 - 2026-06-10
+
+- Add `dynamic_workflow.ts record-result --packet <id> [--status success|failure|blocked] [--result-file FILE] <workflow-dir>` so real subagent/worker outputs written to `results/<packet>.md` are ingested back into `workflow.json` before `verify --complete`.
+- Normalize worker outputs from whole-file JSON, fenced JSON / `refined-json-v1`, `## Refined Result` sections, or plain Markdown fallback into `results[].refined`, packet status, structured plugin evidence, verification records, condensed logs, adaptive `record-result` judgments, `graph.json`, and `final-report.md`.
+- Update `launch-packets` guidance and the `dynamic-workflow` skill docs to require `record-result` between worker completion and final verification.
+- Add regression coverage for real-worker JSON and Markdown ingestion through full workflow completion.
+
 ## 0.1.22 - 2026-06-04
 
 - Implement adaptive hierarchical orchestrator scaffolding from PR #3:

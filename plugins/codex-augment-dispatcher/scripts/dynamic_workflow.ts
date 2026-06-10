@@ -362,7 +362,7 @@ export type RefinedResult = {
 	completedAt: string;
 };
 
-type PacketResult = {
+export type PacketResult = {
 	packetId: string;
 	status: "success" | "failure" | "blocked";
 	summary: string;
@@ -1983,6 +1983,306 @@ export function recordAdaptiveReplan({
 	return { workflow, event };
 }
 
+type ParsedWorkerResult = {
+	status?: PacketResult["status"];
+	summary?: string;
+	evidence?: string[];
+	refined?: Partial<RefinedResult>;
+};
+
+export function recordPacketResult({
+	workflowDir,
+	packetId,
+	resultFile,
+	status,
+}: {
+	workflowDir: string;
+	packetId: string;
+	resultFile?: string;
+	status?: PacketResult["status"];
+}): { workflow: WorkflowArtifact; result: PacketResult } {
+	const workflow = loadWorkflow(workflowDir);
+	const packet = workflow.packets.find((item) => item.id === packetId);
+	if (!packet) throw new Error(`unknown packet: ${packetId}`);
+	const relResultPath = path.join("results", `${packet.id}.md`);
+	const sourcePath = resultFile
+		? path.resolve(resultFile)
+		: path.join(workflowDir, relResultPath);
+	if (!existsSync(sourcePath)) {
+		throw new Error(
+			`result file not found for ${packet.id}: ${sourcePath}; pass --result-file or create ${relResultPath}`,
+		);
+	}
+	const raw = readFileSync(sourcePath, "utf8");
+	const parsed = parseWorkerResult(raw);
+	const completedAt = parsed.refined?.completedAt || isoNow();
+	const resultStatus = status || parsed.status || refinedVerdictToStatus(parsed.refined?.verdict) || "success";
+	const evidence = parsed.evidence?.length
+		? parsed.evidence
+		: extractEvidenceLines(raw, sourcePath, workflowDir);
+	const result: PacketResult = {
+		packetId: packet.id,
+		status: resultStatus,
+		summary:
+			parsed.summary ||
+			parsed.refined?.executiveSummary ||
+			firstLine(raw, 220) ||
+			`${packet.role} worker result ingested from ${path.basename(sourcePath)}.`,
+		evidence,
+		completedAt,
+	};
+	result.refined = normalizeRefinedResult(packet, result, parsed.refined, relResultPath);
+
+	const existingIndex = workflow.results.findIndex((item) => item.packetId === packet.id);
+	if (existingIndex >= 0) workflow.results[existingIndex] = result;
+	else workflow.results.push(result);
+
+	packet.status = result.status === "blocked" ? "blocked" : "completed";
+	workflow.state = "results_collected";
+
+	const evidencePlugins = new Set([DYNAMIC_WORKFLOW_PLUGIN, ...packet.requiredPlugins]);
+	for (const plugin of evidencePlugins) {
+		workflow.evidence.push({
+			plugin,
+			commandOrTool: `record-result:${packet.id}`,
+			status: result.status === "success" ? "success" : result.status === "blocked" ? "blocked" : "warning",
+			exitCode: result.status === "success" ? 0 : undefined,
+			artifactPath: relResultPath,
+			summary:
+				plugin === DYNAMIC_WORKFLOW_PLUGIN
+					? `Real worker result ingested for ${packet.id}; ${result.refined.pluginEvidence}`
+					: `${plugin} evidence linked from real worker result ${packet.id}.`,
+			createdAt: completedAt,
+		});
+	}
+
+	workflow.verification.push({
+		check: `packet result ingest:${packet.id}`,
+		status: result.status === "success" ? "pass" : result.status === "blocked" ? "blocked" : "fail",
+		command: "dynamic_workflow.ts record-result",
+		summary: `Recorded ${result.status} refined-json-v1 result for ${packet.id} from ${path.relative(workflowDir, sourcePath) || relResultPath}.`,
+		createdAt: completedAt,
+	});
+
+	workflow.adaptive.condensedLog.push({
+		id: `log-${workflow.adaptive.condensedLog.length + 1}`,
+		createdAt: completedAt,
+		type: "packet-result",
+		packetId: packet.id,
+		summary: result.refined.executiveSummary,
+		evidencePointers: result.refined.evidencePointers,
+		confidence: result.refined.confidence,
+	});
+
+	appendReplanEvent(workflow, {
+		trigger: `record-result:${packet.id}`,
+		packetId: packet.id,
+		reason: `Real worker result for ${packet.id} was ingested and normalized to ${packet.executionSpec?.outputContract || "refined-json-v1"}.`,
+		action: result.status === "blocked" ? "blocked" : "continue",
+		affectedPackets: [packet.id],
+		status: "applied",
+		summary:
+			result.status === "success"
+				? "Adaptive judgment recorded ingested worker result; no structural graph change."
+				: `Adaptive judgment recorded ${result.status} packet result for owner follow-up.`,
+	});
+
+	maybeMarkWorkflowComplete(workflow);
+	writeAtomic(path.join(workflowDir, relResultPath), renderResult(packet, result));
+	saveWorkflow(workflowDir, workflow);
+	return { workflow, result };
+}
+
+function parseWorkerResult(raw: string): ParsedWorkerResult {
+	const jsonCandidates = collectJsonCandidates(raw);
+	for (const candidate of jsonCandidates) {
+		try {
+			const parsed = parsedResultFromJson(JSON.parse(candidate));
+			if (parsed.status || parsed.summary || parsed.evidence?.length || parsed.refined) {
+				return parsed;
+			}
+		} catch {
+			// Try next candidate.
+		}
+	}
+	return parseMarkdownWorkerResult(raw);
+}
+
+function collectJsonCandidates(raw: string): string[] {
+	const candidates: string[] = [];
+	const trimmed = raw.trim();
+	if (trimmed.startsWith("{") && trimmed.endsWith("}")) candidates.push(trimmed);
+	for (const match of raw.matchAll(/```(?:json|refined-json-v1)?\s*([\s\S]*?)```/gi)) {
+		const body = match[1].trim();
+		if (body.startsWith("{") && body.endsWith("}")) candidates.push(body);
+	}
+	const refined = sectionBody(raw, "Refined Result") || sectionBody(raw, "refined-json-v1");
+	if (refined) {
+		const fenced = refined.match(/```(?:json|refined-json-v1)?\s*([\s\S]*?)```/i)?.[1]?.trim();
+		if (fenced) candidates.push(fenced);
+		const direct = refined.trim();
+		if (direct.startsWith("{") && direct.endsWith("}")) candidates.push(direct);
+	}
+	return candidates;
+}
+
+function parsedResultFromJson(value: unknown): ParsedWorkerResult {
+	if (!value || typeof value !== "object") return {};
+	const obj = value as Record<string, unknown>;
+	const refinedSource = (obj.refined && typeof obj.refined === "object" ? obj.refined : obj) as Record<string, unknown>;
+	const refined = looksLikeRefinedResult(refinedSource) ? partialRefinedFromObject(refinedSource) : undefined;
+	return {
+		status: parseOptionalStatus(obj.status) || refinedVerdictToStatus(refined?.verdict),
+		summary: typeof obj.summary === "string" ? obj.summary : refined?.executiveSummary,
+		evidence: asStringArray(obj.evidence),
+		refined,
+	};
+}
+
+function looksLikeRefinedResult(obj: Record<string, unknown>): boolean {
+	return typeof obj.executiveSummary === "string" || typeof obj.pluginEvidence === "string" || Array.isArray(obj.toolsUsedForSelfResolution);
+}
+
+function partialRefinedFromObject(obj: Record<string, unknown>): Partial<RefinedResult> {
+	return {
+		packetId: typeof obj.packetId === "string" ? obj.packetId : undefined,
+		verdict: parseOptionalVerdict(obj.verdict),
+		executiveSummary: typeof obj.executiveSummary === "string" ? obj.executiveSummary : undefined,
+		keyArtifacts: asStringArray(obj.keyArtifacts),
+		evidencePointers: asStringArray(obj.evidencePointers),
+		toolsUsedForSelfResolution: asStringArray(obj.toolsUsedForSelfResolution),
+		openQuestions: Array.isArray(obj.openQuestions) ? normalizeOpenQuestions(obj.openQuestions) : undefined,
+		suggestedNextActions: asStringArray(obj.suggestedNextActions),
+		confidence: typeof obj.confidence === "number" ? Math.max(0, Math.min(1, obj.confidence)) : undefined,
+		pluginEvidence: typeof obj.pluginEvidence === "string" ? obj.pluginEvidence : undefined,
+		completedAt: typeof obj.completedAt === "string" ? obj.completedAt : undefined,
+	};
+}
+
+function parseMarkdownWorkerResult(raw: string): ParsedWorkerResult {
+	const statusMatch = raw.match(/^Status:\s*(success|failure|blocked)\s*$/im);
+	const summarySection = sectionBody(raw, "Summary");
+	const evidenceSection = sectionBody(raw, "Evidence");
+	const pluginEvidence = raw.match(/Plugin evidence:\s*.+/i)?.[0];
+	const evidence = evidenceSection
+		? evidenceSection
+				.split(/\r?\n/)
+				.map((line) => line.replace(/^\s*[-*]\s*/, "").trim())
+				.filter(Boolean)
+		: [];
+	if (pluginEvidence && !evidence.includes(pluginEvidence)) evidence.push(pluginEvidence);
+	return {
+		status: statusMatch ? parseOptionalStatus(statusMatch[1]) : undefined,
+		summary: summarySection ? firstLine(summarySection, 500) : firstLine(raw, 220),
+		evidence,
+	};
+}
+
+function normalizeRefinedResult(
+	packet: Packet,
+	result: PacketResult,
+	input: Partial<RefinedResult> | undefined,
+	artifact: string,
+): RefinedResult {
+	const fallback = buildRefinedResult(packet, result);
+	const evidencePointers = input?.evidencePointers?.length
+		? input.evidencePointers
+		: result.evidence.map((item) => `${artifact}: ${item}`);
+	return {
+		packetId: packet.id,
+		verdict: input?.verdict || fallback.verdict,
+		executiveSummary: input?.executiveSummary || result.summary || fallback.executiveSummary,
+		keyArtifacts: input?.keyArtifacts?.length ? input.keyArtifacts : [artifact],
+		evidencePointers: evidencePointers.length ? evidencePointers : [`${artifact}: ingested worker result`],
+		toolsUsedForSelfResolution: input?.toolsUsedForSelfResolution?.length
+			? input.toolsUsedForSelfResolution
+			: [
+					"read:packet contract",
+					"inspect:workflow.json executionSpec",
+					"write:worker result markdown/json",
+					"ingest:dynamic_workflow.ts record-result",
+				],
+		openQuestions: input?.openQuestions || [],
+		suggestedNextActions: input?.suggestedNextActions?.length
+			? input.suggestedNextActions
+			: fallback.suggestedNextActions,
+		confidence: typeof input?.confidence === "number" ? input.confidence : fallback.confidence,
+		pluginEvidence:
+			input?.pluginEvidence ||
+			`Plugin evidence: dynamic-workflow ${packet.role} via record-result refined-json-v1 ingestion.`,
+		completedAt: input?.completedAt || result.completedAt,
+	};
+}
+
+function maybeMarkWorkflowComplete(workflow: WorkflowArtifact): void {
+	const resultIds = new Set(workflow.results.map((result) => result.packetId));
+	const allPacketsTerminal = workflow.packets.every(
+		(packet) => packet.status === "completed" && resultIds.has(packet.id),
+	);
+	const allResultsSuccessful = workflow.results.every((result) => result.status === "success" && !!result.refined);
+	const approvalsGranted = workflow.approvals.every((approval) => approval.status === "granted");
+	if (allPacketsTerminal && allResultsSuccessful && approvalsGranted) {
+		workflow.state = "complete";
+		workflow.finalVerdict = "complete";
+		workflow.verification.push({
+			check: "record-result workflow completion",
+			status: "pass",
+			command: "dynamic_workflow.ts record-result",
+			summary: "All packets have successful refined results, approvals, plugin evidence, condensed log entries, and adaptive judgments.",
+			createdAt: isoNow(),
+		});
+	} else if (workflow.results.some((result) => result.status === "blocked")) {
+		workflow.finalVerdict = "blocked";
+	} else {
+		workflow.finalVerdict = "pending";
+	}
+}
+
+function sectionBody(raw: string, heading: string): string | undefined {
+	const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	const match = raw.match(new RegExp(`^##\\s+${escaped}\\s*$([\\s\\S]*?)(?=^##\\s+|(?![\\s\\S]))`, "im"));
+	return match?.[1]?.trim();
+}
+
+function extractEvidenceLines(raw: string, sourcePath: string, workflowDir: string): string[] {
+	const lines = raw
+		.split(/\r?\n/)
+		.map((line) => line.trim())
+		.filter((line) => /^Plugin evidence:/i.test(line));
+	const rel = path.relative(workflowDir, sourcePath) || sourcePath;
+	return lines.length ? lines : [`ingested result file: ${rel}`];
+}
+
+function parseOptionalStatus(value: unknown): PacketResult["status"] | undefined {
+	return value === "success" || value === "failure" || value === "blocked" ? value : undefined;
+}
+
+function parseOptionalVerdict(value: unknown): RefinedResult["verdict"] | undefined {
+	return value === "success" || value === "partial" || value === "blocked" ? value : undefined;
+}
+
+function refinedVerdictToStatus(value: unknown): PacketResult["status"] | undefined {
+	if (value === "success") return "success";
+	if (value === "blocked") return "blocked";
+	if (value === "partial") return "failure";
+	return undefined;
+}
+
+function normalizeOpenQuestions(value: unknown[]): RefinedOpenQuestion[] {
+	return value
+		.map((item) => {
+			if (!item || typeof item !== "object") return undefined;
+			const obj = item as Record<string, unknown>;
+			const impact = obj.impact === "low" || obj.impact === "medium" || obj.impact === "high" ? obj.impact : "medium";
+			return {
+				q: typeof obj.q === "string" ? obj.q : String(obj.question || "open question"),
+				resolvedVia: typeof obj.resolvedVia === "string" ? obj.resolvedVia : "worker self-resolution",
+				impact,
+			};
+		})
+		.filter((item): item is RefinedOpenQuestion => !!item);
+}
+
 export function listLaunchSuggestions({
 	workflowDir,
 	harness = "auto",
@@ -2366,6 +2666,8 @@ type CliArgs = {
 	packetId?: string;
 	trigger?: string;
 	action?: ReplanEvent["action"];
+	resultFile?: string;
+	resultStatus?: PacketResult["status"];
 };
 
 function parseArgs(argv: string[]): CliArgs {
@@ -2392,6 +2694,8 @@ function parseArgs(argv: string[]): CliArgs {
 		else if (item === "--packet") args.packetId = argv[++i] || undefined;
 		else if (item === "--trigger") args.trigger = argv[++i] || undefined;
 		else if (item === "--action") args.action = parseReplanAction(argv[++i] || "");
+		else if (item === "--result-file") args.resultFile = argv[++i] || undefined;
+		else if (item === "--status") args.resultStatus = parseResultStatus(argv[++i] || "");
 		else args.prompt.push(item);
 	}
 	return args;
@@ -2418,6 +2722,11 @@ function parseReplanAction(value: string): ReplanEvent["action"] {
 	);
 }
 
+function parseResultStatus(value: string): PacketResult["status"] {
+	if (value === "success" || value === "failure" || value === "blocked") return value;
+	throw new Error("--status must be one of: success, failure, blocked");
+}
+
 function printHelp(): void {
 	console.log(`usage: dynamic_workflow.ts <command> [options] [prompt-or-workflow-dir]
 
@@ -2428,6 +2737,8 @@ Commands:
   approve --scope execute <dir>     Record an approval gate as granted.
   deny --scope execute <dir>        Record an approval gate as denied.
   simulate <dir>                    Run deterministic simulated packet/result completion.
+  record-result --packet ID [--status success|failure|blocked] [--result-file FILE] <dir>
+                                    Ingest a real worker Markdown/JSON result into workflow.json.
   verify [--complete] <dir>         Validate structure, or full completion with --complete.
   inventory [--json] <dir>          Print captured environment inventory.
   refined-results [--json] <dir>    Print compact refined packet results.
@@ -2440,7 +2751,8 @@ Commands:
                                     for subagent-mode packets. Uses native primitives where
                                     available (Grok task/spawn, Claude Agent/@, Codex with tomls,
                                     Pi subagent calls) or documented fallbacks + cc-router taskctl
-                                    note. Workers must write results into the workflow results/ dir.
+                                    note. Workers must write results into the workflow results/ dir,
+                                    then owner runs record-result before verify --complete.
 `);
 }
 
@@ -2508,6 +2820,20 @@ export function main(argv = process.argv.slice(2)): number {
 			const workflow = simulateWorkflow({ workflowDir });
 			if (args.json) console.log(JSON.stringify(workflow, null, 2));
 			else console.log(`simulated workflow: ${workflowDir}`);
+			return 0;
+		}
+		if (args.command === "record-result") {
+			const workflowDir = args.prompt[0];
+			if (!workflowDir) throw new Error("record-result requires workflow directory");
+			if (!args.packetId) throw new Error("record-result requires --packet ID");
+			const recorded = recordPacketResult({
+				workflowDir,
+				packetId: args.packetId,
+				resultFile: args.resultFile,
+				status: args.resultStatus,
+			});
+			if (args.json) console.log(JSON.stringify(recorded, null, 2));
+			else console.log(`recorded result for ${recorded.result.packetId}: ${recorded.result.status}`);
 			return 0;
 		}
 		if (args.command === "verify") {
@@ -2614,7 +2940,7 @@ export function main(argv = process.argv.slice(2)): number {
 			const workflow = loadWorkflow(workflowDir);
 			console.log(`# launch-packets for ${workflow.id} (harness=${harness})`);
 			console.log("# Owner should run the relevant recipe (or equivalent native tool call) for each subagent packet.");
-			console.log("# Results must be written back to results/<packet>.md + evidence recorded.");
+			console.log("# Results must be written back to results/<packet>.md, then ingested with record-result.");
 			console.log("# See docs/CROSS_HARNESS_SUBAGENT_TRIGGERING.md for exact syntax per harness + cc-router interop.");
 			const suggestions = listLaunchSuggestions({
 				workflowDir,
@@ -2634,7 +2960,8 @@ export function main(argv = process.argv.slice(2)): number {
 			}
 			if (emitted === 0)
 				console.log("\n# No subagent-mode packets found in this workflow. Nothing to launch.");
-			console.log("\n# After launches, run: node .../dynamic_workflow.ts verify --complete " + workflowDir);
+			console.log("\n# After each worker finishes, run: node .../dynamic_workflow.ts record-result --packet <packet-id> " + workflowDir);
+			console.log("# Then run: node .../dynamic_workflow.ts verify --complete " + workflowDir);
 			return 0;
 		}
 		throw new Error(`unknown command: ${args.command}`);
