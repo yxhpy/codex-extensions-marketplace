@@ -1,14 +1,51 @@
 # yxhpy Codex Extensions
 
-Public catalog for optional Codex plugins and MCP-oriented tools.
+<p align="center">
+  <strong>One owner agent. Many specialist helpers. A durable audit trail.</strong><br />
+  A polished marketplace for Codex/Pi extensions, MCP-ready workflows, real subagent fanout, media tools, and release-grade verification.
+</p>
 
-## Contents
+<p align="center">
+  <code>v0.1.23</code> · <code>Node >= 22.18</code> · <code>Codex plugin</code> · <code>Pi package</code> · <code>MCP-ready</code>
+</p>
 
-| Type | Name | Path | Purpose |
+---
+
+## Why this repo exists
+
+Modern coding agents are powerful, but serious work needs structure: planning,
+review, fanout, evidence, and release gates. This marketplace packages those
+patterns into a stable dispatcher plugin plus a few focused Pi extensions.
+
+> **Core idea:** keep one owner agent accountable for edits, tests, release
+> decisions, and final claims while routing specialist work through explicit,
+> auditable helpers.
+
+## At a glance
+
+| You want to... | Use this | What it gives you |
+| --- | --- | --- |
+| Orchestrate complex work | `dynamic-workflow` | `.agent-workflows/<id>/`, packet graph, approvals, refined results, adaptive logs, `verify --complete` |
+| Deliver risky engineering changes | `reliable-agent-workflow` | Design → review → repair → independent verification → zero-open-issue loop |
+| Fan out real workers | `launch-packets` + `record-result` | Harness-specific worker recipes for Codex, Claude Code, Grok, Pi, and cc-router, then result ingestion back into `workflow.json` |
+| Gate Codex execution | `task-gate` / `codex_gate.ts` | Route classification, numbered plans, follow-up completion checks, required `Plugin evidence:` |
+| Add frontend polish | `agy-frontend` + `gsap-animation` | Bounded frontend delegation, no blocking dev servers, motion briefs, reduced-motion/perf checks |
+| Generate and slice assets | `codex_generate_image` + `asset-slicer` | high-quality image_gen/Grok Video defaults, PNG sheet slicing, deterministic quality gates |
+| Use Grok capabilities | `grok-augment` + `xai-grok` | Non-mutating research/critique, Grok video briefs, X Search, Grok Imagine video generation |
+| Build full UI/UX loops | `ui-ux-closed-loop` | Requirements → product thinking → low-fi prototype → polished UI/UX with external skill references |
+| Expose helper tools | `dispatcher_mcp.ts` | Minimal stdio JSON-RPC tools for classification, workflows, verification, and reliable contracts |
+
+## Repository map
+
+| Type | Name | Path | Role |
 | --- | --- | --- | --- |
-| Plugin + Scripts + Skills | `codex-augment-dispatcher` | `plugins/codex-augment-dispatcher` | Extensible reliable-agent workflow, dynamic-workflow, MCP helper, subagent fanout, external CLI adapter, high-quality media guidance, GSAP motion guidance, deterministic generated-asset workflow, and owner-agent coordination hub; adapters cover cross-harness reliable delivery for Pi/Codex/Claude Code/Grok, platform-neutral workflow artifacts, Claude task gating, Grok augmentation, AGY frontend implementation, generated icon slicing, GSAP animation briefs, dispatcher MCP, mcp-generator, and asset slicing. **Now also includes ui-ux-closed-loop for full requirements-to-product-thinking-to-low-fi-prototype-to-polished-UI/UX orchestration with external skill references.** |
-| Pi Extension | `codex_generate_image` | `extensions/codex-image-gen` | Generate bitmap images from Pi through the OpenAI Codex Responses backend using the existing `openai-codex` login; backend image model is gpt-image-2. |
-| Pi Extension | `xai_grok_x_search`, `xai_grok_video_generate` | `extensions/xai-grok` | Search X and generate Grok Imagine videos from Pi using xAI API keys or Pi-owned xAI OAuth, without depending on Hermes. |
+| Plugin + scripts + skills | `codex-augment-dispatcher` | `plugins/codex-augment-dispatcher` | The main orchestration hub: reliable delivery, dynamic workflow artifacts, MCP helpers, subagent fanout, task gates, Grok augmentation, AGY frontend, GSAP motion, asset slicing, and UI/UX closed loops. |
+| Pi extension | `codex_generate_image` | `extensions/codex-image-gen` | Generate bitmap assets through the OpenAI Codex Responses backend using Pi's existing `openai-codex` login. |
+| Pi extension | `xai_grok_x_search`, `xai_grok_video_generate` | `extensions/xai-grok` | Use xAI X Search and Grok Imagine video generation from Pi without relying on Hermes. |
+| Docs | Cross-harness recipes | `docs/CROSS_HARNESS_SUBAGENT_TRIGGERING.md` | Exact recipes and setup notes for real subagent fanout across Codex, Claude Code, Grok, Pi, and cc-router. |
+| Docs | UI/UX loop | `docs/UI-UX-CLOSED-LOOP.md` | Reference-based integration for external design, wireframe, accessibility, and motion skills. |
+
+---
 
 ## Install Plugin
 
@@ -19,35 +56,11 @@ codex plugin marketplace add yxhpy/codex-extensions-marketplace --ref main
 codex plugin list --marketplace yxhpy-codex-extensions
 ```
 
-Install the merged plugin:
+Install the merged dispatcher plugin:
 
 ```bash
 codex plugin add codex-augment-dispatcher@yxhpy-codex-extensions
 ```
-
-To enable *real* (not just simulated) subagent fanout, copy the harness-specific examples from `docs/examples/` (Codex .toml, Claude .md frontmatter agents, Grok personas) into your project or global config. See the full research + recipes in `docs/CROSS_HARNESS_SUBAGENT_TRIGGERING.md`. After `dynamic_workflow.ts new`, run:
-
-```bash
-node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts launch-packets --harness codex .agent-workflows/<id>
-```
-
-This prints harness-specific spawn recipes (Grok task+persona, Claude Agent/@mention, Codex with tomls + profile, Pi subagent(), or cc-router taskctl fallback) so the owner can execute the subagent-mode packets and record evidence. Use `--harness auto` to print recipes for all supported harnesses.
-
-Recommended project instructions:
-
-- Merge [`AGENTS.md`](AGENTS.md) into the target project's existing
-  `AGENTS.md`; keep project-specific rules first.
-- These rules help the owner agent proactively choose `dynamic-workflow`,
-  `reliable-agent-workflow`, `dynamic-workflow`, `task-gate`,
-  `thinking-gate`, `grok-augment`, `agy-frontend`, `gsap-animation`,
-  `asset-slicer`, `ui-ux-closed-loop`, or `mcp-generator` without waiting for explicit mentions.
-- Mandatory gated execution does not require editing project `AGENTS.md`; use
-  `scripts/codex_gate.ts` when the raw prompt must be classified before Codex
-  receives execution tasks.
-- The included thread/subagent fanout rules make background workers easier to
-  trigger for independent research, planning, frontend checks, validation, and
-  release review while one owner thread keeps responsibility for edits, tests,
-  release gates, integration, and final claims.
 
 Update later:
 
@@ -56,39 +69,99 @@ codex plugin marketplace upgrade yxhpy-codex-extensions
 codex plugin add codex-augment-dispatcher@yxhpy-codex-extensions
 ```
 
-During development, do not publish or install this merge for normal use until the isolated release gates pass.
+> During development, do not publish or install this merge for normal use until
+> the isolated release gates pass.
+
+## Real subagent fanout
+
+To enable **real** subagent fanout instead of only simulated packets, copy the
+harness-specific examples from `docs/examples/` into your target project or
+global agent config:
+
+- Codex: `.codex/agents/*.toml`
+- Claude Code: `.claude/agents/*.md`
+- Grok: persona/config notes in `docs/examples/grok-agents/`
+- Pi: `subagent({ ... })` recipes printed by the workflow launcher
+- cc-router: `taskctl capability` bridge recipes
+
+Create a workflow, print launch recipes, let workers write results, then ingest
+those results:
+
+```bash
+node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts new --json "Plan a risky subagent migration with approval gates"
+node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts launch-packets --harness auto .agent-workflows/<id>
+node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts record-result --packet <packet-id> .agent-workflows/<id>
+node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts verify --complete .agent-workflows/<id>
+```
+
+`record-result` is the real-worker bridge: it normalizes Markdown/JSON worker
+outputs into `workflow.json`, `results[].refined`, plugin evidence, verification
+records, condensed logs, adaptive judgments, `graph.json`, and `final-report.md`.
+Use `--harness auto` to print recipes for all supported harnesses.
+
+See `docs/CROSS_HARNESS_SUBAGENT_TRIGGERING.md` for the full research and exact
+spawn commands across Pi, Codex, Claude Code, Grok, and cc-router.
+
+## Recommended project instructions
+
+Merge [`AGENTS.md`](AGENTS.md) into the target project's existing `AGENTS.md`;
+keep project-specific rules first. These rules help the owner agent proactively choose
+`dynamic-workflow`, `reliable-agent-workflow`, `task-gate`, `thinking-gate`,
+`grok-augment`, `agy-frontend`, `gsap-animation`, `asset-slicer`,
+`ui-ux-closed-loop`, or `mcp-generator` without waiting for explicit mentions.
+
+The included thread/subagent fanout rules make background workers easier to
+trigger for independent research, planning, frontend checks, validation, and
+release review while one owner thread keeps responsibility for edits, tests,
+release gates, integration, and final claims.
+
+Mandatory gated execution does not require editing project `AGENTS.md`; use
+`scripts/codex_gate.ts` when the raw prompt must be classified before Codex
+receives execution tasks.
+
+---
 
 ## UI/UX Design Closed Loop (Requirements → Product Thinking → Low-fi Prototypes → Polished UI/UX)
 
-This marketplace now provides orchestration for the complete visual/product design flow while **referencing** (not hardcoding) best external skills for depth. See the new `ui-ux-closed-loop` skill inside the dispatcher and `docs/UI-UX-CLOSED-LOOP.md` for the full workflow, exact install commands for externals (npx skills add ...), coordination rules, and philosophy.
+The dispatcher can run a complete visual/product design loop while
+**referencing** external best-of-breed skills instead of hardcoding their full
+content.
 
-Key local pieces that stay self-contained:
-- `agy-frontend`: specialist delegation for frontend impl + strict real generated media (image_gen/Grok Video) + no SVG/emoji defaults + taste rules.
+Local pieces that stay self-contained:
+
+- `agy-frontend`: bounded frontend implementation, strict real generated media,
+  no SVG/emoji defaults, taste checks, and no blocking dev servers.
 - `asset-slicer`: deterministic quality gate for generated icon/sprite sheets.
-- `gsap-animation`: distilled motion guidance + verification (references the official greensock/gsap-skills).
+- `gsap-animation`: compact motion guidance and verification, referencing the
+  official Greensock skills when deeper detail is installed.
 
-External references (install separately for best results; the loop skill will compose their rules when active):
-- `frontend-design` (anthropics) for bold non-generic aesthetics.
-- `ui-ux-pro-max` for design intelligence DB (styles, palettes, UX guidelines, priority rules).
-- Wireframe Prototyping skills for low-fi stage.
-- Vercel guidelines for correctness/a11y/perf review.
-- Official GSAP skills for deep animation.
-- And more (product research, critique, DS, a11y) as listed in the docs.
+External references to install separately for best results:
 
-Install the externals with the skills CLI (works across Codex, Claude Code, Cursor...):
+| External skill | Purpose |
+| --- | --- |
+| `frontend-design` | Bold, non-generic aesthetics and strong visual direction. |
+| `ui-ux-pro-max` | Design intelligence: styles, palettes, UX guidelines, product-type reasoning. |
+| Wireframe Prototyping | Low-fi flows, tasks, validation metrics, and prototype iteration. |
+| Vercel guidelines | Web correctness, accessibility, performance, and React quality review. |
+| Official GSAP skills | Deeper animation and ScrollTrigger patterns. |
+
+Install core externals with the skills CLI:
+
 ```bash
 npx skills add https://github.com/anthropics/skills --skill frontend-design
 npx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max
 npx skills add https://github.com/greensock/gsap-skills
-# ... see docs/UI-UX-CLOSED-LOOP.md for the full curated list and commands
+# See docs/UI-UX-CLOSED-LOOP.md for the full curated list and commands.
 ```
 
-The dispatcher plugin already anticipates this: agy-frontend SKILL.md says to use `frontend-design` constraints when present.
+The dispatcher plugin already anticipates this: `agy-frontend` composes active
+`frontend-design`, `ui-ux-pro-max`, `asset-slicer`, and `gsap-animation`
+constraints into the implementation prompt while the owner agent verifies.
 
 ## Install in Pi
 
 Install the same repository as a Pi package to expose the bundled dispatcher
-skills to Pi sessions:
+skills and extensions to Pi sessions:
 
 ```bash
 pi install git:github.com/yxhpy/codex-extensions-marketplace@main
@@ -101,12 +174,15 @@ For local development, install the checkout path instead:
 pi install /path/to/codex-extensions-marketplace
 ```
 
-Pi loads the skills from `plugins/codex-augment-dispatcher/skills`, the
-Codex image generation extension from `extensions/codex-image-gen/index.ts`,
-and the standalone xAI/Grok extension from `extensions/xai-grok/index.ts`.
-The helper scripts remain repository-owned TypeScript scripts; when a Pi-loaded
+Pi loads:
+
+- skills from `plugins/codex-augment-dispatcher/skills`
+- Codex image generation from `extensions/codex-image-gen/index.ts`
+- xAI/Grok tools from `extensions/xai-grok/index.ts`
+
+Helper scripts remain repository-owned TypeScript scripts. When a Pi-loaded
 skill needs to invoke one, resolve the active `SKILL.md` directory and use the
-documented skill-relative path such as `../../scripts/task_gate.ts`.
+skill-relative path such as `../../scripts/task_gate.ts`.
 
 ### Codex image generation in Pi
 
@@ -116,7 +192,7 @@ After installing the Pi package, run `/login` and select **ChatGPT Plus/Pro
 Codex's Responses backend with `image_generation`, and saves the generated file
 according to its save mode.
 
-Optional config file paths:
+Optional config paths:
 
 - Global: `~/.pi/agent/extensions/codex-image-gen.json`
 - Project: `<project>/.pi/extensions/codex-image-gen.json`
@@ -136,17 +212,16 @@ Example:
 
 The `extensions/xai-grok` Pi extension is independent of Hermes. It never shells
 out to Hermes and never reads `~/.hermes/auth.json`. It resolves xAI credentials
-from `XAI_API_KEY` / `PI_XAI_API_KEY`, from optional Pi config, or from Pi-owned
-OAuth credentials created with `/xai-grok-login`.
+from `XAI_API_KEY` / `PI_XAI_API_KEY`, optional Pi config, or Pi-owned OAuth
+credentials created with `/xai-grok-login`.
 
 Available tools:
 
 - `xai_grok_x_search`: calls xAI `/v1/responses` with the native `x_search` tool.
 - `xai_grok_video_generate`: starts `/v1/videos/generations`, polls the request,
-  defaults to broadly supported 720p output, and downloads the completed MP4
-  into the workspace by default.
+  defaults to broadly supported 720p output, and downloads the completed MP4.
 
-Optional config file paths:
+Optional config paths:
 
 - Global: `~/.pi/agent/extensions/xai-grok.json`
 - Project: `<project>/.pi/extensions/xai-grok.json`
@@ -162,49 +237,83 @@ Example:
 }
 ```
 
-Grok video generation defaults to `720p` because some xAI teams cannot access `1080p`. Request `1080p` only when the user's xAI team explicitly supports it.
+Grok video generation defaults to `720p` because some xAI teams cannot access
+`1080p`. Request `1080p` only when the user's xAI team explicitly supports it.
 
-## Capabilities
+---
 
-This plugin keeps its install identity stable while adding cross-harness reliable engineering delivery, platform-neutral agent workflow orchestration, stronger subagent/thread fanout routing, MCP helper surfaces, high-quality media defaults, more external CLI adapters, and thread/subagent coordination rules.
+## Capability map
 
-Initial adapters:
+### Orchestration and verification
 
-- Reliable agent workflow: `skills/reliable-agent-workflow` vendors the latest `yxhpy/reliable-agent-workflow-skill` content and applies to Pi, Codex, Claude Code, Grok, and similar CLI tools. It triggers on complex coding, refactors, migrations, debugging, architecture work, deep analysis, optimization plans, high-risk changes, design-review-implement, Best-of-N, check-work, zero-open-issue loops, independent verification, and e2e verification. `scripts/sync_reliable_agent_workflow.ts` can sync or verify the bundled skill against the upstream GitHub HEAD.
-- Agent dynamic workflow orchestration: `skills/dynamic-workflow` and `scripts/dynamic_workflow.ts` create durable `.agent-workflows/<id>/` artifacts with approval gates, packet/result lifecycle, structured evidence, simulated-packet fallback, and final verification. Prompts mentioning subagents, background threads, agent threads, worker agents, fanout, delegation, packets, workflow scripts, Claude Code Dynamic Workflows, `ultracode`, `.claude/workflows`, `.atomic`, or parallel review/research/QA trigger this path more reliably. `.agent-workflows/` stays canonical; native layouts are optional bridge metadata.
-- Claude CLI task gating: `scripts/task_gate.ts` generates divergent ideas and numbered task plans, while `scripts/codex_gate.ts` can pass only the generated task plan into `codex exec` for Codex-specific gated execution rounds.
-- Grok CLI augmentation: `scripts/grok_augment.ts` uses Grok for non-mutating research, critique, creative direction, divergence, Grok-video-only briefs, and real MP4 generation through a configured Grok-compatible `/v1/videos` endpoint.
-- AGY CLI frontend workflow: `skills/agy-frontend` routes frontend build, edit, redesign, styling, layout, interaction, and visual implementation through Antigravity CLI, while explicitly forbidding AGY from starting blocking frontend dev/preview servers. SVG and emoji are prohibited as default visual assets; visual-led work defaults to high-quality image_gen/Grok Video assets.
-- GSAP animation guidance: `skills/gsap-animation` distills `greensock/gsap-skills` into motion briefs for webpage animation, ScrollTrigger, framework lifecycle cleanup, accessibility, and performance; AGY still owns frontend implementation and the owner agent verifies locally.
-- Asset slicing workflow: `skills/asset-slicer` and `scripts/asset_slice.ts` split generated icon/sprite sheets into deterministic PNG slices, remove background pixels, and fail on dirty borders, clipped assets, insufficient gutters, count mismatches, or expected-box drift. Custom icons default to image_gen sheet generation followed by `asset-slicer` rather than SVG or emoji.
-- Dispatcher MCP surface: `scripts/dispatcher_mcp.ts` is a minimal stdio JSON-RPC tool surface exposing dispatch classification, workflow create/approve/verify, and reliable-stage contracts. It is script-only by default and does not add manifest-level `mcpServers` wiring.
-- MCP generator guidance: `skills/mcp-generator` helps create small dispatcher-compatible MCP or skill/MCP scaffolds with owner-agent verification boundaries and fake stdio tests.
-- **UI/UX closed loop (new)**: `skills/ui-ux-closed-loop` orchestrates the full flow from requirements/product thinking/low-fi prototypes (referencing external wireframe + research skills) through aesthetics (frontend-design), design intelligence (ui-ux-pro-max), assets (local + slicer), motion (gsap), impl (agy-frontend composed with externals), to review/verification (Vercel guidelines + local evidence loops). External skills are integrated as references/install guidance only.
+- `dynamic-workflow`: creates durable workflow artifacts with approvals,
+  packet/result lifecycle, `record-result` ingestion, structured evidence,
+  simulated fallback, adaptive condensed logs, and final verification.
+- `reliable-agent-workflow`: vendors the latest
+  `yxhpy/reliable-agent-workflow-skill` and applies to Pi, Codex, Claude Code,
+  Grok, and similar CLIs for complex coding, refactors, migrations, debugging,
+  architecture work, deep analysis, optimization plans, Best-of-N,
+  zero-open-issue loops, independent verification, and e2e verification.
+- `task-gate` / `thinking-gate`: produce numbered plans or divergent ideas
+  before execution.
+- `dispatcher_mcp.ts`: exposes dispatch classification, workflow
+  create/approve/verify, launch hints, refined results, and reliable-stage
+  contracts as a minimal stdio JSON-RPC surface.
+
+### Frontend, motion, and assets
+
+- `agy-frontend`: routes frontend build, edit, redesign, styling, layout,
+  interaction, and visual implementation through AGY while forbidding blocking
+  dev/preview servers.
+- `gsap-animation`: distills `greensock/gsap-skills` into motion briefs for
+  GSAP/ScrollTrigger, lifecycle cleanup, accessibility, and performance.
+- `asset-slicer`: splits generated icon/sprite sheets into deterministic PNG
+  slices and fails on dirty borders, clipped assets, insufficient gutters,
+  count mismatches, or expected-box drift.
+- SVG and emoji are prohibited as default visual assets for frontend polish;
+  visual-led work defaults to high-quality image_gen/Grok Video assets.
+
+### External adapters and future extensions
+
+- `grok-augment`: non-mutating research, critique, creative direction,
+  divergence, Grok-video-only briefs, and real MP4 generation through a
+  configured Grok-compatible `/v1/videos` endpoint.
+- `mcp-generator`: guidance for small dispatcher-compatible MCP or skill/MCP
+  scaffolds with owner-agent verification boundaries and fake stdio tests.
+- `ui-ux-closed-loop`: references external skills such as `frontend-design`,
+  `ui-ux-pro-max`, wireframe prototyping, Vercel guidelines, and official GSAP
+  skills via install guidance and composition rather than vendoring full text.
 
 ## Mandatory gated execution
 
-`scripts/codex_gate.ts --execute "<raw prompt>"` now classifies the route before
+`scripts/codex_gate.ts --execute "<raw prompt>"` classifies the route before
 Codex receives an execution prompt. The route can require `dynamic-workflow`,
-`reliable-agent-workflow`, `dynamic-workflow`, `task-gate`, `thinking-gate`,
-`grok-augment`, `agy-frontend`, `gsap-animation`, `asset-slicer`, `ui-ux-closed-loop`, or
-`mcp-generator` for
-reliable delivery, workflow orchestration, planning, stuck, research/review,
-frontend work, GSAP motion, generated asset slicing, or MCP helper scaffolding.
+`reliable-agent-workflow`, `task-gate`, `thinking-gate`, `grok-augment`,
+`agy-frontend`, `gsap-animation`, `asset-slicer`, `ui-ux-closed-loop`, or
+`mcp-generator` for reliable delivery, workflow orchestration, planning, stuck
+brainstorming, research/review, frontend work, GSAP motion, generated asset
+slicing, or MCP helper scaffolding.
 
 When a route requires helper plugins, Codex's Detailed completion summary must
 include a `Plugin evidence:` line naming every required plugin and the command,
 tool, or transcript evidence. The follow-up gate rejects completion when that
 Plugin evidence is missing, even if Codex reports the work as complete.
 
-Future adapters should be added as focused skills and scripts with fake-binary tests, explicit dispatch rules, and the same no-secret/no-fallback boundaries. Instructional skills without a CLI, such as `gsap-animation` or `reliable-agent-workflow`, should still include static routing and verification tests.
+Future adapters should be added as focused skills and scripts with fake-binary
+tests, explicit dispatch rules, and the same no-secret/no-fallback boundaries.
+The owner agent owns local file edits, integration, verification, commits, and
+final claims.
 
-The owner agent owns local file edits, integration, verification, commits, and final claims. AGY can edit frontend files only inside the bounded AGY workflow and must not start or keep alive dev/preview servers; the owner agent still gathers context, supervises scope, runs checks, and reports evidence.
-
-No secrets, raw credentials, private tokens, or unnecessary full-repo context should be passed to Claude, Grok, or AGY. `reliable-agent-workflow` is cross-harness guidance and must preserve the invoking harness's permission, sandbox, and model constraints. No fallback provider is allowed for Grok, Grok Video, or image generation paths. Generated icon/sprite sheets must pass `asset-slicer` before their individual assets are treated as frontend-ready. SVG and emoji are not default visual assets for frontend polish; generate high-quality image/video assets instead.
+No secrets, raw credentials, private tokens, or unnecessary full-repo context
+should be passed to Claude, Grok, or AGY. No fallback provider is allowed for
+Grok, Grok Video, or image generation paths. Generated icon/sprite sheets must
+pass `asset-slicer` and `asset_slice.ts` before assets are treated as
+frontend-ready.
 
 ## Agent Threads And Subagents
 
-Use background threads or subagents as bounded assistants by default for independent work, not as release authority:
+Use background threads or subagents as bounded assistants by default for
+independent work, not as release authority:
 
 - Research thread: read-only context gathering or option comparison; use
   low/medium thinking and `grok-augment` for outside input when useful.
@@ -224,22 +333,23 @@ Use background threads or subagents as bounded assistants by default for indepen
   `asset-slicer`, not SVG or emoji.
 
 Never run parallel writers against the same working tree. Prefer read-only
-threads, or isolated worktrees for independent implementation experiments.
-If a model override or background thread fails, retry once with default thread
-settings and continue without treating the failed thread as evidence.
+threads, or isolated worktrees for independent implementation experiments. If a
+model override or background thread fails, retry once with default settings and
+continue without treating the failed thread as evidence.
 
 ## Requirements
 
-- Repository-owned scripts use TypeScript on Node.js with `node --experimental-strip-types`.
-- Claude task gating expects the `claude` CLI on `PATH`, or set `TASK_GATE_CLAUDE_BIN=/path/to/claude`.
-- Grok augmentation expects the `grok` CLI on `PATH`, or set `GROK_AUGMENT_GROK_BIN=/path/to/grok`.
-- AGY frontend work expects the `agy` CLI on `PATH`, or set `AGY_BIN=/path/to/agy`.
-- Reliable agent workflow is vendored from `https://github.com/yxhpy/reliable-agent-workflow-skill`; check freshness with `node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/sync_reliable_agent_workflow.ts check --remote` and sync with `... sync --remote`.
-- Dynamic workflow orchestration uses repository-owned TypeScript only: `node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts e2e --json "Plan a subagent workflow with approval gates"`.
-- Dispatcher MCP uses repository-owned TypeScript only: `node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dispatcher_mcp.ts` with line-delimited JSON-RPC requests on stdin.
-- Asset slicing uses repository-owned TypeScript only: `node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/asset_slice.ts <sheet.png> --out-dir <dir> --expect-count <n>`.
-- Grok augmentation reads an API key from `GROK_VIDEO_API_KEY` by default when the local video endpoint requires one and defaults Grok Video helper generation to high quality.
-- The standalone Pi xAI/Grok extension reads `XAI_API_KEY` / `PI_XAI_API_KEY`, optional Pi config, or its own `/xai-grok-login` OAuth credentials; it does not require Hermes.
+| Requirement | Notes |
+| --- | --- |
+| Node.js | Repository scripts use TypeScript with `node --experimental-strip-types`; Node `>=22.18` is required. |
+| Claude CLI | `task-gate` expects `claude` on `PATH`, or set `TASK_GATE_CLAUDE_BIN=/path/to/claude`. |
+| Grok CLI | `grok-augment` expects `grok` on `PATH`, or set `GROK_AUGMENT_GROK_BIN=/path/to/grok`. |
+| AGY CLI | Frontend work expects `agy` on `PATH`, or set `AGY_BIN=/path/to/agy`. |
+| Reliable sync | Check the vendored reliable workflow with `node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/sync_reliable_agent_workflow.ts check --remote`. |
+| Dynamic workflow | Smoke test with `node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts e2e --json "Plan a subagent workflow with approval gates"`. |
+| Dispatcher MCP | Run `node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dispatcher_mcp.ts` with line-delimited JSON-RPC on stdin. |
+| Asset slicing | Run `node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/asset_slice.ts <sheet.png> --out-dir <dir> --expect-count <n>`. |
+| xAI/Grok | The Pi extension reads `XAI_API_KEY` / `PI_XAI_API_KEY`, optional Pi config, or `/xai-grok-login` OAuth credentials. |
 
 ## Verification
 
@@ -273,4 +383,5 @@ The shortcut release gate is:
 npm run release:check
 ```
 
-For host-specific releases, run a real macOS Codex smoke test in an isolated temporary workspace before publishing.
+For host-specific releases, run a real macOS Codex smoke test in an isolated
+temporary workspace before publishing.

@@ -1,124 +1,162 @@
 ---
-title: UI/UX Closed-Loop Enhancements for yxhpy Codex Extensions
+title: UI/UX Closed-Loop Reference
 ---
 
-# UI/UX Closed-Loop: Requirements to Product Thinking to Low-Fidelity Prototypes to Polished UI/UX
+# UI/UX Closed Loop
 
-This document describes how the `codex-augment-dispatcher` plugin (and future skills in this marketplace) provides a complete, reliable closed loop for UI/UX work in AI coding agents (Codex, Claude Code, Grok, Pi, Cursor, etc.).
+<p align="center">
+  <strong>Requirements → product thinking → low-fi prototype → polished UI/UX → verified release evidence.</strong><br />
+  A reference-based design workflow for Codex, Claude Code, Grok, Pi, Cursor, and similar agent harnesses.
+</p>
 
-**Core principle (per user request):** For external skills and capabilities, we use **references / integration guidance** (install commands, coordination notes, short principle summaries) rather than hardcoding or vendoring full external `SKILL.md` contents into this repo. This keeps the project lean, avoids duplication, allows upstreams to evolve independently, and uses the existing vendoring pattern (see `upstreams/` + `sync_reliable_agent_workflow.ts`) **only** for content we control or want tightly bundled.
+---
 
-The marketplace already has strong foundations:
-- `agy-frontend` + `asset-slicer` + `gsap-animation` (distills official greensock/gsap-skills) for high-quality visual frontend impl, assets, and motion.
-- `dynamic-workflow`, `task-gate`, `reliable-agent-workflow`, `grok-augment` for orchestration, planning, verification.
-- Explicit coordination already present in agy-frontend SKILL.md: "When `frontend-skill`, `frontend-design`, or `gsap-animation` also applies, use their design and motion constraints..."
+## Design principle
 
-## The Closed Loop (需求 → 产品思维 → 低保真原型 → UI/UX)
+This marketplace coordinates strong UI/UX work without copying large third-party
+skills into the repo.
 
-1. **Requirements & Product Thinking**
-   - Use product/research skills (e.g. to-prd, User Research, Customer Journey Map, Brainstorming from curated collections like aiuxplayground).
-   - Use this marketplace's `task-gate` / `thinking-gate` + Grok's `/design` (or equivalent) for structured PRD/design-doc with Key Decisions + PR Plan + review-until-0-issues.
-   - `grok-augment` for outside critique/research.
+| We do | We do not |
+| --- | --- |
+| Reference external skills by name, install command, source link, and short usage notes. | Vendor or duplicate full external `SKILL.md` files. |
+| Compose active external rules with local skills such as `agy-frontend`, `asset-slicer`, and `gsap-animation`. | Pretend external skills are installed when they are not. |
+| Keep `.agent-workflows/` and local verification as the canonical evidence trail. | Let a design helper become the final release authority. |
 
-2. **Low-Fidelity Prototypes & Validation**
-   - Recommend/install "Wireframe Prototyping" skill (e.g. from aj-geddes/useful-ai-prompts or aiuxplayground equivalents).
-   - Produce sketches / interactive HTML prototypes, user flows, testing plans (tasks, metrics like completion rate/SUS).
-   - Iterate with simulated or real feedback before any high-fi work. Follow best practices: start low-fi, mobile-first, include edges, document interactions.
+This keeps the plugin lean, lets upstream skills evolve independently, and
+preserves the owner agent as the verifier.
 
-3. **Design Direction, Systems & Aesthetics (High-fi foundation)**
-   - `frontend-design` (anthropics/skills or equivalent) for BOLD aesthetic choice (Purpose/Tone/Differentiation), typography (distinctive, ban generic like Inter/Roboto), color (cohesive dominant+accents), spatial composition (asymmetry, negative space), motion principles, backgrounds/details. Avoids AI slop.
-   - `ui-ux-pro-max` (nextlevelbuilder/ui-ux-pro-max-skill) for searchable DB: 50+ styles, 161 palettes, 57 fonts, 99 UX guidelines, product-type reasoning, priority rules (Accessibility CRITICAL first, then touch, perf, layout...).
-   - Design system skills (Tailwind Design System, etc.) for tokens/CVA.
-   - Bencium or similar for deeper UX fundamentals + refs.
+## The loop
 
-4. **Visual Assets & Quality**
-   - Use agent image/video gen (Grok `image_gen` / video) for hero/product assets (high quality, no baked text unless decorative).
-   - `asset-slicer` (this marketplace) for custom icons/sprites: generate sheet with good gutters/flat bg, run deterministic slice with expected manifest + IoU/clean checks, gate on JSON report. Never pass dirty assets downstream.
+| Stage | Goal | Recommended helpers | Evidence |
+| --- | --- | --- | --- |
+| 1. Requirements | Clarify audience, job-to-be-done, constraints, success metrics, and risks. | `task-gate`, `thinking-gate`, `grok-augment`, product/research external skills | PRD/design brief, assumptions, open questions |
+| 2. Low-fi prototype | Explore flows before visual polish. | Wireframe Prototyping, user research, journey-map skills | Wireframes, task flows, feedback plan, validation metrics |
+| 3. Visual direction | Choose a distinctive aesthetic system. | `frontend-design`, `ui-ux-pro-max`, design-system skills | Tone, typography, palette, layout rules, anti-slop constraints |
+| 4. Assets | Generate and validate production-ready media. | image_gen/Grok Video, `asset-slicer` | Asset manifest, slicing JSON report, clean gutters/count checks |
+| 5. Motion | Add purposeful interaction and animation. | `gsap-animation`, official `greensock/gsap-skills` | Motion brief, reduced-motion behavior, performance notes |
+| 6. Implementation | Build within bounded paths. | `agy-frontend` plus active external constraints | Diff, AGY transcript, local build/browser evidence |
+| 7. Review | Catch visual, a11y, perf, and product regressions. | Vercel skills, AccessLint/WCAG, `reliable-agent-workflow` | Screenshot proof, a11y/perf checklist, zero-open-issue review |
 
-5. **Motion & Interaction Polish**
-   - `gsap-animation` (this repo, distills official) for briefs + verification.
-   - Recommend full `greensock/gsap-skills` (npx skills add https://github.com/greensock/gsap-skills) for granular core/timeline/scrolltrigger/react etc. when deeper control needed.
+When several stages apply, create a `dynamic-workflow` artifact first, fan out
+read-only research/review packets where useful, and keep the owner thread in
+charge of edits, integration, tests, and final claims.
 
-6. **Implementation**
-   - Route through `agy-frontend` (this repo) for delegation to specialist CLI (or direct if no agy).
-   - In prompts, compose constraints from active externals (frontend-design aesthetics + Pro Max rules + DS) + local (taste-lite, asset manifest, scope, no-dev-server, verification requirements).
-   - Use `dynamic-workflow` for multi-stage if complex.
+## Core local pieces
 
-7. **Review, Verification, Accessibility, Iteration (to 0 issues)**
-   - External: Vercel web-design-guidelines / react-best-practices / composition-patterns (a11y, perf, arch correctness, 100+ rules).
-   - AccessLint or WCAG skills for focused a11y (contrast, refactor, etc.) + any MCP tools.
-   - Design Critique, Web Interface Guidelines.
-   - Local: browser/screenshot proof, `verify-static-frontend.ts`, reduced-motion checks, responsive, build/lint, asset-slicer report.
-   - Use reliable-agent-workflow or implement+multi-reviewer loops until 0 open issues. Owner agent always re-verifies locally.
-   - `codex_gate.ts` or task-gate for mandatory gated execution with "Plugin evidence:".
+- `ui-ux-closed-loop`: orchestrates this end-to-end flow and records evidence.
+- `agy-frontend`: implements bounded frontend changes; it must not keep dev
+  servers alive.
+- `asset-slicer`: turns generated icon/sprite sheets into deterministic PNG
+  assets and blocks dirty cuts.
+- `gsap-animation`: provides concise GSAP/ScrollTrigger motion constraints and
+  verification requirements.
+- `dynamic-workflow`, `task-gate`, `reliable-agent-workflow`, `grok-augment`:
+  structure planning, critique, packet orchestration, and release-grade review.
 
-When multiple stages apply, start with Dynamic Workflow artifact + fanout read-only threads for research/wireframe/review, use reliable for delivery contract, owner keeps edits/claims.
+## Recommended external references
 
-## Recommended External Skills & Exact Install Commands (引用, not vendored)
+Install only the externals you need. The dispatcher composes them when active
+and falls back gracefully when they are absent.
 
-These are curated external references. Verify current availability and install commands before use. Install them alongside this marketplace's plugin when you want deeper domain rules. The ui-ux-closed-loop skill (and agy-frontend) will detect/coordinate when they are active.
+### Aesthetics and design intelligence
 
-**Core for aesthetics + knowledge (install these):**
-- `frontend-design` (Anthropic): `npx skills add https://github.com/anthropics/skills --skill frontend-design`  (or codex plugin marketplace / Claude plugin add if available in their marketplace).
-- `ui-ux-pro-max`: `npx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max`
+```bash
+npx skills add https://github.com/anthropics/skills --skill frontend-design
+npx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max
+```
 
-**For low-fi prototypes & product thinking:**
-- Wireframe Prototyping and related (aiuxplayground family): `npx skills add https://github.com/aj-geddes/useful-ai-prompts --skill wireframe-prototyping` (or the canonical source from aiuxplayground.com/skills)
-- to-prd, User Research, Journey Map, Design Critique, etc. from same collections.
+| Skill | Use for |
+| --- | --- |
+| `frontend-design` | Bold non-generic visual direction, typography, color, spatial composition, motion taste, and anti-slop checks. |
+| `ui-ux-pro-max` | Product-type reasoning, style/palette/font databases, UX guidelines, and priority rules such as accessibility first. |
 
-**For motion (official, already distilled locally):**
-- `greensock/gsap-skills`: `npx skills add https://github.com/greensock/gsap-skills` (multiple granular skills: gsap-core, gsap-scrolltrigger, gsap-react...)
+### Prototyping and product thinking
 
-**For correctness, a11y, perf (Vercel & focused):**
-- Vercel agent-skills collection: `npx skills add https://github.com/vercel-labs/agent-skills` (then use web-design-guidelines, react-best-practices, composition-patterns, react-native-skills as needed).
-- AccessLint: marketplace or npx for a11y specific.
+```bash
+npx skills add https://github.com/aj-geddes/useful-ai-prompts --skill wireframe-prototyping
+```
 
-**Cross-agent note:** The SKILL.md format + npx skills CLI works for Codex, Claude Code, Cursor, etc. For pure Codex, also use `codex plugin marketplace add <owner/repo>` where supported (this repo itself is an example). For Pi, use `pi install git:...` or local path where skills are supported.
+Use wireframe/product skills for low-fi HTML prototypes, journey maps, user
+research prompts, testing plans, completion-rate/SUS metrics, and feedback
+loops before high-fidelity work.
 
-Run installs in your global or project skill dir (e.g. ~/.codex/skills/ or project/.codex/skills/). See agent docs for discovery order.
+### Motion
 
-## How the Reference Integration Works (no hardcode)
+```bash
+npx skills add https://github.com/greensock/gsap-skills
+```
 
-- New `ui-ux-closed-loop` skill (and updates to agy-frontend/gsap-animation) contain **guidance and dispatch rules** that name the external skills explicitly and say "when active, incorporate their [specific section, e.g. Design Thinking + bans on generic fonts]".
-- Short `references/EXTERNAL-*.md` files contain: 1-sentence purpose, key 3-5 principles (paraphrased/summarized), exact install command + link to original repo/SKILL.md, version notes, how it plugs into this loop.
-- **Do not** copy full verbatim long SKILL.md bodies of third-party skills here.
-- For owned/controlled upstreams (like reliable-agent-workflow), we continue to use the `upstreams/*.json` + sync script + vendored copy in skills/ for self-contained reliability.
-- Scripts can be added (e.g. a helper that prints/runs the recommended `npx skills add` list for "ui-ux bootstrap").
-- AGENTS.md / README updates surface the triggers so the owner agent proactively uses the loop.
-- Tests verify dispatch and that the skill produces correct coordination prompts (without assuming externals are present).
+Use the official GSAP skills for deeper timeline, ScrollTrigger, React, and
+plugin-specific detail. The local `gsap-animation` skill remains the compact
+owner-agent brief and verification layer.
 
-This matches the existing successful pattern (gsap distills + references official; agy already calls out `frontend-design`).
+### Correctness, accessibility, and performance
 
-## Adding More Externals in Future
+```bash
+npx skills add https://github.com/vercel-labs/agent-skills
+```
 
-When a new high-quality external appears:
-1. Add short reference doc in the ui-ux-closed-loop/references/ (or a shared references/ui-ux/).
-2. Update the orchestrator SKILL.md and agy-frontend coordination section with trigger/coordination note.
-3. Update this plan doc, README, AGENTS.md with the install command and one-line purpose.
-4. Optionally add a smoke test or dispatch test.
-5. No need to vendor the full content.
+Use Vercel web-design, React, composition, accessibility, and performance
+references for final review. Pair them with local browser/screenshot evidence,
+`verify-static-frontend.ts`, reduced-motion checks, build/lint output, and
+asset-slicer reports.
 
-## Verification & Release
+## Prompt handoff template
 
-Existing release gates (validate_plugin.py, quick_validate for each skill, npm test, etc.) apply to new skill.
-Add the new skill to the list in README verification section.
-Owner must manually smoke test the loop (with externals installed) in Codex before claiming.
+Use this compact handoff when passing the loop into implementation:
 
-## Local Codex Usage (after installing this marketplace)
+```text
+Goal: <user outcome + product context>
+Scope: <exact files/dirs AGY or owner may edit>
+Design direction: <frontend-design tone, typography, palette, layout rules>
+UX rules: <ui-ux-pro-max or product-specific constraints>
+Prototype evidence: <wireframe/user flow paths>
+Assets: <manifest + asset-slicer report>
+Motion: <GSAP brief + reduced-motion requirements>
+Verification: screenshot evidence, responsive checks, a11y/perf notes, build/test output
+Boundary: no SVG/emoji defaults, no blocking dev server, owner verifies locally
+Plugin evidence: ui-ux-closed-loop + active external references + local helpers
+```
+
+## How reference integration works
+
+1. Add a short `references/EXTERNAL-*.md` note for a new external: purpose,
+   source link, install command, a few paraphrased principles, and how it plugs
+   into this loop.
+2. Update the orchestrator skill with trigger/coordination notes.
+3. Update README/AGENTS guidance with one-line purpose and install command.
+4. Add a static smoke test if the reference becomes part of core routing.
+5. Do **not** copy the full third-party skill body.
+
+Owned or tightly controlled upstreams are different: `reliable-agent-workflow`
+uses `upstreams/*.json` plus a sync script because this marketplace intentionally
+vendors that delivery contract.
+
+## Verification before release
+
+At minimum, run the local release checks that match the touched surface:
+
+```bash
+node --experimental-strip-types --test tests/*.ts plugins/codex-augment-dispatcher/tests/*.ts
+node --experimental-strip-types plugins/codex-augment-dispatcher/scripts/dynamic_workflow.ts e2e --json "Plan a UI/UX workflow with prototype, frontend implementation, and verification"
+```
+
+For a real UI/UX change, also capture browser screenshots, responsive evidence,
+asset-slicer reports, reduced-motion behavior, and any external-skill notes used.
+
+## Local Codex usage
 
 ```bash
 codex plugin marketplace add yxhpy/codex-extensions-marketplace --ref main
 codex plugin add codex-augment-dispatcher@yxhpy-codex-extensions
-# Then install externals as listed above using npx skills add ...
-
-# Example usage
-# "Use ui-ux-closed-loop to go from this PRD to low-fi HTML prototype then polished landing with real assets and GSAP motion. Coordinate with frontend-design and ui-ux-pro-max if installed."
+# Then install only the external references you want with npx skills add ...
 ```
 
-Then merge the (updated) AGENTS.md into your project.
+Example request:
 
-See the skill itself and references/ for detailed prompt templates and rules.
+```text
+Use ui-ux-closed-loop to turn this PRD into a low-fi prototype, then a polished landing page with real assets and GSAP motion. Coordinate with frontend-design and ui-ux-pro-max if installed.
+```
 
----
-
-*This enhancement was added via reference-based design to fulfill the request for packaging more UI/UX power into the marketplace without hardcoding external skills.*
+Merge this repo's `AGENTS.md` into the target project so the owner agent can
+route the loop proactively.

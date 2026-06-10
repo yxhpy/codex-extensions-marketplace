@@ -1,12 +1,12 @@
 {
   "name": "yxhpy-codex-extensions",
-  "description": "Public catalog of optional Codex plugins and MCP-oriented tools.",
+  "description": "Polished Codex/Pi marketplace for owner-agent workflows, real subagent fanout, MCP helpers, media tools, and release-grade verification.",
   "plugins": [
     {
       "name": "codex-augment-dispatcher",
       "path": "plugins/codex-augment-dispatcher",
       "install": "codex plugin add codex-augment-dispatcher@yxhpy-codex-extensions",
-      "summary": "Extensible reliable-agent workflow, MCP helper, and external CLI adapter hub for owner-agent orchestration across Pi, Codex, Claude Code, Grok, and similar CLIs; adapters cover reliable delivery, workflow artifacts, Claude Dynamic Workflow/ultracode interop, stronger subagent fanout, Claude task gating, Grok augmentation, AGY frontend implementation, high-quality media defaults, GSAP motion guidance, mcp-generator, and deterministic asset slicing."
+      "summary": "Owner-agent orchestration hub for reliable delivery, dynamic workflows, task gates, MCP tools, real worker result ingestion, cross-harness subagent fanout, AGY frontend, GSAP motion, UI/UX closed loops, Grok augmentation, and deterministic asset slicing."
     }
   ],
   "skills": []

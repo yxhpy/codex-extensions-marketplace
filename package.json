@@ -1,10 +1,29 @@
 {
   "name": "yxhpy-codex-extensions",
+  "description": "Polished Codex/Pi marketplace for owner-agent workflows, real subagent fanout, MCP helpers, media tools, and release-grade verification.",
   "version": "0.1.23",
+  "license": "MIT",
+  "author": "yxhpy",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yxhpy/codex-extensions-marketplace.git"
+  },
+  "homepage": "https://github.com/yxhpy/codex-extensions-marketplace#readme",
+  "bugs": {
+    "url": "https://github.com/yxhpy/codex-extensions-marketplace/issues"
+  },
   "private": true,
   "type": "module",
   "keywords": [
-    "pi-package"
+    "pi-package",
+    "codex-plugin",
+    "agent-workflows",
+    "subagents",
+    "mcp",
+    "workflow-orchestration",
+    "verification",
+    "frontend",
+    "grok"
   ],
   "scripts": {
     "test": "node --experimental-strip-types --test tests/*.ts plugins/codex-augment-dispatcher/tests/*.ts",
